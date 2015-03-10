@@ -13,21 +13,21 @@ object Combinators {
         animation (t) (x / scaleX) (y / scaleY)
 
     def scaleUniform(factor : R) (animation : Animation) (t : R) (x : R) (y : R) = 
-        scale (factor, factor)
+        scale(factor, factor) _
 
     def rotate(angle : R) (animation : Animation) (t : R) (x : R) (y : R) =
         animation (t) (x * cos(angle) - y * sin(angle)) (x * sin(angle) + y * cos(angle))
 
     def scroll(speedX : R, speedY : R) (animation : Animation) (t : R) =
-        translate(speedX * t, speedY * t) (animation) (t)
+        translate(speedX * t, speedY * t) (animation) (t) _
 
-    def circle(speed : R) = orbit(speed, speed)
+    def circle(speed : R) = orbit(speed, speed) _
 
     def orbit(speedX : R, speedY : R) (animation : Animation) (t : R) =
-        translate(cos(speedX * t), sin(speedY * t)) (animation) (t)
+        translate(cos(speedX * t), sin(speedY * t)) (animation) (t) _
 
     def spin(speed : R) (animation : Animation) (t : R) =
-        rotate (speed * t) (animation) (t)
+        rotate (speed * t) (animation) (t) _
 
     def timeTravel (dt : R) (animation : Animation) (t : R) (x : R) (y : R) = 
         animation (t + dt) (x) (y)
@@ -35,19 +35,21 @@ object Combinators {
     def fastForward (speed : R) (animation : Animation) (t : R) (x : R) (y : R) =
         animation (t * speed) (x) (y)
 
-    /* TODO
-    //bendSpaceTime :: Animation -> Animation -> Animation
-    def bendSpaceTime (f : Animation) (target : Animation) (t : R) (x : R) (y : R) =
-        (f (t) (x) (y)).bind { spaceTimeColor =>
-            red spaceTimeColor >- \ dx ->
-                green spaceTimeColor >- \ dy ->
-                blue spaceTimeColor >- \ dt ->
-                alpha spaceTimeColor >- \ a ->
-                target(t + dt * a)(x + dx * a)(y + dy * a)
+    def bendSpaceTime (f : Animation) (target : Animation) (t : R) (x : R) (y : R) = {
+        f(t)(x)(y) bind { spaceTimeColor =>
+            spaceTimeColor.red bind { dx =>
+                spaceTimeColor.green bind { dy =>
+                    spaceTimeColor.blue bind { dt =>
+                        spaceTimeColor.alpha bind { a =>
+                            target(t + dt * a)(x + dx * a)(y + dy * a)
+                        }
+                    }
+                }
+            }
         }
-    */
+    }
 
-    //fromPolarCoordinates :: Animation -> Animation
+        //fromPolarCoordinates :: Animation -> Animation
     def fromPolarCoordinates (f : Animation) (t : R) (x : R) (y : R) : Color =
         sqrt (x**2 + y**2) bind { r =>
             atan2(x, y) bind { phi =>
@@ -60,7 +62,9 @@ object Combinators {
     *******************************/
 
     def liftA2(f : Image => Image => Image) : Animation => Animation => Animation = {
-        null
+        {a1 : Animation => a2 : Animation =>
+            t : Time => f (a1 (t)) (a2 (t))
+        }
     }
 
     //multiply :: Animation -> Animation -> Animation
@@ -95,13 +99,13 @@ object Combinators {
             }
         }
 
-    def multiplyImage = blender {case (a, b) => a * b}
+    def multiplyImage = blender {case (a, b) => a * b} _
 
-    def screenImage = blender {case (a, b) => 1 - (1 - a) * (1 - b)}
+    def screenImage = blender {case (a, b) => 1 - (1 - a) * (1 - b)} _
 
-    def additionImage = blender {case (a, b) => min(1, a + b)}
+    def additionImage = blender {case (a, b) => min(1, a + b)} _
 
-    def subtractImage = blender {case (a, b) => max(0, a - b)}
+    def subtractImage = blender {case (a, b) => max(0, a - b)} _
 
     def topImage (f : Image) (g : Image) (x : R) (y : R) =
         f(x)(y) bind { a: Color =>
