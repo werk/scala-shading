@@ -30,16 +30,22 @@ object LanguageTest {
         def useR(v : R) = v + v
 
         printB((a === b).bind(useB))
-        printR(pi.bind(v => v**2 - v))
+        printR(pi.bind(v => pow(v, 2) - v))
         println()
 
-        def animation(t : Time) (x : R) (y : R) = hsva(x, y, sin(t), 1)
-        val html = ToHtml(animation)
-        println(html)
-        Files.write(Paths.get("foo.html"), html.getBytes(StandardCharsets.UTF_8))
+        save(TimeLens)
+        save(HidingDevils)
+        save(Spiral)
     }
 
     def printR(e : R) = println(e)
     def printB(e : B) = println(e)
+
+    def save(o : {def apply : Animation}): Unit = {
+        val fileName = s"${o.getClass.getSimpleName.filter(_.isLetterOrDigit)}.html"
+        val html = ToHtml(o.apply)
+        println(html)
+        Files.write(Paths.get(fileName), html.getBytes(StandardCharsets.UTF_8))
+    }
 
 }

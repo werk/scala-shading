@@ -5,7 +5,8 @@ import dk.mzw.accelemation.Language.Math._
 
 object Arithmetic {
     def gaussian(variance : R, x : R) : R =
-        1 / sqrt(variance) * sqrt(2 * pi) * exp(-(x**2) / (2 * variance)**2)
+        1 / sqrt(variance) * sqrt(2 * pi) * exp(-(x*x) / pow(2 * variance, 2))
+        //     1 / sqrt(variance) * sqrt(2*pi) * exp(-(x*x) / (2 * variance)**2)
 
     def gaussianOne(variance : R, x : R) : R =
         gaussian(variance, x) / gaussian(variance, 0)
@@ -18,10 +19,10 @@ object Arithmetic {
     def sinOne(x : R) : R = sin(x - pi/2) * 0.5 + fromDouble(0.5) // TODO
 
     def fromPolar[A](f : R => R => Term[A]) (x : R) (y : R) : Term[A] = {
-        sqrt(x**2 + y**2).bind{r =>
+        vec2(x, y).magnitude.bind{r =>
             atan2(x, y).bind(phi => f (r) (phi))
         }
     }
 
-    def atan2(x : R, y : R) : R = 2 * atan(y / (sqrt (x**2 + y**2) + x))
+    def atan2(x : R, y : R) : R = 2 * atan(y / (vec2(x, y).magnitude + x))
 }

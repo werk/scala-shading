@@ -23,6 +23,8 @@ object Language {
     def vec3(x : R, y : R, z : R) : Vec3 = Term(Call("vec3",List(x.untyped, y.untyped, z.untyped)))
     def vec4(x : R, y : R, z : R, u : R) : Vec4 = Term(Call("vec4",List(x.untyped, y.untyped, z.untyped, u.untyped)))
 
+    def if_[A](condition : B, whenTrue : Term[A], whenFalse : Term[A]) : Term[A] = Term(If(condition.untyped, whenTrue.untyped, whenFalse.untyped))
+
     val rgba : (R, R, R, R) => Color = vec4
     def hsva (h : R, s : R, v : R, a : R) : Color = Term(Call("hsvaToRgba",List(Call("vec4",List(h.untyped, s.untyped, v.untyped, a.untyped)))))
 
@@ -34,11 +36,7 @@ object Language {
         def -(b : R) : R = Term(Infix("-", a.untyped, b.untyped))
         def *(b : R) : R = Term(Infix("*", a.untyped, b.untyped))
         def unary_-() : R = Term(Prefix("-", a.untyped))
-        def abs() : R = Term(Call("abs", List(a.untyped)))
-        def signum() : R = Term(Call("sign", List(a.untyped)))
-
         def /(b : R) : R = Term(Infix("/", a.untyped, b.untyped))
-        def **(b : R) : R = Term(Infix("**", a.untyped, b.untyped))
 
         def ===(b : R) : B = Term(Infix("==", a.untyped, b.untyped))
         def !=(b : R) : B = Term(Infix("!=", a.untyped, b.untyped))
@@ -48,9 +46,25 @@ object Language {
         def >=(b : R) : B = Term(Infix(">=", a.untyped, b.untyped))
     }
 
+    case object IsVector
+    implicit def vec2IsVector(v : Vec2) : IsVector.type = IsVector
+    implicit def vec3IsVector(v : Vec3) : IsVector.type = IsVector
+    implicit def vec4IsVector(v : Vec4) : IsVector.type = IsVector
+
+    implicit class VectorWithOperations[T](a : Term[T])(implicit evidence: Term[T] => IsVector.type){
+        def dot(b : Term[T]) : R = Term(Call("dot", List(a.untyped, b.untyped)))
+        def magnitude : R = Term(Call("length", List(a.untyped)))
+        def distance(b : Term[T]) : R = Term(Call("distance", List(a.untyped, b.untyped)))
+        def normalize : Term[T] = Term(Call("normalize", List(a.untyped)))
+        def faceforward(b : Term[T], c : Term[T]) : Term[T] = Term(Call("faceforward", List(a.untyped, b.untyped, c.untyped)))
+        def reflect(b : Term[T]) : Term[T] = Term(Call("reflect", List(a.untyped, b.untyped)))
+    }
+
     object Math {
         val pi : R = Term(BuiltIn("pi"))
 
+        def abs(a : R) : R = Term(Call("abs", List(a.untyped)))
+        def sign(a : R) : R = Term(Call("sign", List(a.untyped)))
         def sqrt(a : R) : R = Term(Call("sqrt", List(a.untyped)))
         def exp (a : R) : R = Term(Call("exp", List(a.untyped)))
         def log (a : R) : R = Term(Call("log", List(a.untyped)))
@@ -67,6 +81,7 @@ object Language {
         def atanh (a : R) : R = Term(Call("atanh", List(a.untyped)))
         def acosh (a : R) : R = Term(Call("acosh", List(a.untyped)))
 
+        def pow(a : R, b : R) : R = Term(Call("pow", List(a.untyped, b.untyped)))
         def max (a : R, b : R) : R = Term(Call("max", List(a.untyped, b.untyped)))
         def min (a : R, b : R) : R = Term(Call("min", List(a.untyped, b.untyped)))
         def mod (a : R, b : R) : R = Term(Call("mod", List(a.untyped, b.untyped)))

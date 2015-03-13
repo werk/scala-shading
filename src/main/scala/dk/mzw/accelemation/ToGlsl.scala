@@ -55,7 +55,7 @@ object ToGlsl {
             case BuiltIn(name) => name
             case Prefix(operator, right) => s"($operator${apply(right)})"
             case Infix(operator, left, right) => s"(${apply(left)} $operator ${apply(right)})"
-            case Call(name, arguments) => s"$name(${arguments.map(apply).mkString(",")})"
+            case Call(name, arguments) => s"$name(${arguments.map(apply).mkString(", ")})"
         }
 
     }

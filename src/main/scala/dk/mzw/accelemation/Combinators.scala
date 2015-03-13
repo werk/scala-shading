@@ -32,8 +32,9 @@ object Combinators {
     def timeTravel (dt : R) (animation : Animation) (t : R) (x : R) (y : R) = 
         animation (t + dt) (x) (y)
 
-    def fastForward (speed : R) (animation : Animation) (t : R) (x : R) (y : R) =
-        animation (t * speed) (x) (y)
+    def fastForward (speed : R) (animation : Animation) : Animation = { t => x => y =>
+        animation(t * speed)(x)(y)
+    }
 
     def bendSpaceTime (f : Animation) (target : Animation) (t : R) (x : R) (y : R) = {
         f(t)(x)(y) bind { spaceTimeColor =>
@@ -51,7 +52,7 @@ object Combinators {
 
         //fromPolarCoordinates :: Animation -> Animation
     def fromPolarCoordinates (f : Animation) (t : R) (x : R) (y : R) : Color =
-        sqrt (x**2 + y**2) bind { r =>
+            vec2(x, y).magnitude bind { r =>
             atan2(x, y) bind { phi =>
                 f (t) (r) (phi)
             }
@@ -61,27 +62,37 @@ object Combinators {
     ** Animation blendings
     *******************************/
 
-    def liftA2(f : Image => Image => Image) : Animation => Animation => Animation = {
+    def liftImage2(f : Image => Image => Image) : Animation => Animation => Animation = {
         {a1 : Animation => a2 : Animation =>
             t : Time => f (a1 (t)) (a2 (t))
         }
     }
 
-    //multiply :: Animation -> Animation -> Animation
-    def multiply = liftA2 (multiplyImage)
+    val multiply = liftImage2 (multiplyImage)
+    val screen = liftImage2 (screenImage)
+    val addition = liftImage2 (additionImage)
+    val subtract = liftImage2 (subtractImage)
+    val top = liftImage2 (topImage)
+    
+    def multiplications(animations : Animation*) : Animation = {
+        animations.tail.fold (animations.head) {case (a, b) => multiply (a) (b)}  
+    }
 
-    //screen :: Animation -> Animation -> Animation
-    def screen = liftA2 (screenImage)
+    def screens(animations : Animation*) : Animation = {
+        animations.tail.fold (animations.head) {case (a, b) => screen (a) (b)}
+    }
 
-    //addition :: Animation -> Animation -> Animation
-    def addition = liftA2 (additionImage)
+    def additions(animations : Animation*) : Animation = {
+        animations.tail.fold (animations.head) {case (a, b) => addition (a) (b)}
+    }
 
-    //subtract :: Animation -> Animation -> Animation
-    def subtract = liftA2 (subtractImage)
+    def subtractions(animations : Animation*) : Animation = {
+        animations.tail.fold (animations.head) {case (a, b) => subtract (a) (b)}
+    }
 
-    //top :: Animation -> Animation -> Animation
-    def top = liftA2 (topImage)
-
+    def tops(animations : Animation*) : Animation = {
+        animations.tail.fold (animations.head) {case (a, b) => top (a) (b)}
+    }
 
     /*********************************
     ** Image blendings
