@@ -6,7 +6,7 @@ import java.nio.file.{Paths, Path, Files}
 import dk.mzw.accelemation.Language._
 import dk.mzw.accelemation.Language.Math._
 
-object LanguageTest {
+object Main {
 
     def main(arguments : Array[String]): Unit = {
 
@@ -42,7 +42,8 @@ object LanguageTest {
     def printB(e : B) = println(e)
 
     def save(o : {def apply : Animation}): Unit = {
-        val fileName = s"${o.getClass.getSimpleName.filter(_.isLetterOrDigit)}.html"
+        //val fileName = s"${o.getClass.getSimpleName.filter(_.isLetterOrDigit)}.html"
+        val fileName = s"foo.html"
         val html = ToHtml(o.apply)
         println(html)
         Files.write(Paths.get(fileName), html.getBytes(StandardCharsets.UTF_8))
