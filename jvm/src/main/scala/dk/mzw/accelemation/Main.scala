@@ -1,10 +1,11 @@
 package dk.mzw.accelemation
 
 import java.nio.charset.StandardCharsets
-import java.nio.file.{Paths, Path, Files}
+import java.nio.file.{Paths, Files}
 
 import dk.mzw.accelemation.Language._
 import dk.mzw.accelemation.Language.Math._
+import dk.mzw.accelemation.samples.{HidingDevils, Spiral, TimeLens}
 
 object Main {
 
@@ -33,17 +34,17 @@ object Main {
         printR(pi.bind(v => pow(v, 2) - v))
         println()
 
-        save(TimeLens)
-        save(HidingDevils)
-        save(Spiral)
+        save(TimeLens, "TimeLens")
+        save(HidingDevils, "HidingDevils")
+        save(Spiral, "Spiral")
     }
 
     def printR(e : R) = println(e)
     def printB(e : B) = println(e)
 
-    def save(o : {def apply : Animation}): Unit = {
+    def save(o : {def apply : Animation}, name : String): Unit = {
         //val fileName = s"${o.getClass.getSimpleName.filter(_.isLetterOrDigit)}.html"
-        val fileName = s"foo.html"
+        val fileName = s"$name.html"
         val html = ToHtml(o.apply)
         println(html)
         Files.write(Paths.get(fileName), html.getBytes(StandardCharsets.UTF_8))

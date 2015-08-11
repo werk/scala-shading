@@ -18,21 +18,24 @@ object ToGlsl {
 
         val bindings        =  vs.reverse.mkString
         val before          =
-            "uniform float u_time;\n" ++
-            "uniform float u_aspectRatio;\n" ++
-            "uniform vec2  u_resolution;\n" ++
-            "vec4 hsvaToRgba(vec4 c) {\n" ++
-            "    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\n" ++
-            "    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);\n" ++
-            "    vec3 r = c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);\n" ++
-            "    return vec4(r.x, r.y, r.z, c.w);\n" ++
-            "}\n" ++
-            "void main() {\n" ++
-            "    float pi = 3.14159265359;\n" ++
-            "    float t = u_time;\n" ++
-            "    float mystery = 1.23;\n" ++
-            "    float x = (gl_FragCoord.x / u_resolution.x) * 2.0 * u_aspectRatio - u_aspectRatio * mystery;\n" ++
-            "    float y = (gl_FragCoord.y / u_resolution.y) * 2.0 - 1.0 * mystery;\n"
+            """
+precision mediump float;
+uniform vec2 resolution;
+uniform float time;
+
+vec4 hsvaToRgba(vec4 c) {
+    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+    vec3 r = c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+    return vec4(r.x, r.y, r.z, c.w);
+}
+void main() {
+    float pi = 3.14159265359;
+    float t = time;
+    float aspectRatio = resolution.x / resolution.y;
+    float x = (gl_FragCoord.x / resolution.x) * 2.0 * aspectRatio - aspectRatio;
+    float y = (gl_FragCoord.y / resolution.y) * 2.0 - 1.0;
+"""
         val after           =
             ";\n}\n"
         before + bindings + "    gl_FragColor = " + compiled + after
@@ -42,7 +45,13 @@ object ToGlsl {
         var declarations = List[String]()
 
         def apply(u : Untyped) : String = u match {
-            case Constant(n) => n.toString
+            case Constant(n) =>
+                // We need the decimal point to denote a float.
+                // Scala JS will not generate this for integers.
+                // This is not a problem in JVM
+                val s = n.toString
+                if(s.contains('.')) s
+                else s + ".0";
             case Bind(variableType, argument, body) =>
                 val a = apply(argument)
                 val i = declarations.length
