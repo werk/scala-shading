@@ -20,8 +20,10 @@ object ToGlsl {
         val before          =
             """
 precision mediump float;
-uniform vec2 resolution;
-uniform float time;
+uniform vec2 u_resolution;
+uniform vec2 u_scale;
+uniform vec2 u_offset;
+uniform float u_time;
 
 vec4 hsvaToRgba(vec4 c) {
     vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
@@ -31,10 +33,10 @@ vec4 hsvaToRgba(vec4 c) {
 }
 void main() {
     float pi = 3.14159265359;
-    float t = time;
-    float aspectRatio = resolution.x / resolution.y;
-    float x = (gl_FragCoord.x / resolution.x) * 2.0 * aspectRatio - aspectRatio;
-    float y = (gl_FragCoord.y / resolution.y) * 2.0 - 1.0;
+    float t = u_time;
+    float aspectRatio = u_resolution.x / u_resolution.y;
+    float x = (gl_FragCoord.x / u_resolution.x) * 2.0 * aspectRatio - aspectRatio;
+    float y = (gl_FragCoord.y / u_resolution.y) * 2.0 - 1.0;
 """
         val after           =
             ";\n}\n"

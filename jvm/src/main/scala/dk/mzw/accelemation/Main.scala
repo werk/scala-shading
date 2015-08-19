@@ -5,7 +5,7 @@ import java.nio.file.{Paths, Files}
 
 import dk.mzw.accelemation.Language._
 import dk.mzw.accelemation.Language.Math._
-import dk.mzw.accelemation.samples.{HidingDevils, Spiral, TimeLens}
+import dk.mzw.accelemation.samples.{Simon, HidingDevils, Spiral, TimeLens}
 
 object Main {
 
@@ -37,6 +37,7 @@ object Main {
         save(TimeLens, "TimeLens")
         save(HidingDevils, "HidingDevils")
         save(Spiral, "Spiral")
+        save(Simon, "Simon")
     }
 
     def printR(e : R) = println(e)
