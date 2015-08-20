@@ -2,7 +2,7 @@
 
 (function() {
 
-    var vertexShader =
+    var vertexShaderSource =
         "precision mediump float;\n" +
         "attribute vec2 a_position;\n" +
         "\n" +
@@ -28,8 +28,10 @@
         if(!gl) throw "This browser does no support WebGL.";
 
         var program = gl.createProgram();
-        gl.attachShader(program, loadShader(gl, vertexShader, gl.VERTEX_SHADER));
-        gl.attachShader(program, loadShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER));
+        var vertexShader = loadShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
+        var fragmentShader = loadShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
         gl.linkProgram(program);
         if(!gl.getProgramParameter(program, gl.LINK_STATUS)) {
             var lastError = gl.getProgramInfoLog(program);
@@ -60,6 +62,8 @@
 
         function dispose() {
             gl.deleteProgram(program);
+            gl.deleteShader(vertexShader);
+            gl.deleteShader(fragmentShader);
             // TODO Something else ??
         }
 
