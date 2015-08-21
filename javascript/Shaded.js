@@ -64,6 +64,9 @@
             gl.deleteProgram(program);
             gl.deleteShader(vertexShader);
             gl.deleteShader(fragmentShader);
+            var loseContext = gl.getExtension('WEBGL_lose_context')
+            console.dir(loseContext);
+            loseContext.loseContext();
             // TODO Something else ??
         }
 
