@@ -17,7 +17,8 @@ lazy val shading = crossProject.in(file(".")).
         // Add JVM-specific settings here
     ).
     jsSettings(
-        libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.8.0"
+        libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.8.0",
+        libraryDependencies += "com.lihaoyi" %% "scalatags" % "0.5.2"
     )
 
 lazy val shadingJVM = shading.jvm
