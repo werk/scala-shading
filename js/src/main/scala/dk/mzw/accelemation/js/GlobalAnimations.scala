@@ -31,7 +31,7 @@ object GlobalAnimations {
 
 
     def squareTiling(animation : Animation) : Animation = { t => x => y =>
-        animation(t) (Math.mod(x, 0.1) * 10) (Math.mod(y, 0.1) * 10)
+        animation(t) (Math.mod(x, 0.2) * 10 - 1) (Math.mod(y, 0.2) * 10 - 1)
     }
 
 
