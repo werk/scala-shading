@@ -1,6 +1,5 @@
 package dk.mzw.accelemation.js
 
-import dk.mzw.accelemation.ToGlsl
 import dk.mzw.accelemation.samples._
 import org.scalajs.dom
 import org.scalajs.dom.raw.UIEvent
@@ -15,16 +14,15 @@ object Main extends JSApp {
     )
 
     def main(): Unit = {
-        val canvas = dom.document.getElementById("canvas")
-        val animade = new Animade(Animade.Configuration(ToGlsl(animations.head), canvas))
+        val activeWidget = new AnimationWidget(animations.head)
+
         dom.window.onresize = { event : UIEvent =>
-            animade.resize(dom.window.innerWidth, dom.window.innerHeight)
+            activeWidget.onResize(dom.window.innerWidth, dom.window.innerHeight)
         }
         dom.window.onresize(null)
-        val start = System.currentTimeMillis()
+
         def step(elapsed : Double) : Unit = {
-            val now = System.currentTimeMillis()
-            animade.draw(Map("u_time" -> List[Double]((now - start) / 1000.0)))
+            activeWidget.onDraw()
             dom.window.requestAnimationFrame(step _)
         }
         step(0)
