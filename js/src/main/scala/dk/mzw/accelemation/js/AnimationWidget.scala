@@ -2,12 +2,17 @@ package dk.mzw.accelemation.js
 
 import dk.mzw.accelemation.Language.Animation
 import dk.mzw.accelemation.ToGlsl
+import dk.mzw.accelemation.js.ViewState.{ShowList, Pick0}
 import org.scalajs.dom
 import org.scalajs.dom.Element
 
-class AnimationWidget(animation : Animation) extends Widget {
+class AnimationWidget(animation : Animation, setViewState : ViewState => Unit) extends Widget {
 
-    private val canvas = dom.document.getElementById("canvas")
+    private val canvas = dom.document.createElement("canvas")
+
+    canvas.addEventListener("click", { _ : dom.Event =>
+        setViewState(ShowList(Pick0))
+    })
 
     private val animade = new Animade(Animade.Configuration(ToGlsl(animation), canvas))
 

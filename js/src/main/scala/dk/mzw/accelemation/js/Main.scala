@@ -22,8 +22,12 @@ object Main extends JSApp {
             activeWidget = widget
             widgetElement.appendChild(widget.element)
         }
+        def setViewState(viewState : ViewState) : Unit = {
+            println(viewState)
+            setWidget(ViewState.render(viewState, setViewState))
+        }
 
-        setWidget(new ListWidget(Pick0))
+        setWidget(new ListWidget(Pick0, setViewState))
 
         dom.window.onresize = { event : UIEvent =>
             activeWidget.onResize(dom.window.innerWidth, dom.window.innerHeight)
