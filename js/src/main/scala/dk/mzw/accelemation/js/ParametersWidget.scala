@@ -8,7 +8,7 @@ import org.scalajs.dom.raw.HTMLInputElement
 
 class ParametersWidget(effect : R => Animation, setViewState : ViewState => Unit) extends Widget {
 
-  private val parameter = 0.5
+  private var parameter = 0.6
 
   private val (containerElement, animade) = {
     val element = dom.document.createElement("div")
@@ -31,13 +31,16 @@ class ParametersWidget(effect : R => Animation, setViewState : ViewState => Unit
     a.set(Map("u_parameter" -> List(parameter)))
     sliderElement.setAttribute("type", "range")
     sliderElement.setAttribute("min", "0")
+    sliderElement.setAttribute("value", (parameter * 100).toInt.toString)
     sliderElement.setAttribute("max", "100")
     sliderElement.setAttribute("step", "1")
     sliderElement.addEventListener("change", { _ : dom.Event =>
-      a.set(Map("u_parameter" -> List(sliderElement.asInstanceOf[HTMLInputElement].value.toDouble / 100.0)))
+      parameter = sliderElement.asInstanceOf[HTMLInputElement].value.toDouble / 100.0
+      a.set(Map("u_parameter" -> List(parameter)))
     })
     sliderElement.addEventListener("mousemove", { _ : dom.Event =>
-        a.set(Map("u_parameter" -> List(sliderElement.asInstanceOf[HTMLInputElement].value.toDouble / 100.0)))
+      parameter = sliderElement.asInstanceOf[HTMLInputElement].value.toDouble / 100.0
+      a.set(Map("u_parameter" -> List(parameter)))
     })
     (element, a)
   }
