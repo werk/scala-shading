@@ -35,13 +35,14 @@ object GlobalAnimations {
     }
 
     def fishEye(factor : R)(animation : Animation) : Animation = t => x => y => {
-        Math.pow(vec2(x, y).magnitude, factor).bind{d =>
+        Math.pow(vec2(x, y).magnitude, 0.5 + factor).bind{d =>
             animation(t) (x * d) (y * d)
         }
     }
 
     def zoom (factor : R) (animation : Animation) : Animation = t => x => y => animation(t) (x * factor) (y * factor)
 
+    def fromFactor(f : R) : R = (f - 0.5) * 5
 
     val animations = List[(String, Animation)](
         "Ball" -> gaussBall(0.3),
@@ -62,11 +63,11 @@ object GlobalAnimations {
         "Fast forward" -> fastForward _,
         "Squares" -> squareTiling _,
         "Fish eye" -> fishEye _,
-        "Zoom" -> zoom _,
-        "Scroll horizontal" -> {f => scroll((f - 0.5) * 5, 0)},
-        "Scroll vertical" -> {f => scroll(0, (f - 0.5) * 5)},
-        "Move horizontal" -> {f => Combinators.translate ((f - 0.5) * 5, 0)},
-        "Move vertical" -> {f => Combinators.translate (0, (f - 0.5) * 5)}
+        "Zoom" -> {f => zoom(f * 5)},
+        "Scroll horizontal" -> {f => scroll(fromFactor(f), 0)},
+        "Scroll vertical" -> {f => scroll(0, fromFactor(f))},
+        "Move horizontal" -> {f => Combinators.translate (fromFactor(f), 0)},
+        "Move vertical" -> {f => Combinators.translate (0, fromFactor(f))}
     )
 
     val combinators = List[(String, Animation => Animation => Animation)](
