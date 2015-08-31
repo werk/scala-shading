@@ -63,6 +63,7 @@ class ListWidget(listType : ListType, setViewState : ViewState => Unit) extends 
 
     override val element : dom.Element = {
         val listElement = dom.document.createElement("div")
+        listElement.setAttribute("style", "position: absolute; top: 0; bottom: 0; left: 0; right: 0; overflow-y: scroll")
         for((_, e, _) <- elements) listElement.appendChild(e)
         listElement
     }
