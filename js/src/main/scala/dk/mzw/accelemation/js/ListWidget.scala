@@ -10,7 +10,7 @@ class ListWidget(listType : ListType, setViewState : ViewState => Unit) extends 
         val element = dom.document.createElement("div")
         val canvasElement = dom.document.createElement("canvas")
         val nameElement = dom.document.createElement("div")
-        canvasElement.setAttribute("style", "box-sizing: border-box; height: 150px; width: 150px; display: inline-block; vertical-align: top;")
+        canvasElement.setAttribute("style", "box-sizing: border-box; height: 200px; width: 200px; display: inline-block; vertical-align: top;")
         nameElement.setAttribute("style", "box-sizing: border-box; padding: 20px; font-size: 20px; height: 150px; width: 200px; display: inline-block; vertical-align: top;")
         nameElement.appendChild(dom.document.createTextNode(name))
         element.appendChild(canvasElement)
