@@ -29,9 +29,9 @@ class AnimationWidget(animation : Animation, setViewState : ViewState => Unit) e
         ).click(click)(name)
 
         val menu = Div("position" -> "absolute", "bottom" -> "0", "right" -> "0", "height" -> "20%", "width" -> "50%")(
-            button("New", "rgba(1, 0, 0, 0.5)", {() => setViewState(ShowList(Pick0))}),
-            button("Effect", "rgba(0, 1, 0, 0.5)", {() => setViewState(ShowList(Pick1(animation)))}),
-            button("Combine", "rgba(0, 0, 1, 0.5)", {() => setViewState(ShowList(Pick2(animation, None)))})
+            button("New", "rgba(200, 100, 100, 0.5)", {() => setViewState(ShowList(Pick0))}),
+            button("Effect", "rgba(100, 200, 100, 0.5)", {() => setViewState(ShowList(Pick1(animation)))}),
+            button("Combine", "rgba(100, 100, 200, 0.5)", {() => setViewState(ShowList(Pick2(animation, None)))})
         )
 
         canvas.addEventListener("click", { _ : dom.Event =>
