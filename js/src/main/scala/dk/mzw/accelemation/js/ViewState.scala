@@ -14,9 +14,9 @@ object ViewState {
     case class Pick1(current : Animation) extends ListType
     case class Pick2(current : Animation, argument : Option[Animation]) extends ListType
 
-    def render(state : ViewState) : dom.Element = state match {
-        case ShowAnimation(animation) => new AnimationWidget(animation).element
-        case ShowList(listType) => new ListWidget(listType).element
+    def render(state : ViewState, setViewState : ViewState => Unit) : Widget = state match {
+        case ShowAnimation(animation) => new AnimationWidget(animation, setViewState)
+        case ShowList(listType) => new ListWidget(listType, setViewState)
     }
 }
 
