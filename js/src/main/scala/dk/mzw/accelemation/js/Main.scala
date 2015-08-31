@@ -15,12 +15,18 @@ object Main extends JSApp {
     )
 
     def main(): Unit = {
+
         var activeWidget : Widget = null
+        dom.window.onresize = { event : UIEvent =>
+            activeWidget.onResize(dom.window.innerWidth, dom.window.innerHeight)
+        }
+
         val widgetElement = dom.document.getElementById("widget")
         def setWidget(widget : Widget): Unit = {
             while(widgetElement.firstChild != null) widgetElement.removeChild(widgetElement.firstChild)
             activeWidget = widget
             widgetElement.appendChild(widget.element)
+            dom.window.onresize(null)
         }
         def setViewState(viewState : ViewState) : Unit = {
             println(viewState)
@@ -28,11 +34,6 @@ object Main extends JSApp {
         }
 
         setWidget(new ListWidget(Pick0, setViewState))
-
-        dom.window.onresize = { event : UIEvent =>
-            activeWidget.onResize(dom.window.innerWidth, dom.window.innerHeight)
-        }
-        dom.window.onresize(null)
 
         def step(elapsed : Double) : Unit = {
             activeWidget.onDraw()
