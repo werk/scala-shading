@@ -2,10 +2,10 @@ package dk.mzw.accelemation.js
 
 import dk.mzw.accelemation.ToGlsl
 import dk.mzw.accelemation.samples._
-import org.scalajs.dom.raw.MouseEvent
+import org.scalajs.dom
+import org.scalajs.dom.raw.UIEvent
 
 import scala.scalajs.js.JSApp
-import org.scalajs.dom
 
 object Main extends JSApp {
     val animations = List(
@@ -15,19 +15,19 @@ object Main extends JSApp {
     )
 
     def main(): Unit = {
-        val glsl = new GlslContainer(dom.document.body)
-        var i = 0
-        glsl.load(ToGlsl(animations(i)))
-
-        dom.document.body.onmousedown = {e : MouseEvent =>
-            i = (i + 1) % animations.length
-            val animation = animations(i)
-            val code = ToGlsl(animation)
-            glsl.load(code)
+        val canvas = dom.document.getElementById("canvas")
+        val animade = new Animade(Animade.Configuration(ToGlsl(animations.head), canvas))
+        dom.window.onresize = { event : UIEvent =>
+            animade.resize(dom.window.innerWidth, dom.window.innerHeight)
         }
+        dom.window.onresize(null)
+        val start = System.currentTimeMillis()
+        def step(elapsed : Double) : Unit = {
+            val now = System.currentTimeMillis()
+            animade.draw(Map("u_time" -> List[Double]((now - start) / 1000.0)))
+            dom.window.requestAnimationFrame(step _)
+        }
+        step(0)
     }
-
-    //case class DefinedAnimation(animation : Animation, )
-
 
 }

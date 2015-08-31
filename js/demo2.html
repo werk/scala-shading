@@ -12,7 +12,7 @@
                 return vec4(r, c.a);
             }
 			
-            vec4 animation(vec4 position) {
+            vec4 blackhole(vec4 position) {
                 float pi = 3.141592653589793;
                 float t = position.w;
                 float x = position.x;
@@ -47,10 +47,24 @@
                 vec4 v27 = vec4(min(1.0, (v22.x + v26.x)), min(1.0, (v22.y + v26.y)), min(1.0, (v22.z + v26.z)), v22.w);
                 return vec4(min(1.0, (v13.x + v27.x)), min(1.0, (v13.y + v27.y)), min(1.0, (v13.z + v27.z)), v13.w);
             }
+            
+            vec4 pattern(vec4 position) {
+                return vec4(mod(position.x * 100.0, 2.0), 0, mod(position.y * 100.0, 2.0), 1) / 10.0;
+            }
+            
+            vec4 additive(vec4 f1(vec4), vec4 f2(vec4), vec4 position) {
+                return f1(position) + f2(position);
+            }
+
+            vec4 animation(vec4 position) {
+                return additive(pattern, blackhole, position);
+            }
         //]]></script>
     </head>
     <body style="margin: 0; overflow: hidden;">
-        <canvas id="canvas" width="16" height="16"></canvas>
+        <div id="canvas-container">
+            <canvas id="canvas" width="16" height="16"></canvas>
+        </div>
         <script>
             var animade = new Animade({
                 canvas: document.getElementById('canvas'), 
@@ -61,8 +75,10 @@
             window.onresize();
 
             var start = Date.now();
+            var last = start;
             function step() {
-                animade.draw({u_time: (Date.now() - start) / 1000});
+                var now = Date.now();
+                animade.draw({'u_time': (now - start) / 1000});
                 requestAnimationFrame(step);
             }
             step();

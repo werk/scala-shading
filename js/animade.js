@@ -20,12 +20,99 @@ Animade = function(configuration) {
         }
         return shader;
     }
+
+    // Second order functions only call first order functions
+    function parseFunctionsHeaders(source) {
+        var variablePattern = /(?:(?:in\s+|out\s+|inout\s+)?[a-zA-Z0-9_]+(?:\s*\[[^\]]*\])*\s+[a-zA-Z0-9_]+(?:[(][^)]*[)])?(?:\s*\[[^\]]*\])*)/;
+        var bodyPattern = /(?:[^{]|[{](?:[^{]|[{](?:[^{]|[{](?:[^{]|[{](?:[^{]|[{](?:[^{]|[{](?:[^{]|[{](?:[^{]|[{](?:[^{]|[{](?:[^{]|[{][}])*[}])*[}])*[}])*[}])*[}])*[}])*[}])*[}])*[}])*/;
+        var pattern = new RegExp('(' + variablePattern.source + ')\\s*[(]\\s*(' + variablePattern.source + '?(?:\\s*[,]\\s*' + variablePattern.source + ')*)\\s*[)]\\s*[{](?:(' + bodyPattern.source + ')[}])?', 'g');
+        var order = 0;
+
+        var name = null;
+        var secondOrder = {};
+        var noFunctionSource = source.replace(pattern, function(full, f, ps, body) {
+            if(body == null) throw 'Could not parse body of function: ' + f + '(' + ps + ')';
+            if(/^\s*(in|out|inout)\b/.test(f)) throw 'Illegal in/out/inout modifier on return type: ' + f + '(' + ps + ')';
+            name = /\b([a-zA-Z0-9_]+)$/g.exec(f)[1];
+            if(secondOrder[name] != null) throw 'Custom functions can\'t be overloaded: ' + f + '(' + ps + ')';
+            secondOrder[name] = {name: name, head: f, parameters: ps, body: body, functionParameters: ps.replace(/[^(]/g, '').length, order: order++};
+            console.log(name + ': ' + f + '(' + ps + ') {' + body + '}');
+            return '// Function expanded: ' + name + '\n';
+        });
+        
+        if(name != 'animation') throw 'The file must end with the following function: vec4 animation(vec4 position)';
+        var animationFunction = secondOrder['animation'];
+
+        console.dir(secondOrder);
+        console.log(noFunctionSource);
+        
+        var firstOrder = {};
+        function expand(second, functionArguments) {
+            console.dir({name: second.name, args: functionArguments});
+            var suffix = functionArguments.map(function(a) { return '_' + a; }).join('') + '_';
+            var key = second.name + suffix;
+            var existing = firstOrder.hasOwnProperty(key) ? firstOrder[key] : null;
+            if(existing != null) {
+                existing.order = Math.min(existing.order, second.order - 1);
+            } else {
+                var parameters = [];
+                var environment = {};
+                var parameterPattern = new RegExp('\\s*(' + variablePattern.source + ')\\s*(?:[,]|$)', 'g');
+                for(var p = parameterPattern.exec(second.parameters); p != null; p = parameterPattern.exec(second.parameters)) {
+                    var functionName = /([a-zA-Z0-9_]+)\s*[(]/g.exec(p[1]);
+                    if(functionName != null) {
+                        environment[functionName[1]] = functionArguments.shift();
+                    } else {
+                        parameters.push(p[1]);
+                    }
+                }
+                var header = second.head + suffix + '(' + parameters.join(', ') + ')';
+                var body = second.body.replace(/([a-zA-Z0-9_]+)\s*[(](?:(\s*[a-zA-Z0-9_]+(?:\s*[,]\s*[a-zA-Z0-9_]+)*)\s*([,)]))?/g, function(all, name, functionArguments, end) {
+                    functionArguments = functionArguments || '';
+                    var target = environment.hasOwnProperty(name) ? secondOrder[environment[name]] : secondOrder[name];
+                    if(target == null) return all;
+                    var args = functionArguments.trim().split(/\s*[,]\s*/g);
+                    var fargs = args.slice(0, target.functionParameters);
+                    var vargs = args.slice(target.functionParameters).join(',');
+                    fargs = fargs.map(function(arg) { 
+                        return environment[arg] || arg;
+                    }).filter(function(arg) {
+                        return arg.length != 0;
+                    });
+                    
+                    return expand(target, fargs) + '(' + vargs + (end == ')' ? ')' : '');
+                });
+                firstOrder[key] = {
+                    order: second.order,
+                    header: header,
+                    body: body
+                };
+            }
+            return key;
+        }
+        expand(animationFunction, []);
+        
+        console.dir(firstOrder);
+        
+        var expanded = [];
+        for(var y in firstOrder) if(firstOrder.hasOwnProperty(y)) {
+            expanded.push(firstOrder[y]);
+        }
+        expanded.sort(function(a, b) { return a.order - b.order; });
+        var expandedSource = expanded.map(function(x) {
+            return x.header + ' {' + x.body + '}';
+        }).join('\n\n');
+        
+        return noFunctionSource + '\n\n' + expandedSource;
+    }
+    var newSource = parseFunctionsHeaders(configuration.source);
+    console.log(newSource);
     
     function setupContext() {
         var gl = configuration.canvas.getContext("webgl") || configuration.canvas.getContext("experimental-webgl");
         if(!gl) throw "This browser does not support WebGL.";
         
-        var source = Animade.fragmentShaderBefore + configuration.source + Animade.fragmentShaderAfter;
+        var source = Animade.fragmentShaderBefore + newSource + Animade.fragmentShaderAfter;
 
         var program = gl.createProgram();
         gl.attachShader(program, loadShader(gl, Animade.vertexShaderSource, gl.VERTEX_SHADER));
@@ -34,8 +121,6 @@ Animade = function(configuration) {
         if(!gl.getProgramParameter(program, gl.LINK_STATUS)) {
             var lastError = gl.getProgramInfoLog(program);
             throw "Error in program linking: " + lastError;
-            gl.deleteProgram(program);
-            return;
         }
 
         gl.useProgram(program);
@@ -132,6 +217,6 @@ Animade.fragmentShaderAfter =
     "    vec2 streched_position = (gl_FragCoord.xy / u_resolution) * vec2(2.0, 2.0) - vec2(1.0, 1.0);\n" +
     "    vec2 aspect = vec2(max(u_resolution.x / u_resolution.y, 1.0), max(u_resolution.y / u_resolution.x, 1.0));\n" +
     "    vec2 position = streched_position * aspect;\n" +
-    "    gl_FragColor = animation(vec4(position / u_scale - u_offset, 0.0, u_time));\n" +
+    "    gl_FragColor = animation_(vec4(position / u_scale - u_offset, 0.0, u_time));\n" +
     "}\n";
     

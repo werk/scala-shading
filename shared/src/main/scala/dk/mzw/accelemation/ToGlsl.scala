@@ -8,9 +8,9 @@ object ToGlsl {
     def apply(f : Animation) : String = {
         val compile = new Compiler()
 
-        val t : Time = Term(BuiltIn("t"))
-        val x : R = Term(BuiltIn("x"))
-        val y : R = Term(BuiltIn("y"))
+        val t : Time = Term(BuiltIn("position.w"))
+        val x : R = Term(BuiltIn("position.x"))
+        val y : R = Term(BuiltIn("position.y"))
         val Term(animation) = f (t) (x) (y)
 
         val compiled = compile(animation)
@@ -19,28 +19,19 @@ object ToGlsl {
         val bindings        =  vs.reverse.mkString
         val before          =
             """
-precision mediump float;
-uniform vec2 u_resolution;
-uniform vec2 u_scale;
-uniform vec2 u_offset;
-uniform float u_time;
-
 vec4 hsvaToRgba(vec4 c) {
     vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
     vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
     vec3 r = c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-    return vec4(r.x, r.y, r.z, c.w);
+    return vec4(r, c.a);
 }
-void main() {
+
+vec4 animation(vec4 position) {
     float pi = 3.14159265359;
-    float t = u_time;
-    float aspectRatio = u_resolution.x / u_resolution.y;
-    float x = (gl_FragCoord.x / u_resolution.x) * 2.0 * aspectRatio - aspectRatio;
-    float y = (gl_FragCoord.y / u_resolution.y) * 2.0 - 1.0;
 """
         val after           =
             ";\n}\n"
-        before + bindings + "    gl_FragColor = " + compiled + after
+        before + bindings + "    return " + compiled + after
     }
 
     private class Compiler {

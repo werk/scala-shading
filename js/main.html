@@ -13,15 +13,11 @@
         }
     </style>
 
-    <script type="text/javascript" src="../javascript/glsl.js"></script>
-    <script type="text/javascript" src="../javascript/GlslContainer.js"></script>
+    <script type="text/javascript" src="animade.js"></script>
 </head>
 <body>
-<!-- Include Scala.js compiled code -->
-<script type="text/javascript" src="./target/scala-2.11/scala-shading-fastopt.js"></script>
-<!-- Run tutorial.webapp.TutorialApp -->
-<script type="text/javascript">
-    dk.mzw.accelemation.js.Main().main();
-</script>
+    <canvas id="canvas"></canvas>
+    <script type="text/javascript" src="./target/scala-2.11/scala-shading-fastopt.js"></script>
+    <script type="text/javascript">dk.mzw.accelemation.js.Main().main();</script>
 </body>
 </html>
