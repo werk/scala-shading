@@ -21,7 +21,7 @@ class AnimationWidget(animation : Animation, setViewState : ViewState => Unit) e
     }
 
     override val element: Element = {
-        def button(name : String, color : String, click : Unit => ())  = Div(
+        def button(name : String, color : String, click : () => Unit)  = Div(
             "display" -> "inline-block",
             "height" -> "100%",
             "width" -> "33%",
@@ -29,9 +29,9 @@ class AnimationWidget(animation : Animation, setViewState : ViewState => Unit) e
         ).click(click)(name)
 
         val menu = Div("position" -> "absolute", "bottom" -> "0", "right" -> "0", "height" -> "20%", "width" -> "50%")(
-            button("New", "rgba(1, 0, 0, 0.5)", {_ => setViewState(ShowList(Pick0))}),
-            button("Effect", "rgba(0, 1, 0, 0.5)", {_ => setViewState(ShowList(Pick1(animation)))}),
-            button("Combine", "rgba(0, 0, 1, 0.5)", {_ => setViewState(ShowList(Pick2(animation, None)))})
+            button("New", "rgba(1, 0, 0, 0.5)", {() => setViewState(ShowList(Pick0))}),
+            button("Effect", "rgba(0, 1, 0, 0.5)", {() => setViewState(ShowList(Pick1(animation)))}),
+            button("Combine", "rgba(0, 0, 1, 0.5)", {() => setViewState(ShowList(Pick2(animation, None)))})
         )
 
         canvas.addEventListener("click", { _ : dom.Event =>
@@ -42,9 +42,9 @@ class AnimationWidget(animation : Animation, setViewState : ViewState => Unit) e
     }
 
     case class Div(styles : (String, String)*) {
-        private var onClicks = List[Unit => ()]()
+        private var onClicks = List[() => Unit]()
 
-        def click(handler : Unit => ()) : Div = {
+        def click(handler : () => Unit) : Div = {
             onClicks ::= handler
             this
         }
@@ -60,6 +60,7 @@ class AnimationWidget(animation : Animation, setViewState : ViewState => Unit) e
             e.appendChild(document.createTextNode(text))
             e
         }
+
 
         private def create() = {
             val e = document.createElement("div")
