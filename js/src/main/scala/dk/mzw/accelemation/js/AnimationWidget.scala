@@ -35,10 +35,6 @@ class AnimationWidget(animation : Animation, setViewState : ViewState => Unit) e
             button("Combine", "rgba(100, 100, 200, 0.5)", {() => setViewState(ShowList(Pick2(animation, None)))})
         )
 
-        canvas.addEventListener("click", { _ : dom.Event =>
-            setViewState(ShowList(Pick0))
-        })
-
         Div()(canvas, menu)
     }
 
