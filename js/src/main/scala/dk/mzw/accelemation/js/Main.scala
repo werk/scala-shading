@@ -1,5 +1,6 @@
 package dk.mzw.accelemation.js
 
+import dk.mzw.accelemation.js.ViewState.Pick0
 import dk.mzw.accelemation.samples._
 import org.scalajs.dom
 import org.scalajs.dom.raw.UIEvent
@@ -14,7 +15,15 @@ object Main extends JSApp {
     )
 
     def main(): Unit = {
-        val activeWidget = new AnimationWidget(animations.head)
+        var activeWidget : Widget = null
+        val widgetElement = dom.document.getElementById("widget")
+        def setWidget(widget : Widget): Unit = {
+            while(widgetElement.firstChild != null) widgetElement.removeChild(widgetElement.firstChild)
+            activeWidget = widget
+            widgetElement.appendChild(widget.element)
+        }
+
+        setWidget(new ListWidget(Pick0))
 
         dom.window.onresize = { event : UIEvent =>
             activeWidget.onResize(dom.window.innerWidth, dom.window.innerHeight)
