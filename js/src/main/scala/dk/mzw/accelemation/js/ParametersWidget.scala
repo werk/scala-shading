@@ -1,8 +1,8 @@
 package dk.mzw.accelemation.js
 
-import dk.mzw.accelemation.Language.{Term, R, Animation}
-import dk.mzw.accelemation.{Internal, Language, ToGlsl}
+import dk.mzw.accelemation.Language.{Animation, R, Term}
 import dk.mzw.accelemation.js.ViewState._
+import dk.mzw.accelemation.{Internal, ToGlsl}
 import org.scalajs.dom
 import org.scalajs.dom.raw.HTMLInputElement
 
@@ -26,14 +26,18 @@ class ParametersWidget(effect : R => Animation, setViewState : ViewState => Unit
       setViewState(ShowAnimation(effect(parameter)))
     })
     buttonElement.appendChild(dom.document.createTextNode("OK"))
-    val source = "uniform float u_parameter;\n\n" + effect(Term(Internal.BuiltIn("u_parameter")))
+    val source = "uniform float u_parameter;\n\n" + ToGlsl(effect(Term(Internal.BuiltIn("u_parameter"))))
     val a : Animade = new Animade(Animade.Configuration(source, canvasElement))
     a.set(Map("u_parameter" -> List(parameter)))
+    sliderElement.setAttribute("type", "range")
     sliderElement.setAttribute("min", "0")
     sliderElement.setAttribute("max", "100")
     sliderElement.setAttribute("step", "1")
     sliderElement.addEventListener("change", { _ : dom.Event =>
-      a.set(Map("u_parameter" -> List(sliderElement.asInstanceOf[HTMLInputElement].valueAsNumber / 100.0)))
+      a.set(Map("u_parameter" -> List(sliderElement.asInstanceOf[HTMLInputElement].value.toDouble / 100.0)))
+    })
+    sliderElement.addEventListener("mousemove", { _ : dom.Event =>
+        a.set(Map("u_parameter" -> List(sliderElement.asInstanceOf[HTMLInputElement].value.toDouble / 100.0)))
     })
     (element, a)
   }

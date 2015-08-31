@@ -31,7 +31,7 @@ class ListWidget(listType : ListType, setViewState : ViewState => Unit) extends 
         case Pick1(current) =>
             GlobalAnimations.effects.map {
                 case (name, effect) =>
-                    createCanvas(name, ToGlsl(effect(0.6)(current)), ShowAnimation(effect(0.6)(current)))
+                    createCanvas(name, ToGlsl(effect(0.6)(current)), ShowParameters(effect(_)(current)))
             }
         case Pick2(current, None) =>
             GlobalAnimations.animations.map {

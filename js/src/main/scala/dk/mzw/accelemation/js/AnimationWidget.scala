@@ -24,11 +24,12 @@ class AnimationWidget(animation : Animation, setViewState : ViewState => Unit) e
         def button(name : String, color : String, click : () => Unit)  = Div(
             "display" -> "inline-block",
             "height" -> "100%",
-            "width" -> "33%",
-            "background-color" -> color
+            "width" -> "100px",
+            "background-color" -> color,
+            "text-align" -> "center"
         ).click(click)(name)
 
-        val menu = Div("position" -> "absolute", "bottom" -> "0", "right" -> "0", "height" -> "20%", "width" -> "50%")(
+        val menu = Div("position" -> "absolute", "bottom" -> "0", "right" -> "0", "height" -> "50px", "width" -> "300px")(
             button("New", "rgba(200, 100, 100, 0.5)", {() => setViewState(ShowList(Pick0))}),
             button("Effect", "rgba(100, 200, 100, 0.5)", {() => setViewState(ShowList(Pick1(animation)))}),
             button("Combine", "rgba(100, 100, 200, 0.5)", {() => setViewState(ShowList(Pick2(animation, None)))})
