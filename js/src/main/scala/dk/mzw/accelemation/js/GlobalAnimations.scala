@@ -17,7 +17,7 @@ object GlobalAnimations {
         }
     }
 
-    def fastForward(animation : Animation) : Animation = t => x => y => animation(t * 2)(x)(y)
+    def fastForward(factor : R) (animation : Animation) : Animation = t => x => y => animation(t * factor)(x)(y)
 
     def spiral : Animation = { t => r => phi =>
         if_(phi < 0, 2 * pi + phi, phi) bind { positivePhi =>
@@ -30,9 +30,17 @@ object GlobalAnimations {
     }
 
 
-    def squareTiling(animation : Animation) : Animation = { t => x => y =>
-        animation(t) (Math.mod(x, 0.2) * 10 - 1) (Math.mod(y, 0.2) * 10 - 1)
+    def squareTiling(factor : R) (animation : Animation) : Animation = { t => x => y =>
+        animation(t) (Math.mod(x, factor * 0.5) * factor * 10 - 1) (Math.mod(y, factor * 0.5) * factor * 10 - 1)
     }
+
+    def fishEye(factor : R)(animation : Animation) : Animation = t => x => y => {
+        Math.pow(vec2(x, y).magnitude, factor).bind{d =>
+            animation(t) (x * d) (y * d)
+        }
+    }
+
+    def zoom (factor : R) (animation : Animation) : Animation = t => x => y => animation(t) (x * factor) (y * factor)
 
 
     val animations = List[(String, Animation)](
@@ -47,17 +55,18 @@ object GlobalAnimations {
 
     )
 
-    val effects = List[(String, Animation => Animation)](
-        "Scroll" -> scroll(1, 0),
-        "Spin" -> Combinators.spin(2),
-        "Circle" -> Combinators.circle(1),
-        "Jump" -> timeTravel (1),
-        "Fast forward" -> fastForward,
-        "Squares" -> squareTiling,
-
-        "Up" -> Combinators.translate (0, 1),
-        "Left" -> Combinators.translate (1, 0)
-
+    val effects = List[(String, R => Animation => Animation)](
+        "Spin" -> Combinators.spin _,
+        "Circle" -> Combinators.circle _,
+        "Jump" -> timeTravel _,
+        "Fast forward" -> fastForward _,
+        "Squares" -> squareTiling _,
+        "Fish eye" -> fishEye _,
+        "Zoom" -> zoom _,
+        "Scroll horizontal" -> {f => scroll((f - 0.5) * 5, 0)},
+        "Scroll vertical" -> {f => scroll(0, (f - 0.5) * 5)},
+        "Move horizontal" -> {f => Combinators.translate ((f - 0.5) * 5, 0)},
+        "Move vertical" -> {f => Combinators.translate (0, (f - 0.5) * 5)}
     )
 
     val combinators = List[(String, Animation => Animation => Animation)](
