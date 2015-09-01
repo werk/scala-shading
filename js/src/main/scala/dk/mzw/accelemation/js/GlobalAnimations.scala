@@ -34,6 +34,23 @@ object GlobalAnimations {
         animation(t) (Math.mod(x, factor * 0.5) * factor * 10 - 1) (Math.mod(y, factor * 0.5) * factor * 10 - 1)
     }
 
+    def triangleTiling(factor : R) (animation : Animation) : Animation = triangleTilingAux(factor) {px : R => py : R => animation}
+
+    def triangleTilingAux(factor : R) (f : R => R => Animation) : Animation = { t => x => y =>
+
+        def fromRotatedYCoordinates(angle: R, x: R, y: R): (R, R) = (x + y * cos(0.5 * pi + angle), y * sin(0.5 * pi + angle))
+        def toRotatedYCoordinates(angle: R, x: R, y: R): (R, R) = (x - y * cos(0.5 * pi + angle), y / sin(0.5 * pi + angle))
+
+        val (x1, y1) = toRotatedYCoordinates(-pi / 6, x, y)
+        val centerX1 = Math.floor(0.5 + x1)
+        val centerY1 = Math.floor(0.5 + y1)
+        val (x2, y2) = fromRotatedYCoordinates(-pi / 6, centerX1 - x1, centerY1 - y1)
+        val px = centerX1
+        val py = centerY1 * 2 + Math.floor((x1 + y1) * 2)
+        val animation: Animation = f(px)(py)
+        zoom(0.5 * fromFactor(factor))(animation)(t)(x2)(y2)
+    }
+
     def fishEye(factor : R)(animation : Animation) : Animation = t => x => y => {
         Math.pow(vec2(x, y).magnitude, 0.5 + factor).bind{d =>
             animation(t) (x * d) (y * d)
@@ -62,6 +79,7 @@ object GlobalAnimations {
         "Jump" -> timeTravel _,
         "Fast forward" -> fastForward _,
         "Squares" -> squareTiling _,
+        "Triangles" -> triangleTiling _,
         "Fish eye" -> fishEye _,
         "Zoom" -> {f => zoom(f * 5)},
         "Scroll horizontal" -> {f => scroll(fromFactor(f), 0)},

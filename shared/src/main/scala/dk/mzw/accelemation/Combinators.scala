@@ -12,7 +12,7 @@ object Combinators {
     def scale(scaleX : R, scaleY : R) (animation : Animation) (t : R) (x : R) (y : R) =
         animation (t) (x / scaleX) (y / scaleY)
 
-    def scaleUniform(factor : R) (animation : Animation) (t : R) (x : R) (y : R) = 
+    def scaleUniform(factor : R) (animation : Animation) (t : R) (x : R) (y : R) =
         scale(factor, factor) _
 
     def rotate(angle : R) (animation : Animation) (t : R) (x : R) (y : R) =
