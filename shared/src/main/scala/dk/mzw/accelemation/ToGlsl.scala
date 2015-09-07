@@ -19,6 +19,8 @@ object ToGlsl {
         val bindings        =  vs.reverse.mkString
         val before          =
             """
+const float pi = 3.141592653589793238462643383;
+
 vec4 hsvaToRgba(vec4 c) {
     vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
     vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
@@ -27,7 +29,6 @@ vec4 hsvaToRgba(vec4 c) {
 }
 
 vec4 animation(vec4 position) {
-    float pi = 3.14159265359;
 """
         val after           =
             ";\n}\n"
