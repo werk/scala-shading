@@ -45,6 +45,11 @@ object GlobalAnimations {
         f(t)(x)(y)
     }
 
+    def timeTunnel(factor : R) (animation : Animation) : Animation = t => x => y => {
+        val (r, phi) = cartesianToPolar(x, y)
+        toPolar (animation) (t + (r * (1 + factor))) (1) (phi)
+    }
+
     def fastForward(factor : R) (animation : Animation) : Animation = t => x => y => animation(t * factor)(x)(y)
 
     def spiral : Animation = { t => r => phi =>
@@ -128,7 +133,8 @@ object GlobalAnimations {
         "Move horizontal" -> {f => Combinators.translate (fromFactor(f), 0)},
         "Move vertical" -> {f => Combinators.translate (0, fromFactor(f))},
         "From polar" -> {f => fromPolar},
-        "To polar" -> {f => toPolar}
+        "To polar" -> {f => toPolar},
+        "Time tunnel" -> timeTunnel
     )
 
     val combinators = List[(String, Animation => Animation => Animation)](
