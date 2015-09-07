@@ -29,7 +29,6 @@ object Main extends JSApp {
             dom.window.onresize(null)
         }
         def setViewState(viewState : ViewState) : Unit = {
-            println(viewState)
             setWidget(ViewState.render(viewState, setViewState))
         }
 

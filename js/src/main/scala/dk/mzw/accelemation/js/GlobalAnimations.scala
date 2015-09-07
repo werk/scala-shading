@@ -6,6 +6,7 @@ import dk.mzw.accelemation.Combinators
 import dk.mzw.accelemation.Combinators._
 import dk.mzw.accelemation.Language.Math._
 import dk.mzw.accelemation.Language._
+import dk.mzw.accelemation.samples.TimeLens
 
 object GlobalAnimations {
 
@@ -15,6 +16,33 @@ object GlobalAnimations {
         (1 - abs(y - sin(x))) bind { intensity =>
             rgba(intensity, intensity, intensity, 1)
         }
+    }
+
+
+    val flower : Animation = { t => r => phi =>
+        val n = Math.floor(t / (2 * pi) + Math.mod(1, 10))
+        val d = sinOne(t + phi * n) * sinOne(t)
+        val h = t / 77
+        val s = d
+        val v = gaussianOne(0.05, r - d)
+        hsva(h, s, v, 1)
+    }
+
+    val flowers = addition (addition (flower) (timeTravel (1337) (flower))) (timeTravel (133) (flower))
+
+
+    def cartesianToPolar(x : R, y : R) : (R, R) = (vec2(x, y).magnitude, Math.atan2(y, x))
+    def polarToCartesian(r : R, phi : R) : (R, R) = (r * Math.cos(phi), r * Math.sin(phi))
+
+
+    def fromPolar (f : Animation) : Animation = { t => x => y =>
+        val (r, phi) = cartesianToPolar(x, y)
+        f(t)(r)(phi)
+    }
+
+    def toPolar (f : Animation) : Animation = { t => r => phi =>
+        val (x, y) = polarToCartesian(r, phi)
+        f(t)(x)(y)
     }
 
     def fastForward(factor : R) (animation : Animation) : Animation = t => x => y => animation(t * factor)(x)(y)
@@ -80,8 +108,10 @@ object GlobalAnimations {
         "Red" -> (t => x => y => rgba(1, 0, 0, 1)),
         "Green" -> (t => x => y => rgba(0, 1, 0, 1)),
         "Blue" -> (t => x => y => rgba(0, 0, 1, 1)),
-        "Spiral" -> spiral
-
+        "Spiral" -> spiral,
+        "Time lens" -> TimeLens.apply,
+        "Flower" -> fromPolar(flower),
+        "Flower" -> fromPolar(flowers)
     )
 
     val effects = List[(String, R => Animation => Animation)](
@@ -96,7 +126,9 @@ object GlobalAnimations {
         "Scroll horizontal" -> {f => scroll(fromFactor(f), 0)},
         "Scroll vertical" -> {f => scroll(0, fromFactor(f))},
         "Move horizontal" -> {f => Combinators.translate (fromFactor(f), 0)},
-        "Move vertical" -> {f => Combinators.translate (0, fromFactor(f))}
+        "Move vertical" -> {f => Combinators.translate (0, fromFactor(f))},
+        "From polar" -> {f => fromPolar},
+        "To polar" -> {f => toPolar}
     )
 
     val combinators = List[(String, Animation => Animation => Animation)](

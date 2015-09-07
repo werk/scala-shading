@@ -88,6 +88,7 @@ object Language {
         def round (a : R) : R = floor(0.5 + a)
         def floor (a : R) : R = Term(Call("floor", List(a.untyped)))
         def ceil (a : R) : R = Term(Call("ceil", List(a.untyped)))
+        def atan2(x : R, y : R) : R = 2 * atan(y / (sqrt (pow(x, 2) + pow(y, 2)) + x))
     }
 
     implicit class BoolWithOperations(a : B){
