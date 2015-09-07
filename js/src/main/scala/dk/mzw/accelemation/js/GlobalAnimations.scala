@@ -9,6 +9,37 @@ import dk.mzw.accelemation.Language._
 
 object GlobalAnimations {
 
+    def binary(animation : Time => R => R => B) : Animation = { t => x => y =>
+        val intensity = if_(animation(t)(x)(y), 1, 0)
+        rgba(intensity, intensity, intensity, 1)
+    }
+
+    val ball : Animation = binary { t => x => y =>
+        sqrt(x * x + y * y) < 1
+    }
+
+    val circle : Animation = binary { t => x => y =>
+        val distance = sqrt(x * x + y * y)
+        distance > 0.5 && distance < 1
+    }
+
+    val square : Animation = binary { t => x => y =>
+        abs(x) < 0.5 && abs(y) < 0.5
+    }
+
+    def blur(animation : Animation) : Animation = { t => x => y =>
+        val e = 0.01 : R
+        val ur = animation(t)(x + e)(y + e)
+        val ul = animation(t)(x - e)(y + e)
+        val ll = animation(t)(x - e)(y - e)
+        val lr = animation(t)(x + e)(y - e)
+        val red = (ur.red + ul.red + ll.red + lr.red) / 4
+        val green = (ur.green + ul.green + ll.green + lr.green) / 4
+        val blue = (ur.blue + ul.blue + ll.blue + lr.blue) / 4
+        val alpha = (ur.alpha + ul.alpha + ll.alpha + lr.alpha) / 4
+        rgba(red, green, blue, alpha)
+    }
+
     val rainbow : Animation = {t => x => y => hsva(mod(x, 1), 0.5, 0.5, 1)}
 
     val wave : Animation = { t => x => y =>
@@ -46,6 +77,9 @@ object GlobalAnimations {
 
     val animations = List[(String, Animation)](
         "Ball" -> gaussBall(0.3),
+        "Hard ball" -> ball,
+        "Circle" -> circle,
+        "Square" -> square,
         "Chess" -> chess,
         "Wave" -> wave,
         "Rainbow" -> rainbow,
@@ -53,7 +87,6 @@ object GlobalAnimations {
         "Green" -> (t => x => y => rgba(0, 1, 0, 1)),
         "Blue" -> (t => x => y => rgba(0, 0, 1, 1)),
         "Spiral" -> spiral
-
     )
 
     val effects = List[(String, R => Animation => Animation)](
