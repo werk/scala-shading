@@ -85,9 +85,10 @@ object Language {
         def max (a : R, b : R) : R = Term(Call("max", List(a.untyped, b.untyped)))
         def min (a : R, b : R) : R = Term(Call("min", List(a.untyped, b.untyped)))
         def mod (a : R, b : R) : R = Term(Call("mod", List(a.untyped, b.untyped)))
-        def round (a : R) : R = Term(Call("round", List(a.untyped)))
+        def round (a : R) : R = floor(0.5 + a)
         def floor (a : R) : R = Term(Call("floor", List(a.untyped)))
         def ceil (a : R) : R = Term(Call("ceil", List(a.untyped)))
+        def atan2(x : R, y : R) : R = 2 * atan(y / (sqrt (pow(x, 2) + pow(y, 2)) + x))
     }
 
     implicit class BoolWithOperations(a : B){

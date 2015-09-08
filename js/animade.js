@@ -36,19 +36,19 @@ Animade = function(configuration) {
             name = /\b([a-zA-Z0-9_]+)$/g.exec(f)[1];
             if(secondOrder[name] != null) throw 'Custom functions can\'t be overloaded: ' + f + '(' + ps + ')';
             secondOrder[name] = {name: name, head: f, parameters: ps, body: body, functionParameters: ps.replace(/[^(]/g, '').length, order: order++};
-            console.log(name + ': ' + f + '(' + ps + ') {' + body + '}');
+            //console.log(name + ': ' + f + '(' + ps + ') {' + body + '}');
             return '// Function expanded: ' + name + '\n';
         });
         
         if(name != 'animation') throw 'The file must end with the following function: vec4 animation(vec4 position)';
         var animationFunction = secondOrder['animation'];
 
-        console.dir(secondOrder);
-        console.log(noFunctionSource);
+        //console.dir(secondOrder);
+        //console.log(noFunctionSource);
         
         var firstOrder = {};
         function expand(second, functionArguments) {
-            console.dir({name: second.name, args: functionArguments});
+            //console.dir({name: second.name, args: functionArguments});
             var suffix = functionArguments.map(function(a) { return '_' + a; }).join('') + '_';
             var key = second.name + suffix;
             var existing = firstOrder.hasOwnProperty(key) ? firstOrder[key] : null;
@@ -92,7 +92,7 @@ Animade = function(configuration) {
         }
         expand(animationFunction, []);
         
-        console.dir(firstOrder);
+        //console.dir(firstOrder);
         
         var expanded = [];
         for(var y in firstOrder) if(firstOrder.hasOwnProperty(y)) {
@@ -106,7 +106,7 @@ Animade = function(configuration) {
         return noFunctionSource + '\n\n' + expandedSource;
     }
     var newSource = parseFunctionsHeaders(configuration.source);
-    console.log(newSource);
+    //console.log(newSource);
     
     function setupContext() {
         var gl = configuration.canvas.getContext("webgl") || configuration.canvas.getContext("experimental-webgl");
