@@ -78,7 +78,10 @@ object GlobalAnimations {
 
     def timeTunnel(factor : R) (animation : Animation) : Animation = t => x => y => {
         val (r, phi) = cartesianToPolar(x, y)
-        toPolar (animation) (t + (r * (1 + factor))) (1) (phi)
+        val rTime1 = 100 * Math.pow(r, 2) - 100
+        val rTime2 = -100 * Math.pow(r - 1, 2)
+        val rTime3 = Math.log(r)
+        toPolar (animation) ((-t) + rTime3) (1) (phi)
     }
 
     def fastForward(factor : R) (animation : Animation) : Animation = t => x => y => animation(t * factor)(x)(y)
