@@ -7,7 +7,7 @@ import dk.mzw.accelemation.Arithmetic.atan2
 object Combinators {
 
     def translate(dx : R, dy : R) (animation : Animation) (t : R) (x : R) (y : R) =
-         animation (t) (dx + x) (dy + y)
+        (dx + x).bind{x2 => (dy + y).bind{y2 => animation (t) (x2) (y2)}}
 
     def scale(scaleX : R, scaleY : R) (animation : Animation) (t : R) (x : R) (y : R) =
         animation (t) (x / scaleX) (y / scaleY)
@@ -16,7 +16,11 @@ object Combinators {
         scale(factor, factor) _
 
     def rotate(angle : R) (animation : Animation) (t : R) (x : R) (y : R) =
-        animation (t) (x * cos(angle) - y * sin(angle)) (x * sin(angle) + y * cos(angle))
+        (x * cos(angle) - y * sin(angle)).bind { newX =>
+            (x * sin(angle) + y * cos(angle)).bind{ newY =>
+                animation (t) (newX) (newY)
+            }
+        }
 
     def scroll(speedX : R, speedY : R) (animation : Animation) (t : R) =
         translate(speedX * t, speedY * t) (animation) (t) _

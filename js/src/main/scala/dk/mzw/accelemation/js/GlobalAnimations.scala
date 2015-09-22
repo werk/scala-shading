@@ -81,7 +81,10 @@ object GlobalAnimations {
         val rTime1 = 100 * Math.pow(r, 2) - 100
         val rTime2 = -100 * Math.pow(r - 1, 2)
         val rTime3 = Math.log(r)
-        toPolar (animation) ((-t) + rTime3) (1) (phi)
+        phi.bind{phi => ((-t) + rTime3).bind{
+            newT => toPolar (animation) (newT) (0.5 + factor) (phi)
+        }}
+
     }
 
     def fastForward(factor : R) (animation : Animation) : Animation = t => x => y => animation(t * factor)(x)(y)
@@ -112,19 +115,25 @@ object GlobalAnimations {
         def scaleUniform (factor : R) : Animation => Animation = scale (factor) (factor)
 
         val (x1, y1) = toRotatedYCoordinates(-pi/6, x, y)
-        val centerX1 = Math.round(x1)
-        val centerY1 = Math.round(y1)
-        val down = {
-            val dx1 = Math.mod(x1 - 0.5, 1)
-            val dy1 = Math.mod(y1 - 0.5, 1)
-            Math.floor (dx1 + dy1)
-        }
-        val px = centerX1
-        val py = centerY1 * 2 + down
-        val q = (down * 2 - 1) * 0.152 // TODO find the right constant
-        val (x2, y2) = fromRotatedYCoordinates(-pi/6, (centerX1 + q) - x1, (centerY1 + q) - y1)
-        val animation : Animation = f (px) (py)
-        scaleUniform (0.25) (animation) (t) (x2) (y2)
+        x1.bind{x1 => y1.bind{y1 =>
+            val centerX1 = Math.round(x1)
+            val centerY1 = Math.round(y1)
+            val down = {
+                val dx1 = Math.mod(x1 - 0.5, 1)
+                val dy1 = Math.mod(y1 - 0.5, 1)
+                Math.floor (dx1 + dy1)
+            }
+            down.bind{down =>
+                val px = centerX1
+                val py = centerY1 * 2 + down
+                val q = (down * 2 - 1) * 0.152 // TODO find the right constant
+                val (x2, y2) = fromRotatedYCoordinates(-pi/6, (centerX1 + q) - x1, (centerY1 + q) - y1)
+                x2.bind {x2 => y2.bind {y2 =>
+                    val animation : Animation = f (px) (py)
+                    scaleUniform (0.25) (animation) (t) (x2) (y2)
+                }}
+            }
+        }}
 
     }
 
