@@ -1,7 +1,7 @@
 package dk.mzw.accelemation.js
 
 import dk.mzw.accelemation.js.BuildOrder.{Effect, Id}
-import dk.mzw.accelemation.js.ViewState.Pick0
+import dk.mzw.accelemation.js.ViewState.{ShowList, Pick0}
 import dk.mzw.accelemation.samples._
 import org.scalajs.dom
 import org.scalajs.dom.raw.UIEvent
@@ -15,7 +15,7 @@ object Main extends JSApp {
         Spiral.apply
     )
 
-    def main(): Unit = {
+    def main() : Unit = {
 
         var activeWidget : Widget = null
         dom.window.onresize = { event : UIEvent =>
@@ -31,14 +31,27 @@ object Main extends JSApp {
             widgetElement.appendChild(widget.element)
             dom.window.onresize(null)
         }
+        def reloadAnimations(onSuccess : () => Unit) : Unit = {
+            def onList(animations : Seq[(Id, BuildOrder)]) : Unit = {
+                for((id, build) <- animations) {
+                    buildAnimation.animationMap += (id -> buildAnimation(build))
+                }
+                onSuccess()
+            }
+            LocalStore.store.list(onSuccess = onList, onError = println)
+        }
         def setViewState(viewState : ViewState) : Unit = {
-            setWidget(ViewState.render(viewState, setViewState, buildAnimation))
+            def run() = setWidget(ViewState.render(viewState, setViewState, buildAnimation))
+            if(viewState == ShowList(Pick0)) reloadAnimations(run)
+            else run()
         }
 
-        setWidget(new ListWidget(Pick0, setViewState, buildAnimation))
+        reloadAnimations(() => {
+            setViewState(ShowList(Pick0))
+        })
 
         def step(elapsed : Double) : Unit = {
-            activeWidget.onDraw()
+            if(activeWidget != null) activeWidget.onDraw()
             dom.window.requestAnimationFrame(step _)
         }
         step(0)
