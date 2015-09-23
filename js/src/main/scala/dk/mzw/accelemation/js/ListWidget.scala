@@ -1,10 +1,12 @@
 package dk.mzw.accelemation.js
 
+import dk.mzw.accelemation.Language.{R, Animation}
 import dk.mzw.accelemation.ToGlsl
+import dk.mzw.accelemation.js.BuildOrder.{Combine, Id}
 import dk.mzw.accelemation.js.ViewState._
 import org.scalajs.dom
 
-class ListWidget(listType : ListType, setViewState : ViewState => Unit) extends Widget {
+class ListWidget(listType : ListType, setViewState : ViewState => Unit, buildAnimation : BuildAnimation) extends Widget {
 
     def createCanvas(name : String, source : String, newViewState : ViewState) : (String, dom.Element, Animade) = {
         val element = dom.document.createElement("div")
@@ -29,24 +31,31 @@ class ListWidget(listType : ListType, setViewState : ViewState => Unit) extends 
 
     private val elements = listType match {
         case Pick0 =>
-            GlobalAnimations.animations.map {
-                case (name, animation) =>
-                    createCanvas(name, ToGlsl(animation), ShowAnimation(animation))
+            buildAnimation.animations.keys.map { id =>
+                val build = BuildOrder(id, Seq())
+                val animation = buildAnimation(build)
+                createCanvas(id.name, ToGlsl(animation), ShowAnimation(build))
             }
         case Pick1(current) =>
-            GlobalAnimations.effects.map {
-                case (name, effect) =>
-                    createCanvas(name, ToGlsl(effect(0.6)(current)), ShowParameters(effect(_)(current)))
+            buildAnimation.effects.keys.map {id =>
+                def buildBuild(factor : Double) = {
+                    val moreActions = Seq()
+                    current.copy(actions = current.actions ++ moreActions)
+                }
+                val animation = buildAnimation(buildBuild(0.6))
+                def effect(factor : R) : Animation = null
+                createCanvas(id.name, ToGlsl(animation), ShowParameters(effect, buildBuild))
             }
         case Pick2(current, None) =>
-            GlobalAnimations.animations.map {
-                case (name, argument) =>
-                    createCanvas(name, ToGlsl(argument), ShowList(Pick2(current, Some(argument))))
+            buildAnimation.animations.keys.map { id =>
+                val animation = buildAnimation(current)
+                createCanvas(id.name, ToGlsl(animation), ShowList(Pick2(current, Some(id))))
             }
-        case Pick2(current, Some(argument)) =>
-            GlobalAnimations.combinators.map {
-                case (name, combinator) =>
-                    createCanvas(name, ToGlsl(combinator(current)(argument)), ShowAnimation(combinator(current)(argument)))
+        case Pick2(current, Some(animationId)) =>
+            buildAnimation.combinators.keys.map { combineId =>
+                val build = current.copy(actions = current.actions :+ Combine(animationId, combineId, flipped = false))
+                val animation = buildAnimation(build)
+                createCanvas(combineId.name, ToGlsl(animation), ShowAnimation(build))
             }
     }
 

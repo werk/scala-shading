@@ -7,7 +7,9 @@ import org.scalajs.dom
 import org.scalajs.dom.document
 import org.scalajs.dom.Element
 
-class AnimationWidget(animation : Animation, setViewState : ViewState => Unit) extends Widget {
+class AnimationWidget(build : BuildOrder, setViewState : ViewState => Unit, buildAnimation : BuildAnimation) extends Widget {
+
+    private val animation = buildAnimation(build)
 
     private val canvas = dom.document.createElement("canvas")
     private val animade = new Animade(Animade.Configuration(ToGlsl(animation), canvas))
@@ -31,8 +33,8 @@ class AnimationWidget(animation : Animation, setViewState : ViewState => Unit) e
 
         val menu = Div("position" -> "absolute", "bottom" -> "0", "right" -> "0", "height" -> "50px", "width" -> "300px")(
             button("New", "rgba(200, 100, 100, 0.5)", {() => setViewState(ShowList(Pick0))}),
-            button("Effect", "rgba(100, 200, 100, 0.5)", {() => setViewState(ShowList(Pick1(animation)))}),
-            button("Combine", "rgba(100, 100, 200, 0.5)", {() => setViewState(ShowList(Pick2(animation, None)))})
+            button("Effect", "rgba(100, 200, 100, 0.5)", {() => setViewState(ShowList(Pick1(build)))}),
+            button("Combine", "rgba(100, 100, 200, 0.5)", {() => setViewState(ShowList(Pick2(build, None)))})
         )
 
         Div()(canvas, menu)

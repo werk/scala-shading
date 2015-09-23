@@ -6,6 +6,7 @@ import dk.mzw.accelemation.Combinators
 import dk.mzw.accelemation.Combinators._
 import dk.mzw.accelemation.Language.Math._
 import dk.mzw.accelemation.Language._
+import dk.mzw.accelemation.js.BuildOrder.Id
 import dk.mzw.accelemation.samples.TimeLens
 
 object GlobalAnimations {
@@ -148,48 +149,54 @@ object GlobalAnimations {
 
     def fromFactor(f : R) : R = (f - 0.5) * 5
 
-    val animations = List[(String, Animation)](
-        "Ball" -> gaussBall(0.3),
-        "Hard ball" -> ball,
-        "Circle" -> circle,
-        "Square" -> square,
-        "Chess" -> chess,
-        "Wave" -> wave,
-        "Rainbow" -> rainbow,
-        "Red" -> (t => x => y => rgba(1, 0, 0, 1)),
-        "Green" -> (t => x => y => rgba(0, 1, 0, 1)),
-        "Blue" -> (t => x => y => rgba(0, 0, 1, 1)),
-        "Spiral" -> spiral,
-        "Time lens" -> TimeLens.apply,
-        "Flower" -> fromPolar(flower),
-        "Flower" -> fromPolar(flowers)
+    private def id(name : String) = Id("prelude", name)
+
+    val animationMap = Map[Id, Animation](
+        id("Ball") -> gaussBall(0.3),
+        id("Hard ball") -> ball,
+        id("Circle") -> circle,
+        id("Square") -> square,
+        id("Chess") -> chess,
+        id("Wave") -> wave,
+        id("Rainbow") -> rainbow,
+        id("Red") -> (t => x => y => rgba(1, 0, 0, 1)),
+        id("Green") -> (t => x => y => rgba(0, 1, 0, 1)),
+        id("Blue") -> (t => x => y => rgba(0, 0, 1, 1)),
+        id("Spiral") -> spiral,
+        id("Time lens") -> TimeLens.apply,
+        id("Flower") -> fromPolar(flower),
+        id("Flower") -> fromPolar(flowers)
     )
 
-    val effects = List[(String, R => Animation => Animation)](
-        "Spin" -> Combinators.spin _,
-        "Circle" -> Combinators.circle _,
-        "Jump" -> timeTravel _,
-        "Fast forward" -> fastForward _,
-        "Squares" -> squareTiling _,
-        "Triangles" -> {f => a => triangleTiling (f) {tx => ty => a}},
-        "Fish eye" -> fishEye _,
-        "Zoom" -> {f => zoom(f * 5)},
-        "Scroll horizontal" -> {f => scroll(fromFactor(f), 0)},
-        "Scroll vertical" -> {f => scroll(0, fromFactor(f))},
-        "Move horizontal" -> {f => Combinators.translate (fromFactor(f), 0)},
-        "Move vertical" -> {f => Combinators.translate (0, fromFactor(f))},
-        "From polar" -> {f => fromPolar},
-        "To polar" -> {f => toPolar},
-        "Time tunnel" -> timeTunnel
+    val animations = animationMap.keySet.toSeq
+
+    val effectMap = Map[Id, R => Animation => Animation](
+        id("Spin") -> Combinators.spin _,
+        id("Circle") -> Combinators.circle _,
+        id("Jump") -> timeTravel _,
+        id("Fast forward") -> fastForward _,
+        id("Squares") -> squareTiling _,
+        id("Triangles") -> {f => a => triangleTiling (f) {tx => ty => a}},
+        id("Fish eye") -> fishEye _,
+        id("Zoom") -> {f => zoom(f * 5)},
+        id("Scroll horizontal") -> {f => scroll(fromFactor(f), 0)},
+        id("Scroll vertical") -> {f => scroll(0, fromFactor(f))},
+        id("Move horizontal") -> {f => Combinators.translate (fromFactor(f), 0)},
+        id("Move vertical") -> {f => Combinators.translate (0, fromFactor(f))},
+        id("From polar") -> {f => fromPolar},
+        id("To polar") -> {f => toPolar},
+        id("Time tunnel") -> timeTunnel
     )
 
-    val combinators = List[(String, Animation => Animation => Animation)](
-        "Transform" -> Combinators.bendSpaceTime,
-        "Add" -> Combinators.addition,
-        "Subtract" -> Combinators.subtract,
-        "Multiply" -> Combinators.multiply
+    val effects = effectMap.keySet.toSeq
+
+    val combinatorMap = Map[Id, Animation => Animation => Animation](
+        id("Transform") -> Combinators.bendSpaceTime,
+        id("Add") -> Combinators.addition,
+        id("Subtract") -> Combinators.subtract,
+        id("Multiply") -> Combinators.multiply
     )
 
-
+    val combinators = combinatorMap.keySet.toSeq
 
 }
