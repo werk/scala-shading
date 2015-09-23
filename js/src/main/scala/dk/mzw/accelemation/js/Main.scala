@@ -22,6 +22,8 @@ object Main extends JSApp {
             activeWidget.onResize(dom.window.innerWidth, dom.window.innerHeight)
         }
 
+        val buildAnimation = Prelude.buildAnimation
+
         val widgetElement = dom.document.getElementById("widget")
         def setWidget(widget : Widget): Unit = {
             while(widgetElement.firstChild != null) widgetElement.removeChild(widgetElement.firstChild)
@@ -30,10 +32,10 @@ object Main extends JSApp {
             dom.window.onresize(null)
         }
         def setViewState(viewState : ViewState) : Unit = {
-            setWidget(ViewState.render(viewState, setViewState))
+            setWidget(ViewState.render(viewState, setViewState, buildAnimation))
         }
 
-        setWidget(new ListWidget(Pick0, setViewState))
+        setWidget(new ListWidget(Pick0, setViewState, buildAnimation))
 
         def step(elapsed : Double) : Unit = {
             activeWidget.onDraw()

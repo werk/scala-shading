@@ -6,7 +6,7 @@ import dk.mzw.accelemation.{Internal, ToGlsl}
 import org.scalajs.dom
 import org.scalajs.dom.raw.HTMLInputElement
 
-class ParametersWidget(effect : R => Animation, setViewState : ViewState => Unit, buildBuild : Double => BuildOrder) extends Widget {
+class ParametersWidget(effect : R => BuildOrder, setViewState : ViewState => Unit, buildAnimation : BuildAnimation) extends Widget {
 
     private var parameter = 0.6
 
@@ -23,10 +23,12 @@ class ParametersWidget(effect : R => Animation, setViewState : ViewState => Unit
         element.appendChild(canvasElement)
         element.appendChild(parametersElement)
         buttonElement.addEventListener("click", { _ : dom.Event =>
-            setViewState(ShowAnimation(buildBuild(parameter)))
+            setViewState(ShowAnimation(effect(parameter)))
         })
         buttonElement.appendChild(dom.document.createTextNode("OK"))
-        val source = "uniform float u_parameter;\n\n" + ToGlsl(effect(Term(Internal.BuiltIn("u_parameter"))))
+        val build = effect(Term(Internal.BuiltIn("u_parameter")))
+        val animation = buildAnimation(build)
+        val source = "uniform float u_parameter;\n\n" + ToGlsl(animation)
         val a : Animade = new Animade(Animade.Configuration(source, canvasElement))
         a.set(Map("u_parameter" -> List(parameter)))
         sliderElement.setAttribute("type", "range")

@@ -1,8 +1,8 @@
 package dk.mzw.accelemation.js
 
-import dk.mzw.accelemation.Language.{R, Animation}
+import dk.mzw.accelemation.Language.R
 import dk.mzw.accelemation.ToGlsl
-import dk.mzw.accelemation.js.BuildOrder.{Combine, Id}
+import dk.mzw.accelemation.js.BuildOrder.Combine
 import dk.mzw.accelemation.js.ViewState._
 import org.scalajs.dom
 
@@ -38,13 +38,12 @@ class ListWidget(listType : ListType, setViewState : ViewState => Unit, buildAni
             }
         case Pick1(current) =>
             buildAnimation.effects.keys.map {id =>
-                def buildBuild(factor : Double) = {
+                def effect(factor : R) : BuildOrder = {
                     val moreActions = Seq()
                     current.copy(actions = current.actions ++ moreActions)
                 }
-                val animation = buildAnimation(buildBuild(0.6))
-                def effect(factor : R) : Animation = null
-                createCanvas(id.name, ToGlsl(animation), ShowParameters(effect, buildBuild))
+                val animation = buildAnimation(effect(0.6))
+                createCanvas(id.name, ToGlsl(animation), ShowParameters(effect))
             }
         case Pick2(current, None) =>
             buildAnimation.animations.keys.map { id =>

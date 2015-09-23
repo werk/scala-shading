@@ -10,6 +10,7 @@ import org.scalajs.dom.Element
 class AnimationWidget(build : BuildOrder, setViewState : ViewState => Unit, buildAnimation : BuildAnimation) extends Widget {
 
     private val animation = buildAnimation(build)
+    println(BuildOrder.show(build))
 
     private val canvas = dom.document.createElement("canvas")
     private val animade = new Animade(Animade.Configuration(ToGlsl(animation), canvas))
