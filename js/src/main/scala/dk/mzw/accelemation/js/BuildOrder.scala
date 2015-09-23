@@ -26,9 +26,9 @@ object BuildOrder {
     def show(id : Id) = id.userId + "/" + id.name
 
     def show(entry : Entry) : String = {
-        "[" + entry.text + "]\n" +
+        "[" + entry.text.replaceAll("[\\r\\n\\]]+", " ") + "]\n" +
         entry.keyValues.map { case (k, v) =>
-            k.replaceAll("[\\r\\n]+", " ") + " = " + v.replaceAll("[\\r\\n]+", " ") + "\n"
+            k.replaceAll("[\\r\\n=]+", " ") + " = " + v.replaceAll("[\\r\\n]+", " ") + "\n"
         }.mkString
     }
 
