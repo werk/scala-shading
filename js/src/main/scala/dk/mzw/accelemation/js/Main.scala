@@ -1,5 +1,6 @@
 package dk.mzw.accelemation.js
 
+import dk.mzw.accelemation.js.BuildOrder.{Effect, Id}
 import dk.mzw.accelemation.js.ViewState.Pick0
 import dk.mzw.accelemation.samples._
 import org.scalajs.dom

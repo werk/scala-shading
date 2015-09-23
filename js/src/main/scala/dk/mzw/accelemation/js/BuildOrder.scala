@@ -48,13 +48,12 @@ object BuildOrder {
         }
         if(!entries.headOption.exists(_.text == "initial")) throw new RuntimeException("File must start with [initial]")
         val initialAnimationId = expect(entries.head, "animationId") { case Seq(animationId) => readId(animationId) }
-        var actions = ListBuffer[Action]()
-        for(entry <- entries) entry match {
+        val actions = for(entry <- entries.tail) yield entry match {
             case Entry("effect", keyValues) => expect(entry, "factor", "effectId") { case Seq(factor, effectId) =>
-                actions += Effect(factor.toDouble, readId(effectId))
+                Effect(factor.toDouble, readId(effectId))
             }
             case Entry("combine", keyValues) => expect(entry, "animationId", "effectId", "flipped") { case Seq(animationId, effectId, flipped) =>
-                actions += Combine(readId(animationId), readId(effectId), flipped.toBoolean)
+                Combine(readId(animationId), readId(effectId), flipped.toBoolean)
             }
             case Entry(name, _) => throw new RuntimeException("Unexpected [" + name + "]")
         }
@@ -65,24 +64,28 @@ object BuildOrder {
         val entries = new ListBuffer[Entry]()
         val keyValues = new ListBuffer[(String, String)]()
         var entryName : Option[String] = None
+        def emitEntries() : Unit = {
+            for(name <- entryName) {
+                entries += Entry(name, keyValues.toList)
+                keyValues.clear()
+            }
+        }
         for((line, lineNumber) <- text.lines.map(_.trim).zipWithIndex if !line.isEmpty) {
             if(line.startsWith("[")) {
-                for(name <- entryName) {
-                    entries += Entry(name, keyValues.toList)
-                    keyValues.clear()
-                }
+                emitEntries()
                 if(!line.endsWith("]")) throw new ParseException("Expected ']'", line, lineNumber + 1)
                 entryName = Some(line.tail.dropRight(1).trim)
             } else if(entryName.isEmpty) {
                 throw new ParseException("Expected '['", line, lineNumber + 1)
             } else {
                 line.split("=", 2) match {
-                    case Array(key, value) => keyValues += (key -> value)
+                    case Array(key, value) => keyValues += (key.trim -> value.trim)
                     case _ => throw new ParseException("Expected '='", line, lineNumber + 1)
                 }
             }
         }
-        entries
+        emitEntries()
+        entries.toList
     }
 
     case class ParseException(message : String, line : String, lineNumber : Int) extends RuntimeException(message + " at line " + lineNumber + ":" + line)
