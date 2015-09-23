@@ -34,7 +34,7 @@ class ListWidget(listType : ListType, setViewState : ViewState => Unit, buildAni
             buildAnimation.animations.map { id =>
                 val build = BuildOrder(id, Seq())
                 val animation = buildAnimation(build)
-                createCanvas(id.name, ToGlsl(animation), ShowAnimation(build))
+                createCanvas(id.key, ToGlsl(animation), ShowAnimation(build))
             }
         case Pick1(current) =>
             buildAnimation.effects.map {effectId =>
@@ -42,18 +42,18 @@ class ListWidget(listType : ListType, setViewState : ViewState => Unit, buildAni
                     current.copy(actions = current.actions :+ Effect(factor, effectId))
                 }
                 val animation = buildAnimation(effect(0.6))
-                createCanvas(effectId.name, ToGlsl(animation), ShowParameters(effect))
+                createCanvas(effectId.key, ToGlsl(animation), ShowParameters(effect))
             }
         case Pick2(current, None) =>
             buildAnimation.animations.map { id =>
                 val animation = buildAnimation(BuildOrder(id, Seq()))
-                createCanvas(id.name, ToGlsl(animation), ShowList(Pick2(current, Some(id))))
+                createCanvas(id.key, ToGlsl(animation), ShowList(Pick2(current, Some(id))))
             }
         case Pick2(current, Some(animationId)) =>
             buildAnimation.combinators.map { combineId =>
                 val build = current.copy(actions = current.actions :+ Combine(animationId, combineId, flipped = false))
                 val animation = buildAnimation(build)
-                createCanvas(combineId.name, ToGlsl(animation), ShowAnimation(build))
+                createCanvas(combineId.key, ToGlsl(animation), ShowAnimation(build))
             }
     }
 

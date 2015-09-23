@@ -62,7 +62,7 @@ object Prelude {
             hsva(h, s, v, 1)
         }
 
-        val flowers = addition(addition(flower)(timeTravel(1337)(flower)))(timeTravel(133)(flower))
+        val flowers = addition(addition(flower)(timeTravel(133)(flower)))(timeTravel(13)(flower))
 
 
         def cartesianToPolar(x: R, y: R): (R, R) = (vec2(x, y).magnitude, Math.atan2(y, x))

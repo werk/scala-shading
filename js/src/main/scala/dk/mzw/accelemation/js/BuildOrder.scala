@@ -10,7 +10,7 @@ case class BuildOrder(animationId : Id, actions : Seq[Action])
 
 object BuildOrder {
 
-    case class Id(userId : String, name : String)
+    case class Id(userId : String, key : String)
 
     sealed trait Action
     case class Effect(factor : R, effectId : Id) extends Action
@@ -25,7 +25,7 @@ object BuildOrder {
         case Combine(animationId, combineId, flipped) => show(Entry("combine", Seq("animationId" -> show(animationId), "combineId" -> show(combineId), "flipped" -> flipped.toString)))
     }
 
-    def show(id : Id) = id.userId + "/" + id.name
+    def show(id : Id) = id.userId + "/" + id.key
 
     def show(entry : Entry) : String = {
         "[" + entry.text.replaceAll("[\\r\\n\\]]+", " ") + "]\n" +
