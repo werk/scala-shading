@@ -2,6 +2,7 @@ package dk.mzw.accelemation.js
 
 import dk.mzw.accelemation.Language.Animation
 import dk.mzw.accelemation.ToGlsl
+import dk.mzw.accelemation.js.BuildOrder.Id
 import dk.mzw.accelemation.js.ViewState.{Pick2, Pick1, ShowList, Pick0}
 import org.scalajs.dom
 import org.scalajs.dom.document
@@ -32,10 +33,17 @@ class AnimationWidget(build : BuildOrder, setViewState : ViewState => Unit, buil
             "text-align" -> "center"
         ).click(click)(name)
 
-        val menu = Div("position" -> "absolute", "bottom" -> "0", "right" -> "0", "height" -> "50px", "width" -> "300px")(
-            button("New", "rgba(200, 100, 100, 0.5)", {() => setViewState(ShowList(Pick0))}),
-            button("Effect", "rgba(100, 200, 100, 0.5)", {() => setViewState(ShowList(Pick1(build)))}),
-            button("Combine", "rgba(100, 100, 200, 0.5)", {() => setViewState(ShowList(Pick2(build, None)))})
+        val menu = Div("position" -> "absolute", "bottom" -> "0", "right" -> "0", "height" -> "50px", "width" -> "400px")(
+            button("Discard", "rgba(200, 100, 100, 0.5)", {() => setViewState(ShowList(Pick0))}),
+            button("Effect", "rgba(200, 100, 200, 0.5)", {() => setViewState(ShowList(Pick1(build)))}),
+            button("Combine", "rgba(100, 100, 200, 0.5)", {() => setViewState(ShowList(Pick2(build, None)))}),
+            button("Save", "rgba(100, 200, 100, 0.5)", {() =>
+                def onSave(id : Id) : Unit = {
+                    println("Saved: " + BuildOrder.show(id))
+                    setViewState(ShowList(Pick0))
+                }
+                LocalStore.store.put("TODO", build, onSuccess = onSave, onError = println)
+            })
         )
 
         Div()(canvas, menu)

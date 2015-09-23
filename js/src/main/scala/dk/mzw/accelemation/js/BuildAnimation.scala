@@ -3,7 +3,7 @@ package dk.mzw.accelemation.js
 import dk.mzw.accelemation.Language._
 import dk.mzw.accelemation.js.BuildOrder._
 
-class BuildAnimation(private var animationMap : Map[Id, Animation], private var effectMap : Map[Id, R => Animation => Animation], private var combinatorMap : Map[Id, Animation => Animation => Animation]) {
+class BuildAnimation(var animationMap : Map[Id, Animation], var effectMap : Map[Id, R => Animation => Animation], var combinatorMap : Map[Id, Animation => Animation => Animation]) {
 
     def animations = animationMap.keys.toList
     def effects = effectMap.keys.toList

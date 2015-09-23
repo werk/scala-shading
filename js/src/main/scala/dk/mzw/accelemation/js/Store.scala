@@ -35,3 +35,7 @@ class LocalStore(var userId : Option[String]) extends Store {
     }
 
 }
+
+object LocalStore {
+    val store = new LocalStore(Some("anonymous"))
+}
