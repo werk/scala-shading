@@ -14,11 +14,13 @@ object BuildOrder {
 
 
     def show(buildOrder : BuildOrder) : String = {
-
+        val actions = buildOrder.actions.toList.flatMap(show)
+        ("[initial]" :: buildOrder.animationId :: actions).map(_ + "\n").mkString
     }
 
-    def show(buildOrder : Action) : String = {
-
+    def show(action : Action) : List[String] = action match {
+        case Effect(factor, effectId) => List("[effect]", s"factor = $factor", s"effectId = $effectId")
+        case Combine(animationId, effectId, flipped) => List("[combine]", s"animationId = $animationId", s"flipped = $flipped")
     }
 
 
