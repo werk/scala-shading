@@ -2,7 +2,7 @@ package dk.mzw.accelemation.js
 
 import dk.mzw.accelemation.Language.R
 import dk.mzw.accelemation.ToGlsl
-import dk.mzw.accelemation.js.BuildOrder.Combine
+import dk.mzw.accelemation.js.BuildOrder.{Effect, Combine}
 import dk.mzw.accelemation.js.ViewState._
 import org.scalajs.dom
 
@@ -31,27 +31,26 @@ class ListWidget(listType : ListType, setViewState : ViewState => Unit, buildAni
 
     private val elements = listType match {
         case Pick0 =>
-            buildAnimation.animations.keys.map { id =>
+            buildAnimation.animations.map { id =>
                 val build = BuildOrder(id, Seq())
                 val animation = buildAnimation(build)
                 createCanvas(id.name, ToGlsl(animation), ShowAnimation(build))
             }
         case Pick1(current) =>
-            buildAnimation.effects.keys.map {id =>
+            buildAnimation.effects.map {effectId =>
                 def effect(factor : R) : BuildOrder = {
-                    val moreActions = Seq()
-                    current.copy(actions = current.actions ++ moreActions)
+                    current.copy(actions = current.actions :+ Effect(factor, effectId))
                 }
                 val animation = buildAnimation(effect(0.6))
-                createCanvas(id.name, ToGlsl(animation), ShowParameters(effect))
+                createCanvas(effectId.name, ToGlsl(animation), ShowParameters(effect))
             }
         case Pick2(current, None) =>
-            buildAnimation.animations.keys.map { id =>
-                val animation = buildAnimation(current)
+            buildAnimation.animations.map { id =>
+                val animation = buildAnimation(BuildOrder(id, Seq()))
                 createCanvas(id.name, ToGlsl(animation), ShowList(Pick2(current, Some(id))))
             }
         case Pick2(current, Some(animationId)) =>
-            buildAnimation.combinators.keys.map { combineId =>
+            buildAnimation.combinators.map { combineId =>
                 val build = current.copy(actions = current.actions :+ Combine(animationId, combineId, flipped = false))
                 val animation = buildAnimation(build)
                 createCanvas(combineId.name, ToGlsl(animation), ShowAnimation(build))

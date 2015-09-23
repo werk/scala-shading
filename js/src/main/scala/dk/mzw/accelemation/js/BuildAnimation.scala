@@ -3,10 +3,14 @@ package dk.mzw.accelemation.js
 import dk.mzw.accelemation.Language._
 import dk.mzw.accelemation.js.BuildOrder._
 
-class BuildAnimation(var animations : Map[Id, Animation], var effects : Map[Id, R => Animation => Animation], var combinators : Map[Id, Animation => Animation => Animation]) {
+class BuildAnimation(private var animationMap : Map[Id, Animation], private var effectMap : Map[Id, R => Animation => Animation], private var combinatorMap : Map[Id, Animation => Animation => Animation]) {
+
+    def animations = animationMap.keys.toList
+    def effects = effectMap.keys.toList
+    def combinators = combinatorMap.keys.toList
 
     def apply(build : BuildOrder) : Animation = {
-        val initial = animations(build.animationId)
+        val initial = animationMap(build.animationId)
         step(initial, build.actions)
     }
 
@@ -14,12 +18,12 @@ class BuildAnimation(var animations : Map[Id, Animation], var effects : Map[Id, 
         actions match {
             case Seq() => currentAnimation
             case Effect(factor, effectId) +: rest =>
-                val effect = effects(effectId)
+                val effect = effectMap(effectId)
                 val nextAnimation = effect (factor) (currentAnimation)
                 step(nextAnimation, rest)
             case Combine(animationId, combineId, flipped) +: rest =>
-                val combine = combinators(combineId)
-                val animation = animations(animationId)
+                val combine = combinatorMap(combineId)
+                val animation = animationMap(animationId)
                 val nextAnimation = flipped match {
                     case false => combine (currentAnimation) (animation)
                     case true => combine (animation) (currentAnimation)
