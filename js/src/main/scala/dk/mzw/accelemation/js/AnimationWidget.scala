@@ -1,6 +1,5 @@
 package dk.mzw.accelemation.js
 
-import dk.mzw.accelemation.Language.Animation
 import dk.mzw.accelemation.ToGlsl
 import dk.mzw.accelemation.js.BuildOrder.Id
 import dk.mzw.accelemation.js.ViewState.{Pick2, Pick1, ShowList, Pick0}
@@ -25,15 +24,29 @@ class AnimationWidget(build : BuildOrder, setViewState : ViewState => Unit, buil
     }
 
     override val element: Element = {
-        def button(name : String, color : String, click : () => Unit)  = Div(
-            "display" -> "inline-block",
-            "height" -> "100%",
-            "width" -> "100px",
-            "background-color" -> color,
-            "text-align" -> "center"
-        ).click(click)(name)
+        def button(name : String, color : String, click : () => Unit) = {
+            val td = DomElement("td")(
+                "text-align" -> "center",
+                "vertical-align" -> "middle",
+                "height" -> "100%",
+                "width" -> "100%",
+                "color" -> "white",
+                "font-weight" -> "bold"
+            )(name)
+            val tr = DomElement("tr")()(td)
+            val table = DomElement("table")(
+                "height" -> "100px",
+                "width" -> "100px",
+                "margin-left" -> "5px",
+                "margin-right" -> "5px",
+                "border-radius" -> "100%",
+                "background-color" -> color,
+                "cursor" -> "pointer"
+            ).click(click)(tr)
+            div("display" -> "inline-block")(table)
+        }
 
-        val menu = Div("position" -> "absolute", "bottom" -> "0", "right" -> "0", "height" -> "50px", "width" -> "400px")(
+        val menu = div("position" -> "absolute", "bottom" -> "20px", "left" -> "0", "height" -> "100px", "width" -> "100%", "text-align" -> "center")(
             button("Discard", "rgba(200, 100, 100, 0.5)", {() => setViewState(ShowList(Pick0))}),
             button("Effect", "rgba(200, 100, 200, 0.5)", {() => setViewState(ShowList(Pick1(build)))}),
             button("Combine", "rgba(100, 100, 200, 0.5)", {() => setViewState(ShowList(Pick2(build, None)))}),
@@ -46,13 +59,15 @@ class AnimationWidget(build : BuildOrder, setViewState : ViewState => Unit, buil
             })
         )
 
-        Div()(canvas, menu)
+        div()(canvas, menu)
     }
 
-    case class Div(styles : (String, String)*) {
+    def div(styles : (String, String)*) = DomElement("div")(styles : _*)
+
+    case class DomElement(tag : String)(styles : (String, String)*) {
         private var onClicks = List[() => Unit]()
 
-        def click(handler : () => Unit) : Div = {
+        def click(handler : () => Unit) : DomElement = {
             onClicks ::= handler
             this
         }
@@ -71,7 +86,7 @@ class AnimationWidget(build : BuildOrder, setViewState : ViewState => Unit, buil
 
 
         private def create() = {
-            val e = document.createElement("div")
+            val e = document.createElement(tag)
             e.setAttribute("style", styles.map{case (k, v) => s"$k: $v; "}.mkString)
             if(onClicks.nonEmpty)
             e.addEventListener("click", { _ : dom.Event =>
@@ -79,6 +94,5 @@ class AnimationWidget(build : BuildOrder, setViewState : ViewState => Unit, buil
             })
             e
         }
-
     }
 }
