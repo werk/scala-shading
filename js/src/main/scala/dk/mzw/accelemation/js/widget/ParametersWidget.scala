@@ -1,7 +1,8 @@
-package dk.mzw.accelemation.js
+package dk.mzw.accelemation.js.widget
 
-import dk.mzw.accelemation.Language.{Animation, R, Term}
+import dk.mzw.accelemation.Language.{R, Term}
 import dk.mzw.accelemation.js.ViewState._
+import dk.mzw.accelemation.js.{Animade, BuildAnimation, BuildOrder, ViewState}
 import dk.mzw.accelemation.{Internal, ToGlsl}
 import org.scalajs.dom
 import org.scalajs.dom.raw.HTMLInputElement

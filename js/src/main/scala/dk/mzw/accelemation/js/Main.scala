@@ -2,6 +2,7 @@ package dk.mzw.accelemation.js
 
 import dk.mzw.accelemation.js.BuildOrder.{Effect, Id}
 import dk.mzw.accelemation.js.ViewState.{ShowList, Pick0}
+import dk.mzw.accelemation.js.widget.Widget
 import dk.mzw.accelemation.samples._
 import org.scalajs.dom
 import org.scalajs.dom.raw.UIEvent
@@ -42,12 +43,12 @@ object Main extends JSApp {
         }
         def setViewState(viewState : ViewState) : Unit = {
             def run() = setWidget(ViewState.render(viewState, setViewState, buildAnimation))
-            if(viewState == ShowList(Pick0)) reloadAnimations(run)
+            if(viewState == ShowList(Pick0, 0)) reloadAnimations(run)
             else run()
         }
 
         reloadAnimations(() => {
-            setViewState(ShowList(Pick0))
+            setViewState(ShowList(Pick0, 0))
         })
 
         def step(elapsed : Double) : Unit = {

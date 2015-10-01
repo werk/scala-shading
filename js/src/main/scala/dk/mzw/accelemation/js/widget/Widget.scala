@@ -1,4 +1,4 @@
-package dk.mzw.accelemation.js
+package dk.mzw.accelemation.js.widget
 
 import org.scalajs.dom
 

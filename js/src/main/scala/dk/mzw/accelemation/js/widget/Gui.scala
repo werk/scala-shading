@@ -1,0 +1,60 @@
+package dk.mzw.accelemation.js.widget
+
+import org.scalajs.dom
+import org.scalajs.dom.document
+
+
+object Gui {
+
+    def tag(tagName : String)(styles : (String, String)*) = RichElement(tagName, Seq(), styles, None)
+    def div(styles : (String, String)*) = tag("div")(styles : _*)
+    def span(styles : (String, String)*) = tag("span")(styles : _*)
+    def inlineBlock(styles : (String, String)*) = div(styles : _*).style("display" -> "inline-block")
+
+    def middle(styles : (String, String)*)(children : DomElement*) : DomElement = {
+        val td = tag("td")(
+            "text-align" -> "center",
+            "vertical-align" -> "middle",
+            "height" -> "100%",
+            "width" -> "100%",
+            "font-weight" -> "bold"
+        )(children : _*)
+        val tr = tag("tr")()(td)
+        tag("table")()(tr)
+    }
+
+    implicit def fromText(text : String) : DomElement = TextElement(text)
+    implicit def fromElement(node : dom.Element) : DomElement = NodeElement(node)
+
+    sealed trait DomElement {
+        def toDom : dom.Node
+    }
+    
+    case class NodeElement(element : dom.Element) extends DomElement {
+        override def toDom : dom.Element = element
+    }
+    
+    case class TextElement(text : String) extends DomElement {
+        override def toDom: dom.Node = document.createTextNode(text)
+    }
+    
+    case class RichElement(tag : String, children : Seq[DomElement], styles : Seq[(String, String)], onClicks : Option[() => Unit]) extends DomElement {
+
+        def click(handler : () => Unit) : RichElement = copy(onClicks = Some(handler))
+        def apply(children : DomElement*) : RichElement = copy(children = this.children ++ children)
+        def flatAppend(children : Option[DomElement]*) = apply(children.flatten : _*)
+        def style(styles : (String, String)*) = copy(styles = this.styles ++ styles)
+
+        override def toDom : dom.Element = {
+            val e = document.createElement(tag)
+            if(styles.nonEmpty) e.setAttribute("style", styles.map{case (k, v) => s"$k: $v; "}.mkString)
+            if(onClicks.nonEmpty) {
+                e.addEventListener("click", { _ : dom.Event =>
+                    onClicks.foreach(_())
+                })
+            }
+            children.foreach(c => e.appendChild(c.toDom))
+            e
+        }
+    }
+}
