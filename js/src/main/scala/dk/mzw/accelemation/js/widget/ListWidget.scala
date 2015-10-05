@@ -10,32 +10,44 @@ import Gui._
 
 class ListWidget(listType : ListType, page : Int, setViewState : ViewState => Unit, buildAnimation : BuildAnimation) extends Widget {
 
-    def createCanvas(name : String, source : String, newViewState : ViewState) : (String, RichElement, Animade) = {
+    def createCanvas(name : String, source : String, newViewState : ViewState) : CanvasBox = {
         val canvasDomElement = tag("canvas")(
             "height" -> "100%",
             "width" -> "100%"
         ).toDom
         val canvasElement : DomElement = canvasDomElement
-        val nameElement = span()(name)
-        val sourceElement = span()("size: " + source.length)
+        val nameElement = div(
+            "padding" -> "6px",
+            "text-align" -> "center"
+        )(name)
         val infoElement = div(
-            "font-size" -> "20px",
+            "font-size" -> "14px",
             "position" -> "absolute",
             "bottom" -> "0",
             "left" -> "0",
             "width" -> "100%",
-            "text-align" -> "left",
             "color" -> "white",
             "font-weight" -> "bold",
-            "background-color" -> "rgba(100, 100, 100, 0.5)"
-        )(nameElement, sourceElement)
+            "background-color" -> "rgba(100, 100, 100, 0.7)"
+        )(nameElement)
 
-        val element = div()(canvasElement, infoElement).click(() =>
+        val element = div(
+            "height" -> "100%",
+            "width" -> "100%",
+            "position" -> "relative"
+        )(canvasElement, infoElement).click(() =>
             setViewState(newViewState)
         )
         val animade = new Animade(Animade.Configuration(source, canvasDomElement))
-        (name, element, animade)
+        CanvasBox(name, element, canvasDomElement, animade)
     }
+
+    case class CanvasBox(
+        name : String,
+        element : RichElement,
+        canvasDomElement : dom.Element,
+        animade : Animade
+    )
     
     def page[E](list : Seq[E]) : Seq[E] = list.drop(page * 6)
     def previousPage = Some(page - 1).filter(_ >= 0)
@@ -77,36 +89,72 @@ class ListWidget(listType : ListType, page : Int, setViewState : ViewState => Un
     private val start = System.currentTimeMillis()
 
     override def onResize(width : Int, height : Int) : Unit = {
-        for((_, _, animade) <- elements) {
-            animade.resize(200, 200) // TODO
+        for(box <- elements) {
+            if(box.canvasDomElement.clientWidth == 0 && box.canvasDomElement.clientHeight == 0) return // TODO
+            box.animade.resize(box.canvasDomElement.clientWidth, box.canvasDomElement.clientHeight)
+            println(s"box.animade.resize(${box.canvasDomElement.clientWidth}, ${box.canvasDomElement.clientHeight})")
         }
     }
 
     override def onDraw() : Unit = {
         val now = System.currentTimeMillis()
-        for((_, _, animade) <- elements) {
-            animade.draw(Map("u_time" -> List[Double]((now - start) / 1000.0)))
+        for(box <- elements) {
+            box.animade.draw(Map("u_time" -> List[Double]((now - start) / 1000.0)))
         }
     }
 
     override val element : dom.Element = {
-        val td = tag("td")(
-            "padding" -> "0",
-            "width" -> "33.3333333333%",
-            "position" -> "relative"
-        )
+        val boxes = {
+            def box(e : Option[RichElement]) = {
+                val inner = fullSize("5px").flatAppend(e)
+                inlineBlock(
+                    "width" -> "33.333%",
+                    "height" -> "50%",
+                    "position" -> "relative"
+                )(inner)
+            }
 
-        val tr = tag("tr")()
+            val es = elements.map(_.element)
 
-        val es = elements.map(_._2)
+            fullSize().style("background-color" -> "#222")(
+                fullSize("5px")(
+                    box(es.lift(0)), box(es.lift(1)), box(es.lift(2)),
+                    box(es.lift(3)), box(es.lift(4)), box(es.lift(5))
+                )
+            )
+        }
 
-        val table = tag("table")(
-            "height" -> "100%",
-            "width" -> "100%"
-        )(
-            tr(td.flatAppend(es.lift(0)), td.flatAppend(es.lift(1)), td.flatAppend(es.lift(2))),
-            tr(td.flatAppend(es.lift(3)), td.flatAppend(es.lift(4)), td.flatAppend(es.lift(5)))
-        )
-        table.toDom
+        val control = {
+            val p = previousPage.map{ p =>
+                tag("i")()().addClasses("fa", "fa-5x", "fa-chevron-circle-left").click( () =>
+                    setViewState(ShowList(listType, p))
+                )
+            }
+            val next = nextPage.map{n =>
+                tag("i")()().addClasses("fa", "fa-5x", "fa-chevron-circle-right").click( () =>
+                    setViewState(ShowList(listType, n))
+                )
+            }
+
+            tag("table")(
+                "height" -> "100%",
+                "width" -> "100%",
+                "color" -> "white",
+                "position" -> "absolute"
+            )(
+                tag("tr")()(
+                    tag("td")(
+                        "vertical-align" -> "middle",
+                        "text-align" -> "left"
+                    ).flatAppend(p),
+                    tag("td")(
+                        "vertical-align" -> "middle",
+                        "text-align" -> "right"
+                    ).flatAppend(next)
+                )
+            )
+        }
+
+        fullSize()(boxes, control).toDom
     }
 }
