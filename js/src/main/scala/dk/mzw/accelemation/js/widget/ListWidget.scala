@@ -74,12 +74,12 @@ class ListWidget(listType : ListType, page : Int, setViewState : ViewState => Un
             val list = buildAnimation.animations
             page(list).map { id =>
                 val animation = buildAnimation(BuildOrder(id, Seq()))
-                createCanvas(id.key, ToGlsl(animation), ShowList(Pick2(current, Some(id)), 0))
+                createCanvas(id.key, ToGlsl(animation), ShowList(Pick2(current, Some((id, false))), 0))
             } -> makeNextPage(list.size)
-        case Pick2(current, Some(animationId)) =>
+        case Pick2(current, Some((animationId, flipped))) =>
             val list = buildAnimation.combinators
             page(list).map { combineId =>
-                val build = current.copy(actions = current.actions :+ Combine(animationId, combineId, flipped = false))
+                val build = current.copy(actions = current.actions :+ Combine(animationId, combineId, flipped = flipped))
                 val animation = buildAnimation(build)
                 createCanvas(combineId.key, ToGlsl(animation), ShowAnimation(build))
             } -> makeNextPage(list.size)
@@ -124,37 +124,59 @@ class ListWidget(listType : ListType, page : Int, setViewState : ViewState => Un
             )
         }
 
-        val control = {
-            val p = previousPage.map{ p =>
-                tag("i")()().addClasses("fa", "fa-5x", "fa-chevron-circle-left").click( () =>
-                    setViewState(ShowList(listType, p))
-                )
-            }
-            val next = nextPage.map{n =>
-                tag("i")()().addClasses("fa", "fa-5x", "fa-chevron-circle-right").click( () =>
-                    setViewState(ShowList(listType, n))
-                )
-            }
-
-            tag("table")(
-                "height" -> "100%",
-                "width" -> "100%",
-                "color" -> "white",
-                "position" -> "absolute"
-            )(
-                tag("tr")()(
-                    tag("td")(
-                        "vertical-align" -> "middle",
-                        "text-align" -> "left"
-                    ).flatAppend(p),
-                    tag("td")(
-                        "vertical-align" -> "middle",
-                        "text-align" -> "right"
-                    ).flatAppend(next)
-                )
+        val previous = previousPage.map{ p =>
+            val i = tag("i")()().addClasses("fa", "fa-5x", "fa-chevron-circle-left")
+            val b = roundButton(i, "rgba(100, 100, 100, 0.5)", setViewState(ShowList(listType, p)))
+            b.style(
+                "position" -> "absolute",
+                "left" -> "0",
+                "top" -> "50%",
+                "transform" -> "translate(0, -50%)"
             )
         }
 
-        fullSize()(boxes, control).toDom
+        val next = nextPage.map{n =>
+            val i = tag("i")()().addClasses("fa", "fa-5x", "fa-chevron-circle-right")
+            val b = roundButton(i, "rgba(100, 100, 100, 0.5)", setViewState(ShowList(listType, n)))
+            b.style(
+                "position" -> "absolute",
+                "right" -> "0",
+                "top" -> "50%",
+                "transform" -> "translate(0, -50%)"
+            )
+        }
+
+        val flip = Some(listType).collect{ case Pick2(current, Some((animationId, flipped))) =>
+            val i = tag("i")()().addClasses("fa", "fa-5x", "fa-arrows-h")
+            val flipStage = ShowList(Pick2(current, Some((animationId, !flipped))), page)
+            val b = roundButton(i, "rgba(100, 100, 100, 0.5)", setViewState(flipStage))
+            b.style(
+                "position" -> "absolute",
+                "top" -> "0",
+                "left" -> "50%",
+                "transform" -> "translate(-50%, 0)"
+            )
+        }
+
+        val cancel = {
+            val i = tag("i")()().addClasses("fa", "fa-5x", "fa-times-circle")
+            val undoStage = listType match {
+                case Pick0 => None
+                case Pick1(current) => Some(ShowAnimation(current))
+                case Pick2(current, None) => Some(ShowAnimation(current))
+                case Pick2(current, Some(p)) => Some(ShowList(Pick2(current, None), page))
+            }
+            undoStage.map{s =>
+                val b = roundButton(i, "rgba(100, 100, 100, 0.5)", setViewState(s))
+                b.style(
+                    "position" -> "absolute",
+                    "bottom" -> "0",
+                    "left" -> "50%",
+                    "transform" -> "translate(-50%, 0)"
+                )
+            }
+        }
+
+        fullSize().flatAppend(Some(boxes), previous, next, flip, cancel).toDom
     }
 }

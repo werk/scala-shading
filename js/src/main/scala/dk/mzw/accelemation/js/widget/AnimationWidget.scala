@@ -25,28 +25,6 @@ class AnimationWidget(build : BuildOrder, setViewState : ViewState => Unit, buil
     }
 
     override val element: Element = {
-        def button(name : String, color : String, click : () => Unit) = {
-            val td = tag("td")(
-                "text-align" -> "center",
-                "vertical-align" -> "middle",
-                "height" -> "100%",
-                "width" -> "100%",
-                "color" -> "white",
-                "font-weight" -> "bold"
-            )(name)
-            val tr = tag("tr")()(td)
-            val table = tag("table")(
-                "height" -> "100px",
-                "width" -> "100px",
-                "margin-left" -> "5px",
-                "margin-right" -> "5px",
-                "border-radius" -> "100%",
-                "background-color" -> color,
-                "cursor" -> "pointer"
-            )(tr).click(click)
-            inlineBlock()(table)
-        }
-
         val menu = div(
             "position" -> "absolute",
             "bottom" -> "20px",
@@ -55,10 +33,10 @@ class AnimationWidget(build : BuildOrder, setViewState : ViewState => Unit, buil
             "width" -> "100%",
             "text-align" -> "center"
         )(
-            button("Discard", "rgba(200, 100, 100, 0.5)", {() => setViewState(ShowList(Pick0, 0))}),
-            button("Effect", "rgba(200, 100, 200, 0.5)", {() => setViewState(ShowList(Pick1(build), 0))}),
-            button("Combine", "rgba(100, 100, 200, 0.5)", {() => setViewState(ShowList(Pick2(build, None), 0))}),
-            button("Save", "rgba(100, 200, 100, 0.5)", {() =>
+            roundButton("Discard", "rgba(200, 100, 100, 0.5)", {setViewState(ShowList(Pick0, 0))}),
+            roundButton("Effect", "rgba(200, 100, 200, 0.5)", {setViewState(ShowList(Pick1(build), 0))}),
+            roundButton("Combine", "rgba(100, 100, 200, 0.5)", {setViewState(ShowList(Pick2(build, None), 0))}),
+            roundButton("Save", "rgba(100, 200, 100, 0.5)", {
                 def onSave(id : Id) : Unit = {
                     println("Saved: " + BuildOrder.show(id))
                     setViewState(ShowList(Pick0, 0))

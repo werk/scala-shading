@@ -6,11 +6,6 @@ import org.scalajs.dom.document
 
 object Gui {
 
-    def tag(tagName : String)(styles : (String, String)*) = RichElement(tagName, Seq(), Seq(), styles, None)
-    def div(styles : (String, String)*) = tag("div")(styles : _*)
-    def span(styles : (String, String)*) = tag("span")(styles : _*)
-    def inlineBlock(styles : (String, String)*) = div(styles : _*).style("display" -> "inline-block")
-
     def middle(styles : (String, String)*)(children : DomElement*) : DomElement = {
         val td = tag("td")(
             "text-align" -> "center",
@@ -30,6 +25,33 @@ object Gui {
         "bottom" -> margin,
         "right" -> margin
     )
+
+    def roundButton(content : DomElement, color : String, click : => Unit) = {
+        val td = tag("td")(
+            "text-align" -> "center",
+            "vertical-align" -> "middle",
+            "height" -> "100%",
+            "width" -> "100%",
+            "color" -> "white",
+            "font-weight" -> "bold"
+        )(content)
+        val tr = tag("tr")()(td)
+        val table = tag("table")(
+            "height" -> "100px",
+            "width" -> "100px",
+            "margin-left" -> "5px",
+            "margin-right" -> "5px",
+            "border-radius" -> "100%",
+            "background-color" -> color,
+            "cursor" -> "pointer"
+        )(tr).click(() => click)
+        inlineBlock()(table)
+    }
+
+    def tag(tagName : String)(styles : (String, String)*) = RichElement(tagName, Seq(), Seq(), styles, None)
+    def div(styles : (String, String)*) = tag("div")(styles : _*)
+    def span(styles : (String, String)*) = tag("span")(styles : _*)
+    def inlineBlock(styles : (String, String)*) = div(styles : _*).style("display" -> "inline-block")
 
     implicit def fromText(text : String) : DomElement = TextElement(text)
     implicit def fromElement(node : dom.Element) : DomElement = NodeElement(node)
