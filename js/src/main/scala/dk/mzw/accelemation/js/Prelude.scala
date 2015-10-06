@@ -18,7 +18,7 @@ object Prelude {
             rgba(intensity, intensity, intensity, 1)
         }
 
-        var noise: Animation = t => x => y => simplexNoise(x, y, t) bind {i => rgba(i, i, i, 1)}
+        val noise: Animation = t => x => y => simplexNoise(x, y, t) bind {i => rgba(i, i, i, 1)}
 
         val ball: Animation = binary { t => x => y =>
             sqrt(x * x + y * y) < 1
@@ -163,7 +163,7 @@ object Prelude {
             id("Ball") -> gaussBall(0.3),
             id("Hard ball") -> ball,
             id("Circle") -> circle,
-            id("Square") -> square,
+            //id("Square") -> square,
             id("Chess") -> chess,
             id("Wave") -> wave,
             id("Rainbow") -> rainbow,
