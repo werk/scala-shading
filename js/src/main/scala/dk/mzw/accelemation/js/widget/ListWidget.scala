@@ -35,7 +35,7 @@ class ListWidget(listType : ListType, page : Int, setViewState : ViewState => Un
             "height" -> "100%",
             "width" -> "100%",
             "position" -> "relative"
-        )(canvasElement, infoElement).click(() =>
+        )(canvasElement, infoElement).click(_ =>
             setViewState(newViewState)
         )
         val animade = new Animade(Animade.Configuration(source, canvasDomElement))
