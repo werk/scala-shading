@@ -198,7 +198,8 @@ object Prelude {
             id("Transform") -> Combinators.bendSpaceTime,
             id("Add") -> Combinators.addition,
             id("Subtract") -> Combinators.subtract,
-            id("Multiply") -> Combinators.multiply
+            id("Multiply") -> Combinators.multiply,
+            id("Colormap") -> Combinators.colorMap
         )
 
         new BuildAnimation(animationMap, effectMap, combinatorMap)

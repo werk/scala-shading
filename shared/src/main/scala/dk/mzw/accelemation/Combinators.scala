@@ -62,6 +62,13 @@ object Combinators {
             }
         }
 
+    def colorMap (f : Animation) (target : Animation) (t : R) (x : R) (y : R) : Color =
+        f(t)(x)(y) bind { c =>
+            (0.2126 * c.red + 0.7152 * c.green + 0.0722 * c.blue) bind { l =>
+                target(t)(l * 2 - 1)(0)
+            }
+        }
+
     /*******************************
     ** Animation blendings
     *******************************/
