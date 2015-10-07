@@ -32,7 +32,6 @@ class ParametersWidget(effect : R => BuildOrder, setViewState : ViewState => Uni
         }
 
         def onMouseMove(event : dom.MouseEvent) : Unit = {
-            dom.console.dir(event)
             if(event.buttons != 1) return
             def mod(p : Double, q : Double) = ((p % q) + q) % q
             val target = event.currentTarget.asInstanceOf[dom.html.Element]
