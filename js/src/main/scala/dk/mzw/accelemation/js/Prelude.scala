@@ -206,7 +206,8 @@ object Prelude {
             id("Colormap") -> Combinators.colorMap
         )
 
-        new BuildAnimation(animationMap, effectMap, combinatorMap)
+        val nameMap = (animationMap.keys ++ effectMap.keys ++ combinatorMap.keys).map(id => id -> id.key).toMap
+        new BuildAnimation(animationMap, effectMap, combinatorMap, nameMap)
     }
 
 }

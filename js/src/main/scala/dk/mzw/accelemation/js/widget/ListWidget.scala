@@ -57,9 +57,9 @@ class ListWidget(listType : ListType, page : Int, setViewState : ViewState => Un
         case Pick0 =>
             val list = buildAnimation.animations
             page(list).map { id =>
-                val build = BuildOrder(id, Seq())
+                val build = BuildOrder(None, id, Seq())
                 val animation = buildAnimation(build)
-                createCanvas(id.key, ToGlsl(animation), ShowAnimation(build))
+                createCanvas(buildAnimation.nameMap(id), ToGlsl(animation), ShowAnimation(build))
             } -> makeNextPage(list.size)
         case Pick1(current) =>
             val list = buildAnimation.effects
@@ -68,20 +68,20 @@ class ListWidget(listType : ListType, page : Int, setViewState : ViewState => Un
                     current.copy(actions = current.actions :+ Effect(factor, effectId))
                 }
                 val animation = buildAnimation(effect(0.6))
-                createCanvas(effectId.key, ToGlsl(animation), ShowParameters(effect))
+                createCanvas(buildAnimation.nameMap(effectId), ToGlsl(animation), ShowParameters(effect))
             } -> makeNextPage(list.size)
         case Pick2(current, None) =>
             val list = buildAnimation.animations
             page(list).map { id =>
-                val animation = buildAnimation(BuildOrder(id, Seq()))
-                createCanvas(id.key, ToGlsl(animation), ShowList(Pick2(current, Some((id, false))), 0))
+                val animation = buildAnimation(BuildOrder(None, id, Seq()))
+                createCanvas(buildAnimation.nameMap(id), ToGlsl(animation), ShowList(Pick2(current, Some((id, false))), 0))
             } -> makeNextPage(list.size)
         case Pick2(current, Some((animationId, flipped))) =>
             val list = buildAnimation.combinators
             page(list).map { combineId =>
                 val build = current.copy(actions = current.actions :+ Combine(animationId, combineId, flipped = flipped))
                 val animation = buildAnimation(build)
-                createCanvas(combineId.key, ToGlsl(animation), ShowAnimation(build))
+                createCanvas(buildAnimation.nameMap(combineId), ToGlsl(animation), ShowAnimation(build))
             } -> makeNextPage(list.size)
     }
 

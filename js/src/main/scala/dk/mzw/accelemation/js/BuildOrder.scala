@@ -6,7 +6,8 @@ import dk.mzw.accelemation.js.BuildOrder._
 
 import scala.collection.mutable.ListBuffer
 
-case class BuildOrder(animationId : Id, actions : Seq[Action])
+case class SavedInfo(id : Id, name : String)
+case class BuildOrder(saved : Option[SavedInfo], animationId : Id, actions : Seq[Action])
 
 object BuildOrder {
 
@@ -17,11 +18,14 @@ object BuildOrder {
     case class Combine(animationId : Id, effectId : Id, flipped : Boolean) extends Action
 
     def show(buildOrder : BuildOrder) : String = {
-        show(Entry("initial", Seq("animationId" -> show(buildOrder.animationId)))) + buildOrder.actions.map(show).mkString
+        val meta = buildOrder.saved.map(s => show(Entry("meta", Seq("id" -> show(s.id), "name" -> s.name)))).getOrElse("")
+        val initial = show(Entry("initial", Seq("animationId" -> show(buildOrder.animationId))))
+        meta + initial + buildOrder.actions.map(show).mkString
     }
 
     def show(action : Action) : String = action match {
         case Effect(Term(Constant(factor)), effectId) => show(Entry("effect", Seq("factor" -> factor.toString, "effectId" -> show(effectId))))
+        case Effect(_, effectId) => throw new RuntimeException("Unrecognized effect parameter for effect ID: " + effectId)
         case Combine(animationId, combineId, flipped) => show(Entry("combine", Seq("animationId" -> show(animationId), "combineId" -> show(combineId), "flipped" -> flipped.toString)))
     }
 
@@ -48,9 +52,11 @@ object BuildOrder {
             val values = keys.map(k => map.getOrElse(k, throw new RuntimeException("Expected key: " + k)))
             body(values)
         }
-        if(!entries.headOption.exists(_.text == "initial")) throw new RuntimeException("File must start with [initial]")
-        val initialAnimationId = expect(entries.head, "animationId") { case Seq(animationId) => readId(animationId) }
-        val actions = for(entry <- entries.tail) yield entry match {
+        if(!entries.headOption.exists(_.text == "meta")) throw new RuntimeException("File must start with [meta]")
+        if(!entries.tail.headOption.exists(_.text == "initial")) throw new RuntimeException("File must have [initial] after [meta]")
+        val savedInfo = expect(entries.head, "id", "name") { case Seq(key, name) => SavedInfo(readId(key), name) }
+        val initialAnimationId = expect(entries.tail.head, "animationId") { case Seq(animationId) => readId(animationId) }
+        val actions = for(entry <- entries.tail.tail) yield entry match {
             case Entry("effect", keyValues) => expect(entry, "factor", "effectId") { case Seq(factor, effectId) =>
                 Effect(factor.toDouble, readId(effectId))
             }
@@ -59,7 +65,7 @@ object BuildOrder {
             }
             case Entry(name, _) => throw new RuntimeException("Unexpected [" + name + "]")
         }
-        BuildOrder(initialAnimationId, actions)
+        BuildOrder(Some(savedInfo), initialAnimationId, actions)
     }
 
     def readEntries(text : String) : Seq[Entry] = {

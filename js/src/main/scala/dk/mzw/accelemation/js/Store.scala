@@ -29,8 +29,10 @@ class LocalStore(var userId : Option[String]) extends Store {
             case None => dom.setTimeout(() => onError("Not signed in."), 100)
             case Some(actualUserId) =>
                 val keyName = "animation-" + System.currentTimeMillis()
-                dom.localStorage.setItem(prefix + actualUserId + "/" + keyName, BuildOrder.show(build))
-                dom.setTimeout(() => onSuccess(Id(actualUserId, keyName)), 100)
+                val id = Id(actualUserId, keyName)
+                val savedInfo = SavedInfo(id, name)
+                dom.localStorage.setItem(prefix + actualUserId + "/" + keyName, BuildOrder.show(build.copy(saved = Some(savedInfo))))
+                dom.setTimeout(() => onSuccess(id), 100)
         }
     }
 
