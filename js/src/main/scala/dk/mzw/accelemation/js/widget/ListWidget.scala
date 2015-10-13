@@ -158,6 +158,17 @@ class ListWidget(listType : ListType, page : Int, setViewState : ViewState => Un
             )
         }
 
+        val find = Some(listType).collect{ case Pick0 =>
+            val i = tag("i")()().addClasses("fa", "fa-3x", "fa-search")
+            val b = roundButton(i, "rgba(100, 100, 100, 0.5)", {})
+            b.style(
+                "position" -> "absolute",
+                "top" -> "0",
+                "left" -> "50%",
+                "transform" -> "translate(-50%, 0)"
+            )
+        }
+
         val cancel = {
             val i = tag("i")()().addClasses("fa", "fa-5x", "fa-times-circle")
             val undoStage = listType match {
@@ -177,6 +188,6 @@ class ListWidget(listType : ListType, page : Int, setViewState : ViewState => Un
             }
         }
 
-        fullSize().flatAppend(Some(boxes), previous, next, flip, cancel).toDom
+        fullSize().flatAppend(Some(boxes), previous, next, flip, find, cancel).toDom
     }
 }

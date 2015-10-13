@@ -196,7 +196,7 @@ Animade = function(configuration) {
 };
 
 Animade.vertexShaderSource =
-    "precision mediump float;\n" +
+    "precision highp float;\n" +
     "attribute vec2 a_position;\n" +
     "\n" +
     "void main() {\n" +

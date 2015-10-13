@@ -2,6 +2,7 @@ package dk.mzw.accelemation.js.widget
 
 import org.scalajs.dom
 import org.scalajs.dom.document
+import org.scalajs.dom.html.Element
 
 
 object Gui {
@@ -54,18 +55,24 @@ object Gui {
     def inlineBlock(styles : (String, String)*) = div(styles : _*).style("display" -> "inline-block")
 
     implicit def fromText(text : String) : DomElement = TextElement(text)
-    implicit def fromElement(node : dom.Element) : DomElement = NodeElement(node)
+    implicit def fromElement(e : Element) : DomElement = NodeElement(e)
+    implicit def fromElement(e : dom.Element) : DomElement = fromElement(e.asInstanceOf[Element])
 
-    sealed trait DomElement {
-        def toDom : dom.Node
+    trait DomElement {
+        def toDom : Element
     }
     
-    case class NodeElement(element : dom.Element) extends DomElement {
-        override def toDom : dom.Element = element
+    case class NodeElement(element : Element) extends DomElement {
+        override def toDom : Element = element
     }
     
     case class TextElement(text : String) extends DomElement {
-        override def toDom: dom.Node = document.createTextNode(text)
+        override def toDom: Element = {
+            val span = document.createElement("span")
+            span.appendChild(document.createTextNode(text))
+            span.asInstanceOf[Element]
+        }
+
     }
     
     case class RichElement(tag : String, children : Seq[DomElement], classes : Seq[String], styles : Seq[(String, String)], onClicks : Option[dom.MouseEvent => Unit], onMouseMoves : Option[dom.MouseEvent => Unit], onMouseDowns : Option[dom.MouseEvent => Unit]) extends DomElement {
@@ -78,8 +85,8 @@ object Gui {
         def style(styles : (String, String)*) = copy(styles = this.styles ++ styles)
         def addClasses(classes : String*) = copy(classes = this.classes ++ classes)
 
-        override def toDom : dom.Element = {
-            val e = document.createElement(tag)
+        override def toDom : Element = {
+            val e = document.createElement(tag).asInstanceOf[Element]
             if(styles.nonEmpty) e.setAttribute("style", styles.map{case (k, v) => s"$k: $v; "}.mkString)
             if(classes.nonEmpty) e.setAttribute("class", classes.mkString(" "))
             if(onClicks.nonEmpty) {

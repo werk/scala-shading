@@ -27,6 +27,7 @@ object Language {
 
     val rgba : (R, R, R, R) => Color = vec4
     def hsva (h : R, s : R, v : R, a : R) : Color = Term(Call("hsvaToRgba",List(Call("vec4",List(h.untyped, s.untyped, v.untyped, a.untyped)))))
+    def rgbaToHsva (rgbaColor : Color) : Color = Term(Call("rgbaToHsva",List(rgbaColor.untyped)))
     def simplexNoise (x : R, y : R, z : R) : R = Term(Call("snoise",List(Call("vec3",List(x.untyped, y.untyped, z.untyped)))))
 
     implicit def fromDouble(r : Double) : R = Term(Constant(r))
