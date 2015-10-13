@@ -10,6 +10,16 @@ class WebscriptStore(var userId : Option[String]) extends Store {
 
     val webscriptPrefix = "http://glsl.webscript.io"
 
+    /*
+
+        local loadedText = storage.animations
+        if loadedText == nil then loadedText = '' end
+
+        return loadedText,
+          {['Content-Type']='text/plain'}
+
+     */
+
     override def list(onSuccess : (Seq[(Id, BuildOrder)]) => Unit, onError : (String) => Unit) : Unit = {
         val xhr = new dom.XMLHttpRequest()
         xhr.open("GET", webscriptPrefix + "/animations", async = true)
@@ -42,6 +52,21 @@ class WebscriptStore(var userId : Option[String]) extends Store {
         }
         xhr.send()
     }
+
+    /*
+
+        assert(request.body ~= nil, 'No animation provided.')
+        assert(string.sub(request.body, 1, string.len("[meta]")) == "[meta]", 'Invalid animation.')
+
+        local loadedText = storage.animations
+        if loadedText == nil then loadedText = '' end
+
+        storage.animations = loadedText .. "\n" .. request.body
+
+        return 'ok',
+          {['Content-Type']='text/plain'}
+
+     */
 
     override def put(name : String, build : BuildOrder, onSuccess : Id => Unit, onError : (String) => Unit) : Unit = {
         userId match {
