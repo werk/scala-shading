@@ -40,7 +40,7 @@ object Main extends JSApp {
                 }
                 onSuccess()
             }
-            LocalStore.store.list(onSuccess = onList, onError = println)
+            WebscriptStore.store.list(onSuccess = onList, onError = println)
         }
         def setViewState(viewState : ViewState) : Unit = {
             def run() = setWidget(ViewState.render(viewState, setViewState, buildAnimation))
