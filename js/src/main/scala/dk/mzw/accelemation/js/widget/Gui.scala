@@ -38,15 +38,16 @@ object Gui {
         )(content)
         val tr = tag("tr")()(td)
         val table = tag("table")(
-            "height" -> "100px",
-            "width" -> "100px",
-            "margin-left" -> "5px",
-            "margin-right" -> "5px",
+            "height" -> "100%",
+            "width" -> "100%",
             "border-radius" -> "100%",
             "background-color" -> color,
             "cursor" -> "pointer"
         )(tr).click(_ => click)
-        inlineBlock()(table)
+        inlineBlock()(table).style(
+            "height" -> "100px",
+            "width" -> "100px"
+        )
     }
 
     def tag(tagName : String, attributes : (String, String)*)(styles : (String, String)*) = RichElement(tagName, attributes, Seq(), Seq(), styles, None, None, None, None)

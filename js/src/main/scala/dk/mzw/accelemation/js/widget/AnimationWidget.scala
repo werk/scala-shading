@@ -32,10 +32,10 @@ class AnimationWidget(build : BuildOrder, setViewState : ViewState => Unit, buil
             "width" -> "100%",
             "text-align" -> "center"
         )(
-            roundButton("Discard", "rgba(200, 100, 100, 0.5)", {setViewState(ShowList(Pick0, 0))}),
-            roundButton("Effect", "rgba(200, 100, 200, 0.5)", {setViewState(ShowList(Pick1(build), 0))}),
-            roundButton("Combine", "rgba(100, 100, 200, 0.5)", {setViewState(ShowList(Pick2(build, None), 0))}),
-            roundButton("Save", "rgba(100, 200, 100, 0.5)", {setViewState(ShowSave(build))})
+            roundButton("Discard", "rgba(200, 100, 100, 0.5)", {setViewState(ShowList(Pick0, 0, None))}).style("margin" -> "5px"),
+            roundButton("Effect", "rgba(200, 100, 200, 0.5)", {setViewState(ShowList(Pick1(build), 0, None))}).style("margin" -> "5px"),
+            roundButton("Combine", "rgba(100, 100, 200, 0.5)", {setViewState(ShowList(Pick2(build, None), 0, None))}).style("margin" -> "5px"),
+            roundButton("Save", "rgba(100, 200, 100, 0.5)", {setViewState(ShowSave(build))}).style("margin" -> "5px")
         )
 
         div()(canvas, menu).toDom

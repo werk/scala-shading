@@ -11,8 +11,10 @@ object Widgets {
         private var shown = initialShown
 
         private def showElement(e : Element, tag : Boolean): Unit = tag match {
-            case true => e.style.display = "block" // TODO
-            case false => e.style.display = "none"
+            case true =>
+                e.style.display = "block" // TODO
+            case false =>
+                e.style.display = "none"
         }
 
         for((key, e) <- elements) showElement(e, key == shown)
@@ -22,8 +24,10 @@ object Widgets {
         }
 
         def show(key : K) : Unit = {
+            println(s"Show: $key")
             showElement(elements(shown), tag = false)
             showElement(elements(key), tag = true)
+            shown = key
         }
     }
 }
