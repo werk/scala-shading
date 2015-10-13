@@ -48,7 +48,7 @@ object Gui {
         inlineBlock()(table)
     }
 
-    def tag(tagName : String)(styles : (String, String)*) = RichElement(tagName, Seq(), Seq(), styles, None, None, None)
+    def tag(tagName : String, attributes : (String, String)*)(styles : (String, String)*) = RichElement(tagName, attributes, Seq(), Seq(), styles, None, None, None, None)
     def div(styles : (String, String)*) = tag("div")(styles : _*)
     def span(styles : (String, String)*) = tag("span")(styles : _*)
     def inlineBlock(styles : (String, String)*) = div(styles : _*).style("display" -> "inline-block")
@@ -68,11 +68,12 @@ object Gui {
         override def toDom: dom.Node = document.createTextNode(text)
     }
     
-    case class RichElement(tag : String, children : Seq[DomElement], classes : Seq[String], styles : Seq[(String, String)], onClicks : Option[dom.MouseEvent => Unit], onMouseMoves : Option[dom.MouseEvent => Unit], onMouseDowns : Option[dom.MouseEvent => Unit]) extends DomElement {
+    case class RichElement(tag : String, attributes : Seq[(String, String)], children : Seq[DomElement], classes : Seq[String], styles : Seq[(String, String)], onClicks : Option[dom.MouseEvent => Unit], onMouseMoves : Option[dom.MouseEvent => Unit], onMouseDowns : Option[dom.MouseEvent => Unit], onChanges : Option[dom.Event => Unit]) extends DomElement {
 
         def click(handler : dom.MouseEvent => Unit) : RichElement = copy(onClicks = Some(handler))
         def mouseMove(handler : dom.MouseEvent => Unit) : RichElement = copy(onMouseMoves = Some(handler))
         def mouseDown(handler : dom.MouseEvent => Unit) : RichElement = copy(onMouseDowns = Some(handler))
+        def change(handler : dom.Event => Unit) : RichElement = copy(onChanges = Some(handler))
         def apply(children : DomElement*) : RichElement = copy(children = this.children ++ children)
         def flatAppend(children : Option[DomElement]*) = apply(children.flatten : _*)
         def style(styles : (String, String)*) = copy(styles = this.styles ++ styles)
@@ -80,6 +81,7 @@ object Gui {
 
         override def toDom : dom.Element = {
             val e = document.createElement(tag)
+            for((k, v) <- attributes) e.setAttribute(k, v)
             if(styles.nonEmpty) e.setAttribute("style", styles.map{case (k, v) => s"$k: $v; "}.mkString)
             if(classes.nonEmpty) e.setAttribute("class", classes.mkString(" "))
             if(onClicks.nonEmpty) {
@@ -95,6 +97,11 @@ object Gui {
             if(onMouseDowns.nonEmpty) {
                 e.addEventListener("mousedown", { e : dom.MouseEvent =>
                     onMouseDowns.foreach(_(e))
+                })
+            }
+            if(onChanges.nonEmpty) {
+                e.addEventListener("change", { e : dom.Event =>
+                    onChanges.foreach(_(e))
                 })
             }
             children.foreach(c => e.appendChild(c.toDom))

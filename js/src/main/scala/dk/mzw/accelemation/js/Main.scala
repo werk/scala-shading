@@ -36,6 +36,7 @@ object Main extends JSApp {
             def onList(animations : Seq[(Id, BuildOrder)]) : Unit = {
                 for((id, build) <- animations) {
                     buildAnimation.animationMap += (id -> buildAnimation(build))
+                    buildAnimation.nameMap += (id -> build.saved.map(_.name).get)
                 }
                 onSuccess()
             }
