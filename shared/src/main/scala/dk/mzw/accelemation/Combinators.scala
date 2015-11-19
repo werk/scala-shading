@@ -6,6 +6,8 @@ import dk.mzw.accelemation.Arithmetic.atan2
 
 object Combinators {
 
+    def liftColor(f : Color => Color) (animation : Animation) : Animation = t => x => y => f(animation(t) (x) (y))
+
     def translate(dx : R, dy : R) (animation : Animation) (t : R) (x : R) (y : R) =
         (dx + x).bind{x2 => (dy + y).bind{y2 => animation (t) (x2) (y2)}}
 
@@ -54,7 +56,7 @@ object Combinators {
         }
     }
 
-        //fromPolarCoordinates :: Animation -> Animation
+    //fromPolarCoordinates :: Animation -> Animation
     def fromPolarCoordinates (f : Animation) (t : R) (x : R) (y : R) : Color =
             vec2(x, y).magnitude bind { r =>
             atan2(x, y) bind { phi =>

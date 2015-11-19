@@ -10,7 +10,7 @@ object ViewState {
     type Flipped = Boolean
 
     case class ShowAnimation(build : BuildOrder) extends ViewState
-    case class ShowList(listType : ListType, page : Int) extends ViewState
+    case class ShowList(listType : ListType, page : Int, filter : Option[String]) extends ViewState
     case class ShowParameters(effect : R => BuildOrder) extends ViewState
     case class ShowSave(build : BuildOrder) extends ViewState
 
@@ -22,7 +22,7 @@ object ViewState {
     def render(state : ViewState, setViewState : ViewState => Unit, buildAnimation : BuildAnimation) : Widget = state match {
         case ShowAnimation(build) => new AnimationWidget(build, setViewState, buildAnimation)
         case ShowSave(build) => new SaveWidget(build, setViewState, buildAnimation)
-        case ShowList(listType, page) => new ListWidget(listType, page, setViewState, buildAnimation)
+        case ShowList(listType, page, filter) => new ListWidget(listType, page, filter, setViewState, buildAnimation)
         case ShowParameters(effect) => new ParametersWidget(effect, setViewState, buildAnimation)
     }
 }

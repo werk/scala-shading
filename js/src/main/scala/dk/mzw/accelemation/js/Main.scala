@@ -44,12 +44,12 @@ object Main extends JSApp {
         }
         def setViewState(viewState : ViewState) : Unit = {
             def run() = setWidget(ViewState.render(viewState, setViewState, buildAnimation))
-            if(viewState == ShowList(Pick0, 0)) reloadAnimations(run)
+            if(viewState == ShowList(Pick0, 0, None)) reloadAnimations(run)
             else run()
         }
 
         reloadAnimations(() => {
-            setViewState(ShowList(Pick0, 0))
+            setViewState(ShowList(Pick0, 0, None))
         })
 
         def step(elapsed : Double) : Unit = {

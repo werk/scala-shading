@@ -4,11 +4,12 @@ import dk.mzw.accelemation.Language.R
 import dk.mzw.accelemation.ToGlsl
 import dk.mzw.accelemation.js.BuildOrder.{Combine, Effect}
 import dk.mzw.accelemation.js.ViewState._
+import dk.mzw.accelemation.js.widget.Widgets.Deck
 import dk.mzw.accelemation.js.{Animade, BuildAnimation, BuildOrder, ViewState}
 import org.scalajs.dom
 import Gui._
 
-class ListWidget(listType : ListType, page : Int, setViewState : ViewState => Unit, buildAnimation : BuildAnimation) extends Widget {
+class ListWidget(listType : ListType, page : Int, filter : Option[String], setViewState : ViewState => Unit, buildAnimation : BuildAnimation) extends Widget {
 
     def createCanvas(name : String, source : String, newViewState : ViewState) : CanvasBox = {
         val canvasDomElement = tag("canvas")(
@@ -55,7 +56,9 @@ class ListWidget(listType : ListType, page : Int, setViewState : ViewState => Un
 
     private val (elements, nextPage) = listType match {
         case Pick0 =>
-            val list = buildAnimation.animations
+            val list = buildAnimation.animations.filter{ id =>
+                filter.map(f => buildAnimation.nameMap(id).toLowerCase.contains(f.toLowerCase)).getOrElse(true)
+            }
             page(list).map { id =>
                 val build = BuildOrder(None, id, Seq())
                 val animation = buildAnimation(build)
@@ -74,7 +77,7 @@ class ListWidget(listType : ListType, page : Int, setViewState : ViewState => Un
             val list = buildAnimation.animations
             page(list).map { id =>
                 val animation = buildAnimation(BuildOrder(None, id, Seq()))
-                createCanvas(buildAnimation.nameMap(id), ToGlsl(animation), ShowList(Pick2(current, Some((id, false))), 0))
+                createCanvas(buildAnimation.nameMap(id), ToGlsl(animation), ShowList(Pick2(current, Some((id, false))), 0, None))
             } -> makeNextPage(list.size)
         case Pick2(current, Some((animationId, flipped))) =>
             val list = buildAnimation.combinators
@@ -126,10 +129,10 @@ class ListWidget(listType : ListType, page : Int, setViewState : ViewState => Un
 
         val previous = previousPage.map{ p =>
             val i = tag("i")()().addClasses("fa", "fa-5x", "fa-chevron-circle-left")
-            val b = roundButton(i, "rgba(100, 100, 100, 0.5)", setViewState(ShowList(listType, p)))
+            val b = roundButton(i, "rgba(100, 100, 100, 0.5)", setViewState(ShowList(listType, p, filter)))
             b.style(
                 "position" -> "absolute",
-                "left" -> "0",
+                "left" -> "5px",
                 "top" -> "50%",
                 "transform" -> "translate(0, -50%)"
             )
@@ -137,10 +140,10 @@ class ListWidget(listType : ListType, page : Int, setViewState : ViewState => Un
 
         val next = nextPage.map{n =>
             val i = tag("i")()().addClasses("fa", "fa-5x", "fa-chevron-circle-right")
-            val b = roundButton(i, "rgba(100, 100, 100, 0.5)", setViewState(ShowList(listType, n)))
+            val b = roundButton(i, "rgba(100, 100, 100, 0.5)", setViewState(ShowList(listType, n, filter)))
             b.style(
                 "position" -> "absolute",
-                "right" -> "0",
+                "right" -> "5px",
                 "top" -> "50%",
                 "transform" -> "translate(0, -50%)"
             )
@@ -148,14 +151,74 @@ class ListWidget(listType : ListType, page : Int, setViewState : ViewState => Un
 
         val flip = Some(listType).collect{ case Pick2(current, Some((animationId, flipped))) =>
             val i = tag("i")()().addClasses("fa", "fa-5x", "fa-arrows-h")
-            val flipStage = ShowList(Pick2(current, Some((animationId, !flipped))), page)
+            val flipStage = ShowList(Pick2(current, Some((animationId, !flipped))), page, filter)
             val b = roundButton(i, "rgba(100, 100, 100, 0.5)", setViewState(flipStage))
             b.style(
                 "position" -> "absolute",
-                "top" -> "0",
+                "top" -> "5px",
                 "left" -> "50%",
                 "transform" -> "translate(-50%, 0)"
             )
+        }
+
+        val find = Some(listType).collect{ case Pick0 =>
+            var deck : Deck[String] = null
+            val i = tag("i")()().addClasses("fa", "fa-3x", "fa-search")
+            val button = roundButton(i, "rgba(100, 100, 100, 0.5)", {deck.show("input")}).style(
+                "position" -> "absolute",
+                "top" -> "5px",
+                "left" -> "50%",
+                "transform" -> "translate(-50%, 0)"
+            ).toDom
+
+            //searchText = event.target.asInstanceOf[dom.html.Input].value.trim
+            val searchElement = tag("input", "placeholder" -> "Find animation...", "autofocus" -> "autofocus", "value" -> filter.getOrElse(""))()().style(
+                "position" -> "absolute",
+                "top" -> "0",
+                "left" -> "0",
+                "bottom" -> "0",
+                "width" -> "100%",
+                "border" -> "none",
+                "outline" -> "none",
+                "padding-left" -> "10px",
+                "padding-right" -> "50px",
+                "border-radius" -> "20px",
+                "box-sizing" -> "border-box"
+            ).toDom
+
+            val searchButton = {
+                val content = tag("i")()().addClasses("fa", "fa-1x", "fa-search")
+                roundButton(content, "rgba(100, 100, 100, 1)", {
+                    val filterText = searchElement.asInstanceOf[dom.html.Input].value.trim
+                    setViewState(ShowList(listType, page, Some(filterText).filter(_.trim.nonEmpty)))
+                }).style(
+                    "position" -> "absolute",
+                    "top" -> "50%",
+                    "right" -> "0",
+                    "transform" -> "translate(0, -50%)",
+                    "height" -> "40px",
+                    "width" -> "40px"
+                )
+            }
+
+            val search = {
+                div(
+                    "position" -> "absolute",
+                    "top" -> "20px",
+                    "left" -> "50%",
+                    "transform" -> "translate(-50%, 0)",
+                    "width" -> "200px",
+                    "height" -> "40px",
+                    "box-shadow" -> "0 0 0 15px rgba(100, 100, 100, 0.5)",
+                    "border" -> "none",
+                    "outline" -> "none",
+                    "border-radius" -> "20px"
+                )(searchElement, searchButton)
+            }.toDom
+
+            deck = new Deck(Map("button" -> button, "input" -> search), if(filter.isDefined) "input" else "button")
+            deck
+
         }
 
         val cancel = {
@@ -164,7 +227,7 @@ class ListWidget(listType : ListType, page : Int, setViewState : ViewState => Un
                 case Pick0 => None
                 case Pick1(current) => Some(ShowAnimation(current))
                 case Pick2(current, None) => Some(ShowAnimation(current))
-                case Pick2(current, Some(p)) => Some(ShowList(Pick2(current, None), page))
+                case Pick2(current, Some(p)) => Some(ShowList(Pick2(current, None), page, filter))
             }
             undoStage.map{s =>
                 val b = roundButton(i, "rgba(100, 100, 100, 0.5)", setViewState(s))
@@ -177,6 +240,6 @@ class ListWidget(listType : ListType, page : Int, setViewState : ViewState => Un
             }
         }
 
-        fullSize().flatAppend(Some(boxes), previous, next, flip, cancel).toDom
+        fullSize().flatAppend(Some(boxes), previous, next, flip, find, cancel).toDom
     }
 }

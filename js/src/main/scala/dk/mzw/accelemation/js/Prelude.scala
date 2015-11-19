@@ -152,6 +152,8 @@ object Prelude {
             }
         }
 
+        def bendSpaceTimeHsv (target : Animation) = bendSpaceTime(liftColor(rgbaToHsva)(target)) _
+
         def zoom(factor: R)(animation: Animation): Animation = t => x => y => animation(t)(x * factor)(y * factor)
 
         def fromFactor(f: R): R = (f - 0.5) * 5
@@ -173,7 +175,7 @@ object Prelude {
             id("Spiral") -> spiral,
             id("Time lens") -> TimeLens.apply,
             id("Flower") -> fromPolar(flower),
-            id("Flower") -> fromPolar(flowers)
+            id("Flowers") -> fromPolar(flowers)
         )
 
         val effectMap = Map[Id, R => Animation => Animation](
@@ -192,12 +194,12 @@ object Prelude {
             id("From polar") -> { f => fromPolar },
             id("To polar") -> { f => toPolar },
             id("Time tunnel") -> timeTunnel,
-            id("RGBA to HSVA") -> {f => a => a}
+            id("RGBA to HSVA") -> { f => liftColor(rgbaToHsva)}
         )
 
         val combinatorMap = Map[Id, Animation => Animation => Animation](
-            id("Transform") -> Combinators.bendSpaceTime,
-            id("Transform HSV") -> Combinators.bendSpaceTime,
+            id("Transform") -> {a => b => Combinators.bendSpaceTime (b) (a)},
+            id("Transform HSV") -> {a => b => bendSpaceTimeHsv (b) (a)},
             id("Add") -> Combinators.addition,
             id("Subtract") -> Combinators.subtract,
             id("Multiply") -> Combinators.multiply,
