@@ -191,11 +191,13 @@ object Prelude {
             id("Move vertical") -> { f => Combinators.translate(0, fromFactor(f)) },
             id("From polar") -> { f => fromPolar },
             id("To polar") -> { f => toPolar },
-            id("Time tunnel") -> timeTunnel
+            id("Time tunnel") -> timeTunnel,
+            id("RGBA to HSVA") -> {f => a => a}
         )
 
         val combinatorMap = Map[Id, Animation => Animation => Animation](
             id("Transform") -> Combinators.bendSpaceTime,
+            id("Transform HSV") -> Combinators.bendSpaceTime,
             id("Add") -> Combinators.addition,
             id("Subtract") -> Combinators.subtract,
             id("Multiply") -> Combinators.multiply,

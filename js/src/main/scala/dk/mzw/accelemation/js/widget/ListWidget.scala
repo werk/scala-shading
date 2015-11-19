@@ -49,7 +49,7 @@ class ListWidget(listType : ListType, page : Int, setViewState : ViewState => Un
         animade : Animade
     )
     
-    def page[E](list : Seq[E]) : Seq[E] = list.drop(page * 6)
+    def page[E](list : Seq[E]) : Seq[E] = list.drop(page * 6).take(6)
     def previousPage = Some(page - 1).filter(_ >= 0)
     def makeNextPage(items : Int) = Some(page + 1).filter(p => (p * 6) <  items)
 
