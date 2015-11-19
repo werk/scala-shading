@@ -81,17 +81,15 @@ object Prelude {
             f(t)(x)(y)
         }
 
-        def timeTunnel(factor: R)(animation: Animation): Animation = t => x => y => {
+        def timeTunnel(timeRadius : R => R)(factor: R)(animation: Animation): Animation = t => x => y => {
             val (r, phi) = cartesianToPolar(x, y)
-            val rTime1 = 100 * Math.pow(r, 2) - 100
-            val rTime2 = -100 * Math.pow(r - 1, 2)
-            val rTime3 = Math.log(r)
-            phi.bind { phi => ((-t) + rTime3).bind {
+            phi.bind { phi => ((-t) + timeRadius(r)).bind {
                 newT => toPolar(animation)(newT)(0.5 + factor)(phi)
             }
             }
 
         }
+
 
         def fastForward(factor: R)(animation: Animation): Animation = t => x => y => animation(t * factor)(x)(y)
 
@@ -160,6 +158,29 @@ object Prelude {
 
         def id(name: String) = Id("prelude", name)
 
+        def limitResolution(factor : R)(v : R) : R = {
+            val resolution = factor * 10
+            (Math.round(v * resolution) / resolution) bind (x => x)
+        }
+
+        def limitColorRecolustion(factor: R)(animation: Animation): Animation = {
+            def lessColors(factor: R)(color: Color): Color = {
+                val round = limitResolution(factor) _
+                rgba(round(color.red), round(color.green), round(color.blue), color.alpha)
+            }
+            liftColor(lessColors(factor))(animation)
+        }
+
+        def limitSpatialResolution(factor: R)(animation: Animation): Animation = { t => x => y =>
+            val round = limitResolution(factor) _
+            animation(t) (round(x)) (round(y))
+        }
+
+        def limitTimeResolution(factor: R)(animation: Animation): Animation = { t => x => y =>
+            val round = limitResolution(factor) _
+            animation(round(t))(x) (y)
+        }
+
         val animationMap = Map[Id, Animation](
             id("Noise") -> noise,
             id("Ball") -> gaussBall(0.3),
@@ -193,8 +214,13 @@ object Prelude {
             id("Move vertical") -> { f => Combinators.translate(0, fromFactor(f)) },
             id("From polar") -> { f => fromPolar },
             id("To polar") -> { f => toPolar },
-            id("Time tunnel") -> timeTunnel,
-            id("RGBA to HSVA") -> { f => liftColor(rgbaToHsva)}
+            id("Time tunnel") -> timeTunnel(Math.log),
+            id("Time tunnel 2") -> timeTunnel(100 * Math.pow(_, 2) - 100),
+            //id("Time tunnel 3") -> timeTunnel{r : R => -100 * Math.pow(r - 1, 2)},
+            id("RGBA to HSVA") -> { f => liftColor(rgbaToHsva)},
+            id("Color resolution") -> limitColorRecolustion,
+            id("Spatial resolution") -> limitSpatialResolution,
+            id("Time resolution") -> limitTimeResolution
         )
 
         val combinatorMap = Map[Id, Animation => Animation => Animation](
