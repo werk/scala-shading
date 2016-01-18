@@ -20,8 +20,7 @@ class ParametersWidget(effect : R => BuildOrder, setViewState : ViewState => Uni
         var angle = 6.0
 
         val build = effect(Term(Internal.BuiltIn("u_parameter")))
-        val animation = buildAnimation(build)
-        val source = "uniform float u_parameter;\n\n" + ToGlsl(animation)
+        val source = "uniform float u_parameter;\n\n" + buildAnimation.toGlsl(build)
         val animade : Animade = new Animade(Animade.Configuration(source, canvasDomElement))
         animade.set(Map("u_parameter" -> List(angle / 10)))
 

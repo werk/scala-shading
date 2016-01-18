@@ -1,24 +1,66 @@
 package dk.mzw.accelemation
 
 import dk.mzw.accelemation.Internal._
-import dk.mzw.accelemation.Language.{Time, R, Term, Animation}
+import dk.mzw.accelemation.Language._
 
 object ToGlsl {
 
-    def apply(f : Animation) : String = {
+    def provided(name : String) : Animation = t => x => y => {
+        Term(Call(name, List(Call("vec4",List(x.untyped, y.untyped, Constant(0), t.untyped)))))
+    }
+    
+    def function(name : String, f : Animation) : String = {
         val compile = new Compiler()
 
-        val t : Time = Term(BuiltIn("position.w"))
-        val x : R = Term(BuiltIn("position.x"))
-        val y : R = Term(BuiltIn("position.y"))
-        val Term(animation) = f (t) (x) (y)
+        val t: Time = Term(BuiltIn("position.w"))
+        val x: R = Term(BuiltIn("position.x"))
+        val y: R = Term(BuiltIn("position.y"))
+        val Term(animation) = f(t)(x)(y)
 
         val compiled = compile(animation)
         val vs = compile.declarations
-
         val bindings        =  vs.reverse.mkString
-        val before          =
-            """
+
+s"""
+vec4 $name(vec4 position) {
+$bindings    return $compiled;
+}
+"""
+    }
+
+    def apply(f : Animation, prelude : String = "") : String = {
+        boilerplate + prelude + function("animation", f)
+    }
+
+    private class Compiler {
+        var declarations = List[String]()
+
+        def apply(u : Untyped) : String = u match {
+            case Constant(n) =>
+                // We need the decimal point to denote a float.
+                // Scala JS will not generate this for integers.
+                // This is not a problem in JVM
+                val s = n.toString
+                if(s.contains('.')) s
+                else s + ".0";
+            case Bind(variableType, argument, body) =>
+                val a = apply(argument)
+                val i = declarations.length
+                val declaration = s"    $variableType v$i = $a;\n"
+                declarations ::= declaration
+                apply(body(Variable(i)))
+            case Variable(n) => s"v$n"
+            case Field(label, target) => s"${apply(target)}.$label"
+            case If(condition, whenTrue, whenFalse) => s"(${apply(condition)} ? ${apply(whenTrue)} : ${apply(whenFalse)})"
+            case BuiltIn(name) => name
+            case Prefix(operator, right) => s"($operator${apply(right)})"
+            case Infix(operator, left, right) => s"(${apply(left)} $operator ${apply(right)})"
+            case Call(name, arguments) => s"$name(${arguments.map(apply).mkString(", ")})"
+        }
+
+    }
+
+private val boilerplate = """
 //
 // Description : Array and textureless GLSL 2D/3D/4D simplex
 //               noise functions.
@@ -131,39 +173,6 @@ vec4 rgbaToHsva(vec4 c) {
     float e = 1.0e-10;
     return vec4(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x, c.a);
 }
-
-vec4 animation(vec4 position) {
 """
-        val after           =
-            ";\n}\n"
-        before + bindings + "    return " + compiled + after
-    }
-
-    private class Compiler {
-        var declarations = List[String]()
-
-        def apply(u : Untyped) : String = u match {
-            case Constant(n) =>
-                // We need the decimal point to denote a float.
-                // Scala JS will not generate this for integers.
-                // This is not a problem in JVM
-                val s = n.toString
-                if(s.contains('.')) s
-                else s + ".0";
-            case Bind(variableType, argument, body) =>
-                val a = apply(argument)
-                val i = declarations.length
-                val declaration = s"    $variableType v$i = $a;\n"
-                declarations ::= declaration
-                apply(body(Variable(i)))
-            case Variable(n) => s"v$n"
-            case Field(label, target) => s"${apply(target)}.$label"
-            case If(condition, whenTrue, whenFalse) => s"(${apply(condition)} ? ${apply(whenTrue)} : ${apply(whenFalse)})"
-            case BuiltIn(name) => name
-            case Prefix(operator, right) => s"($operator${apply(right)})"
-            case Infix(operator, left, right) => s"(${apply(left)} $operator ${apply(right)})"
-            case Call(name, arguments) => s"$name(${arguments.map(apply).mkString(", ")})"
-        }
-
-    }
 }
+

@@ -5,6 +5,7 @@ import dk.mzw.accelemation.Language.{Term, R}
 import dk.mzw.accelemation.js.BuildOrder._
 
 import scala.collection.mutable.ListBuffer
+import scala.collection.mutable
 
 case class SavedInfo(id : Id, name : String)
 case class BuildOrder(saved : Option[SavedInfo], animationId : Id, actions : Seq[Action])
@@ -36,6 +37,10 @@ object BuildOrder {
         entry.keyValues.map { case (k, v) =>
             k.replaceAll("[\\r\\n=]+", " ") + " = " + v.replaceAll("[\\r\\n]+", " ") + "\n"
         }.mkString
+    }
+
+    def dependencies(buildOrder : BuildOrder) : Set[Id] = {
+        buildOrder.actions.collect{case Combine(animationId, _, _) => animationId}.toSet + buildOrder.animationId
     }
 
     def readId(text : String) = text.split("/") match {

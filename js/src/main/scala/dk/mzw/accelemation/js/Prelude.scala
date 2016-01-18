@@ -2,20 +2,22 @@ package dk.mzw.accelemation.js
 
 import dk.mzw.accelemation.Animations._
 import dk.mzw.accelemation.Arithmetic._
-import dk.mzw.accelemation.Combinators
+import dk.mzw.accelemation.{ToGlsl, Combinators}
 import dk.mzw.accelemation.Combinators._
 import dk.mzw.accelemation.Language.Math._
 import dk.mzw.accelemation.Language._
 import dk.mzw.accelemation.js.BuildOrder.Id
+import dk.mzw.accelemation.js.debug.{LongTime, ExecutionTime}
 import dk.mzw.accelemation.samples.TimeLens
 
 object Prelude {
 
-    val buildAnimation = {
+    val buildAnimation : BuildAnimation = {
 
         def binary(animation: Time => R => R => B): Animation = { t => x => y =>
-            val intensity = if_(animation(t)(x)(y), 1, 0)
-            rgba(intensity, intensity, intensity, 1)
+            if_(animation(t)(x)(y), 1, 0) bind {intensity =>
+                rgba(intensity, intensity, intensity, 1)
+            }
         }
 
         val noise: Animation = t => x => y => simplexNoise(x, y, t) bind {i => rgba(i, i, i, 1)}
@@ -25,8 +27,9 @@ object Prelude {
         }
 
         val circle: Animation = binary { t => x => y =>
-            val distance = sqrt(x * x + y * y)
-            distance > 0.5 && distance < 1
+            sqrt(x * x + y * y).bind{ distance =>
+                distance > 0.5 && distance < 1
+            }
         }
 
         val square: Animation = binary { t => x => y =>
@@ -186,7 +189,6 @@ object Prelude {
             id("Ball") -> gaussBall(0.3),
             id("Hard ball") -> ball,
             id("Circle") -> circle,
-            //id("Square") -> square,
             id("Chess") -> chess,
             id("Wave") -> wave,
             id("Rainbow") -> rainbow,
@@ -232,8 +234,11 @@ object Prelude {
             id("Colormap") -> Combinators.colorMap
         )
 
-        val nameMap = (animationMap.keys ++ effectMap.keys ++ combinatorMap.keys).map(id => id -> id.key).toMap
-        new BuildAnimation(animationMap, effectMap, combinatorMap, nameMap)
+        val effectName = effectMap.keys.map(id => id -> id.key).toMap
+        val combinatorName = combinatorMap.keys.map(id => id -> id.key).toMap
+        val buildAnimation = new BuildAnimation(effectMap, combinatorMap, effectName, combinatorName)
+        buildAnimation.addPrelude(animationMap)
+        buildAnimation
     }
 
 }

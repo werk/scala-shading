@@ -1,7 +1,5 @@
 package dk.mzw.accelemation.js.widget
 
-import dk.mzw.accelemation.ToGlsl
-import dk.mzw.accelemation.js.BuildOrder.Id
 import dk.mzw.accelemation.js.ViewState.{Pick0, Pick1, Pick2, ShowList, ShowSave}
 import dk.mzw.accelemation.js._
 import org.scalajs.dom
@@ -10,10 +8,8 @@ import Gui._
 
 class AnimationWidget(build : BuildOrder, setViewState : ViewState => Unit, buildAnimation : BuildAnimation) extends Widget {
 
-    private val animation = buildAnimation(build)
-
     private val canvas = dom.document.createElement("canvas")
-    private val animade = new Animade(Animade.Configuration(ToGlsl(animation), canvas))
+    private val animade = new Animade(Animade.Configuration(buildAnimation.toGlsl(build), canvas))
     private val start = System.currentTimeMillis()
 
     override def onResize(width: Int, height: Int): Unit = animade.resize(width, height)

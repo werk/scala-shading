@@ -18,8 +18,7 @@ class SaveWidget(build : BuildOrder, setViewState : ViewState => Unit, buildAnim
 
         var nameText = ""
 
-        val animation = buildAnimation(build)
-        val source = ToGlsl(animation)
+        val source = buildAnimation.toGlsl(build)
         val animade : Animade = new Animade(Animade.Configuration(source, canvasDomElement))
 
         val nameElement = {

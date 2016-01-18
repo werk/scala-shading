@@ -57,12 +57,11 @@ class ListWidget(listType : ListType, page : Int, filter : Option[String], setVi
     private val (elements, nextPage) = listType match {
         case Pick0 =>
             val list = buildAnimation.animations.filter{ id =>
-                filter.map(f => buildAnimation.nameMap(id).toLowerCase.contains(f.toLowerCase)).getOrElse(true)
+                filter.map(f => buildAnimation.animationName(id).toLowerCase.contains(f.toLowerCase)).getOrElse(true)
             }
             page(list).map { id =>
                 val build = BuildOrder(None, id, Seq())
-                val animation = buildAnimation(build)
-                createCanvas(buildAnimation.nameMap(id), ToGlsl(animation), ShowAnimation(build))
+                createCanvas(buildAnimation.animationName(id), buildAnimation.toGlsl(build), ShowAnimation(build))
             } -> makeNextPage(list.size)
         case Pick1(current) =>
             val list = buildAnimation.effects
@@ -70,21 +69,19 @@ class ListWidget(listType : ListType, page : Int, filter : Option[String], setVi
                 def effect(factor : R) : BuildOrder = {
                     current.copy(actions = current.actions :+ Effect(factor, effectId))
                 }
-                val animation = buildAnimation(effect(0.6))
-                createCanvas(buildAnimation.nameMap(effectId), ToGlsl(animation), ShowParameters(effect))
+                createCanvas(buildAnimation.effectName(effectId), buildAnimation.toGlsl(effect(0.6)), ShowParameters(effect))
             } -> makeNextPage(list.size)
         case Pick2(current, None) =>
             val list = buildAnimation.animations
             page(list).map { id =>
-                val animation = buildAnimation(BuildOrder(None, id, Seq()))
-                createCanvas(buildAnimation.nameMap(id), ToGlsl(animation), ShowList(Pick2(current, Some((id, false))), 0, None))
+                val build = BuildOrder(None, id, Seq())
+                createCanvas(buildAnimation.animationName(id), buildAnimation.toGlsl(build), ShowList(Pick2(current, Some((id, false))), 0, None))
             } -> makeNextPage(list.size)
         case Pick2(current, Some((animationId, flipped))) =>
             val list = buildAnimation.combinators
             page(list).map { combineId =>
                 val build = current.copy(actions = current.actions :+ Combine(animationId, combineId, flipped = flipped))
-                val animation = buildAnimation(build)
-                createCanvas(buildAnimation.nameMap(combineId), ToGlsl(animation), ShowAnimation(build))
+                createCanvas(buildAnimation.compinatorName(combineId), buildAnimation.toGlsl(build), ShowAnimation(build))
             } -> makeNextPage(list.size)
     }
 
