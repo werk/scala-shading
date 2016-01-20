@@ -1,7 +1,7 @@
 package dk.mzw.accelemation.js
 
 import dk.mzw.accelemation.js.BuildOrder.Id
-import dk.mzw.accelemation.js.ViewState.{ShowAnimation, ShowList, Pick0}
+import dk.mzw.accelemation.js.ViewState.{ShowGrid, ShowAnimation, ShowList, Pick0}
 import dk.mzw.accelemation.js.widget.Widget
 import dk.mzw.accelemation.samples._
 import org.scalajs.dom
@@ -47,8 +47,9 @@ object Main extends JSApp {
         }
 
         reloadAnimations(() => {
-            setViewState(ShowList(Pick0, 0, None))
+            //setViewState(ShowList(Pick0, 0, None))
             //setViewState(ShowAnimation(BuildOrder(None, Id("prelude", "Ball"), Seq())))
+            setViewState(ShowGrid())
         })
 
         def step(elapsed : Double) : Unit = {

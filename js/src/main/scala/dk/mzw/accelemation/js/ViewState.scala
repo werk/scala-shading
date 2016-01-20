@@ -2,7 +2,7 @@ package dk.mzw.accelemation.js
 
 import dk.mzw.accelemation.Language.R
 import dk.mzw.accelemation.js.BuildOrder.Id
-import dk.mzw.accelemation.js.widget.{SaveWidget, AnimationWidget, ListWidget, ParametersWidget, Widget}
+import dk.mzw.accelemation.js.widget._
 
 sealed trait ViewState
 
@@ -13,6 +13,7 @@ object ViewState {
     case class ShowList(listType : ListType, page : Int, filter : Option[String]) extends ViewState
     case class ShowParameters(effect : R => BuildOrder) extends ViewState
     case class ShowSave(build : BuildOrder) extends ViewState
+    case class ShowGrid() extends ViewState
 
     sealed trait ListType
     case object Pick0 extends ListType
@@ -24,6 +25,7 @@ object ViewState {
         case ShowSave(build) => new SaveWidget(build, setViewState, buildAnimation)
         case ShowList(listType, page, filter) => new ListWidget(listType, page, filter, setViewState, buildAnimation)
         case ShowParameters(effect) => new ParametersWidget(effect, setViewState, buildAnimation)
+        case ShowGrid() => new ScrollListWidget(buildAnimation)
     }
 }
 
