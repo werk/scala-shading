@@ -47,8 +47,8 @@ object Main extends JSApp {
         }
 
         reloadAnimations(() => {
-            //setViewState(ShowList(Pick0, 0, None))
-            setViewState(ShowAnimation(BuildOrder(None, Id("prelude", "Ball"), Seq())))
+            setViewState(ShowList(Pick0, 0, None))
+            //setViewState(ShowAnimation(BuildOrder(None, Id("prelude", "Ball"), Seq())))
         })
 
         def step(elapsed : Double) : Unit = {

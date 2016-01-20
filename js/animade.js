@@ -105,7 +105,8 @@ Animade = function(configuration) {
         
         return noFunctionSource + '\n\n' + expandedSource;
     }
-    var newSource = parseFunctionsHeaders(configuration.source);
+    //var newSource = parseFunctionsHeaders(configuration.source);
+    var newSource = configuration.source;
     //console.log(newSource);
     
     function setupContext() {
@@ -129,8 +130,8 @@ Animade = function(configuration) {
             "u_resolution": gl.getUniformLocation(program, "u_resolution"),
             "u_scale": gl.getUniformLocation(program, "u_scale"),
             "u_offset": gl.getUniformLocation(program, "u_offset"),
-            "u_time": gl.getUniformLocation(program, "u_time"),
-        }
+            "u_time": gl.getUniformLocation(program, "u_time")
+        };
 
         var positionLocation = gl.getAttribLocation(program, "a_position");
 
@@ -217,6 +218,6 @@ Animade.fragmentShaderAfter =
     "    vec2 streched_position = (gl_FragCoord.xy / u_resolution) * vec2(2.0, 2.0) - vec2(1.0, 1.0);\n" +
     "    vec2 aspect = vec2(max(u_resolution.x / u_resolution.y, 1.0), max(u_resolution.y / u_resolution.x, 1.0));\n" +
     "    vec2 position = streched_position * aspect;\n" +
-    "    gl_FragColor = animation_(vec4(position / u_scale - u_offset, 0.0, u_time));\n" +
+    "    gl_FragColor = animation(vec4(position / u_scale - u_offset, 0.0, u_time));\n" +
     "}\n";
     
