@@ -1,9 +1,11 @@
 package dk.mzw.accelemation.js
 
+import dk.mzw.accelemation.Combinators._
 import dk.mzw.accelemation.Language._
-import dk.mzw.accelemation.ToGlsl
+import dk.mzw.accelemation.{Internal, ToGlsl}
 import dk.mzw.accelemation.js.BuildOrder._
 import dk.mzw.accelemation.js.debug.{LongTime, ExecutionTime}
+import dk.mzw.accelemation.js.widget.Scroller
 
 class BuildAnimation(
     var effectMap : Map[Id, R => Animation => Animation],
@@ -87,6 +89,15 @@ class BuildAnimation(
         //println(glsl)
         //println()
         glsl
+    }
+
+    def allList() : String = {
+        val functions = sortedAnimations.map(compiled(_).glsl).mkString
+        val animation = Scroller.tiled(compiled.values.map(_.call).toList)
+        val (glsl, time) = ExecutionTime(ToGlsl(animation, functions))
+        println(s"All list to GLSL: ${glsl.length / 1000} KB in ${LongTime.pretty(time)}")
+        glsl
+
     }
 
     private def resort(): Unit = {
