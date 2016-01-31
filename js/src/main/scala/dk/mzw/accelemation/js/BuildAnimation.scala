@@ -1,8 +1,7 @@
 package dk.mzw.accelemation.js
 
-import dk.mzw.accelemation.Combinators._
 import dk.mzw.accelemation.Language._
-import dk.mzw.accelemation.{Internal, ToGlsl}
+import dk.mzw.accelemation.ToGlsl
 import dk.mzw.accelemation.js.BuildOrder._
 import dk.mzw.accelemation.js.debug.{LongTime, ExecutionTime}
 import dk.mzw.accelemation.js.widget.Scroller
@@ -99,6 +98,8 @@ class BuildAnimation(
         glsl
 
     }
+
+    def animationCount : Int = sortedAnimations.length
 
     private def resort(): Unit = {
         val graph = compiled.mapValues(_.dependencies)

@@ -15,11 +15,10 @@ class ScrollListWidget(buildAnimation : BuildAnimation) extends Widget {
     private val animade = new Animade(Animade.Configuration(buildAnimation.allList(), canvas))
     private val start = System.currentTimeMillis()
 
-    private val tower = div("height" -> "400%")().toDom
+    private val tower = Gui.fullSize()(div("width" -> "100%", "height" -> s"${buildAnimation.animationCount * 100 + 100}%")).style("overflow-y" -> "scroll").toDom
 
     var baseOffset : Double = 0
     override def onResize(width: Int, height: Int): Unit = {
-        tower.style.height = (height * 2) + "px"
         baseOffset = height.toDouble / width - 1
         animade.resize(width, height)
     }
@@ -38,14 +37,14 @@ class ScrollListWidget(buildAnimation : BuildAnimation) extends Widget {
         canvas.style.bottom = "0"
         canvas.style.left = "0"
         div(
-            "overflow-y" -> "scroll",
             "position" -> "relative",
             "height" -> "100%"
         )(canvas, tower).toDom
     }
 
     private def setParameters(t : Double) {
-        val y = baseOffset
+        val scrollPercent = tower.scrollTop / tower.offsetHeight
+        val y = baseOffset + scrollPercent
         animade.set(Map("u_offset" -> List(0, y)))
     }
 
