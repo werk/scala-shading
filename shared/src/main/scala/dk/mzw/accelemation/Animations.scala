@@ -25,4 +25,13 @@ object Animations {
             }
         }
     }
+
+    def coordinateSystem : Animation = {t => x => y =>
+        val variance = 0.005
+        val xTick = gaussianOne(variance, x - Math.round(x))
+        val yTick = gaussianOne(variance, y - Math.round(y))
+        val axis = gaussianOne(variance, x) + gaussianOne(variance, y)
+        rgba(xTick + yTick, xTick + yTick, axis, 1)
+    }
+
 }

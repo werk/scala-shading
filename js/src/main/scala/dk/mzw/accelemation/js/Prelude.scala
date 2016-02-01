@@ -185,6 +185,7 @@ object Prelude {
         }
 
         val animationMap = Map[Id, Animation](
+            id("Coordinate system") -> coordinateSystem,
             id("Noise") -> noise,
             id("Ball") -> gaussBall(0.3),
             id("Hard ball") -> ball,

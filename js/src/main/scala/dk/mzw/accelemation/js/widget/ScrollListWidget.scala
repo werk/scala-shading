@@ -1,7 +1,5 @@
 package dk.mzw.accelemation.js.widget
 
-import dk.mzw.accelemation.Internal
-import dk.mzw.accelemation.Language.{Vec2, R, Term}
 import dk.mzw.accelemation.js._
 import dk.mzw.accelemation.js.widget.Gui._
 import org.scalajs.dom
@@ -47,13 +45,8 @@ class ScrollListWidget(buildAnimation : BuildAnimation) extends Widget {
     }
 
 
-    var lastScrollPercent = 0d
     private def setParameters(t : Double) {
         val scrollPercent = tower.scrollTop / towerInner.offsetHeight
-        if(lastScrollPercent != scrollPercent) {
-            println(scrollPercent)
-        }
-        lastScrollPercent = scrollPercent
         val scroll = scrollPercent * 2 * animationCount
         val y = baseOffset + scroll
         animade.set(Map("u_offset" -> List(0, y)))
