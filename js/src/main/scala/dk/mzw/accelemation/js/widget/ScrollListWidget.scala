@@ -9,16 +9,20 @@ import org.scalajs.dom.Element
 
 class ScrollListWidget(buildAnimation : BuildAnimation) extends Widget {
 
-    private val offset : Vec2 = Term(Internal.BuiltIn("u_offset"))
-
+    private val animationCount = buildAnimation.animationCount
     private val canvas = dom.document.createElement("canvas").asInstanceOf[dom.html.Element]
     private val animade = new Animade(Animade.Configuration(buildAnimation.allList(), canvas))
     private val start = System.currentTimeMillis()
 
-    private val tower = Gui.fullSize()(div("width" -> "100%", "height" -> s"${buildAnimation.animationCount * 100 + 100}%")).style("overflow-y" -> "scroll").toDom
+    private val towerInner = div("width" -> "100%").toDom
+    private val tower = Gui.fullSize()(towerInner).style("overflow-y" -> "scroll").toDom
 
     var baseOffset : Double = 0
     override def onResize(width: Int, height: Int): Unit = {
+        val animationHeightPx = Math.min(width, height)
+        towerInner.style.height = s"${animationCount * animationHeightPx}px"
+
+
         baseOffset = height.toDouble / width - 1
         animade.resize(width, height)
     }
@@ -42,9 +46,16 @@ class ScrollListWidget(buildAnimation : BuildAnimation) extends Widget {
         )(canvas, tower).toDom
     }
 
+
+    var lastScrollPercent = 0d
     private def setParameters(t : Double) {
-        val scrollPercent = tower.scrollTop / tower.offsetHeight
-        val y = baseOffset + scrollPercent
+        val scrollPercent = tower.scrollTop / towerInner.offsetHeight
+        if(lastScrollPercent != scrollPercent) {
+            println(scrollPercent)
+        }
+        lastScrollPercent = scrollPercent
+        val scroll = scrollPercent * 2 * animationCount
+        val y = baseOffset + scroll
         animade.set(Map("u_offset" -> List(0, y)))
     }
 
