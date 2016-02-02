@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Zoom test</title>
+        <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
+        <style>
+            html, body {
+                height: 100%;
+                padding: 0;
+                margin: 0;
+                overflow: hidden;
+                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            }
+        </style>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.css">
+        <script type="text/javascript" src="hammer.min.js"></script>
+
+    </head>
+    <body style="width: 100%; height: 100%">
+        <div id="widget" style="width: 100%; height: 100%; text-align: center;">
+            <h1 id="inner" style="text-align: center; display: inline-block; margin-top: 200px;">
+                This has to be a long text, or it would be hard to test zoom.
+            </h1>
+        </div>
+        <script>
+            var widgetElement = document.getElementById('widget');
+            var innerElement = document.getElementById('inner');
+            var hammertime = new Hammer(widgetElement);
+
+            var panZoom = {x: 0, y: 0, scale: 1};
+
+            function update() {
+                var transform =
+                    'translate3d(' + panZoom.x + 'px, ' + panZoom.y + 'px, 0)' + ' ' +
+                    'scale(' + panZoom.scale + ', ' + panZoom.scale + ')';
+                innerElement.style.transform = transform;
+            }
+
+            hammertime.get('pinch').set({ enable: true });
+            hammertime.on('panstart', function(ev) {
+                panZoom.startX = panZoom.x;
+                panZoom.startY = panZoom.y;
+            });
+            hammertime.on('pan', function(ev) {
+                panZoom.x = panZoom.startX + ev.deltaX;
+                panZoom.y = panZoom.startY + ev.deltaY;
+                update();
+            });
+            hammertime.on('pinchstart', function(ev) {
+                panZoom.startScale = panZoom.scale;
+            });
+            hammertime.on('pinch', function(ev) {
+                panZoom.scale = panZoom.startScale + ev.deltaZ;
+                if(panZoom.scale < 1) panZoom.scale = 1;
+                update();
+            });
+            widgetElement.addEventListener('wheel', function(ev) {
+                panZoom.scale += panZoom.scale * ev.deltaY * 0.01;
+                if(panZoom.scale < 1) panZoom.scale = 1;
+                update();
+            });
+        </script>
+    </body>
+</html>
