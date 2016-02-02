@@ -75,7 +75,7 @@ class ParametersWidget(effect : R => BuildOrder, setViewState : ViewState => Uni
         val cancelButton = {
             def cancel() : Unit = {
                 val animation = effect(0)
-                setViewState(ShowList(Pick1(animation.copy(actions = animation.actions.init)), 0, None))
+                setViewState(ShowGrid(Pick1(animation.copy(actions = animation.actions.init))))
             }
             val e = tag("i")()().addClasses("fa", "fa-5x", "fa-times-circle")
             roundButton(e, "rgba(100, 100, 100, 0.5)", cancel()).style(

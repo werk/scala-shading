@@ -11,7 +11,7 @@ class BuildAnimation(
     var effectMap : Map[Id, R => Animation => Animation],
     var combinatorMap : Map[Id, Animation => Animation => Animation],
     var effectName: Map[Id, String],
-    var compinatorName: Map[Id, String]
+    var combinatorName: Map[Id, String]
 ) {
 
     case class Cache(name : String, glsl : String, call : Animation, dependencies : Set[Id])
@@ -91,13 +91,18 @@ class BuildAnimation(
         glsl
     }
 
-    def allList() : String = {
+    def grid(buildOrders : List[BuildOrder]) : (Map[(Int, Int), Int], String) = {
         val functions = sortedAnimations.map(compiled(_).glsl).mkString
-        val (points, animation) = Tiled.grid(compiled.values.map(_.call).toList)
+        val (points, animation) = Tiled.grid(buildOrders.map(makeAnimation))
         val (glsl, time) = ExecutionTime(ToGlsl(animation, functions))
-        println(s"All list to GLSL: ${glsl.length / 1000} KB in ${LongTime.pretty(time)}")
-        glsl
+        println(s"Grid list to GLSL: ${glsl.length / 1000} KB in ${LongTime.pretty(time)}")
+        points.zipWithIndex.toMap -> glsl
+    }
 
+    def savedGrid() : (Map[(Int, Int), BuildOrder], String) = {
+        val buildOrders = sortedAnimations.map(BuildOrder(None, _, Seq()))
+        val (points, glsl) = grid(buildOrders)
+        (points.mapValues(buildOrders), glsl)
     }
 
     def animationCount : Int = sortedAnimations.length

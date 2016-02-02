@@ -1,6 +1,6 @@
 package dk.mzw.accelemation.js.widget
 
-import dk.mzw.accelemation.js.ViewState.{Pick0, Pick1, Pick2, ShowList, ShowSave}
+import dk.mzw.accelemation.js.ViewState._
 import dk.mzw.accelemation.js._
 import org.scalajs.dom
 import org.scalajs.dom.Element
@@ -28,9 +28,9 @@ class AnimationWidget(build : BuildOrder, setViewState : ViewState => Unit, buil
             "width" -> "100%",
             "text-align" -> "center"
         )(
-            roundButton("Discard", "rgba(200, 100, 100, 0.5)", {setViewState(ShowList(Pick0, 0, None))}).style("margin" -> "5px"),
-            roundButton("Effect", "rgba(200, 100, 200, 0.5)", {setViewState(ShowList(Pick1(build), 0, None))}).style("margin" -> "5px"),
-            roundButton("Combine", "rgba(100, 100, 200, 0.5)", {setViewState(ShowList(Pick2(build, None), 0, None))}).style("margin" -> "5px"),
+            roundButton("Discard", "rgba(200, 100, 100, 0.5)", {setViewState(ShowGrid(Pick0))}).style("margin" -> "5px"),
+            roundButton("Effect", "rgba(200, 100, 200, 0.5)", {setViewState(ShowGrid(Pick1(build)))}).style("margin" -> "5px"),
+            roundButton("Combine", "rgba(100, 100, 200, 0.5)", {setViewState(ShowGrid(Pick2(build, None)))}).style("margin" -> "5px"),
             roundButton("Save", "rgba(100, 200, 100, 0.5)", {setViewState(ShowSave(build))}).style("margin" -> "5px")
         )
 

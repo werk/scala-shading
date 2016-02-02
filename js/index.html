@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Scala Shading JS</title>
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
 
     <style>
         html, body {
@@ -15,11 +16,45 @@
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.css">
     <script type="text/javascript" src="animade.js"></script>
+    <script type="text/javascript" src="hammer.min.js"></script>
 
 </head>
 <body style="width: 100%; height: 100%">
     <div id="widget" style="width: 100%; height: 100%"></div>
     <script type="text/javascript" src="target/scala-2.11/scala-shading-fastopt.js"></script>
     <script type="text/javascript">dk.mzw.accelemation.js.Main().main();</script>
+
+    <script>
+        (function() {
+            var widgetElement = document.getElementById('widget');
+            var hammertime = new Hammer(widgetElement);
+
+            window.panZoom = {x: 0, y: 0, scale: 1, onClick: null};
+
+            hammertime.get('pinch').set({enable: true});
+            hammertime.on('panstart', function (ev) {
+                panZoom.startX = panZoom.x;
+                panZoom.startY = panZoom.y;
+            });
+            hammertime.on('pan', function (ev) {
+                panZoom.x = panZoom.startX + ev.deltaX / panZoom.scale;
+                panZoom.y = panZoom.startY + ev.deltaY / panZoom.scale;
+            });
+            hammertime.on('pinchstart', function (ev) {
+                panZoom.startScale = panZoom.scale;
+            });
+            hammertime.on('pinch', function (ev) {
+                panZoom.scale = panZoom.startScale - ev.deltaZ;
+                if (panZoom.scale < 0.01) panZoom.scale = 0.01;
+            });
+            hammertime.on('tap', function (ev) {
+                if(window.panZoom.onClick != null) window.panZoom.onClick(ev.center.x, ev.center.y)
+            });
+            widgetElement.addEventListener('wheel', function (ev) {
+                panZoom.scale -= panZoom.scale * ev.deltaY * 0.01;
+                if (panZoom.scale < 0.01) panZoom.scale = 0.01;
+            });
+        })();
+    </script>
 </body>
 </html>

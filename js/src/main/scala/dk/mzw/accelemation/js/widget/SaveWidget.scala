@@ -56,7 +56,7 @@ class SaveWidget(build : BuildOrder, setViewState : ViewState => Unit, buildAnim
         val okButton = {
             def ok() : Unit = {
                 if(nameText.isEmpty) dom.window.alert("Please name your animation.")
-                else WebscriptStore.store.put(nameText, build, onSuccess = { _ => setViewState(ShowList(Pick0, 0, None))}, onError = println)
+                else WebscriptStore.store.put(nameText, build, onSuccess = { _ => setViewState(ShowGrid(Pick0))}, onError = println)
             }
             val e = tag("i")()().addClasses("fa", "fa-5x", "fa-check-circle")
             roundButton(e, "rgba(100, 100, 100, 0.5)", ok()).style(

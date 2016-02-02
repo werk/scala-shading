@@ -1,7 +1,7 @@
 package dk.mzw.accelemation.js
 
 import dk.mzw.accelemation.js.BuildOrder.Id
-import dk.mzw.accelemation.js.ViewState.{ShowGrid, ShowAnimation, ShowList, Pick0}
+import dk.mzw.accelemation.js.ViewState.{ShowGrid, Pick0}
 import dk.mzw.accelemation.js.widget.Widget
 import dk.mzw.accelemation.samples._
 import org.scalajs.dom
@@ -42,7 +42,7 @@ object Main extends JSApp {
         }
         def setViewState(viewState : ViewState) : Unit = {
             def run() = setWidget(ViewState.render(viewState, setViewState, buildAnimation))
-            if(viewState == ShowList(Pick0, 0, None)) reloadAnimations(run)
+            if(viewState == ShowGrid(Pick0)) reloadAnimations(run)
             else run()
         }
 
