@@ -21,7 +21,7 @@ class ScrollListWidget(buildAnimation : BuildAnimation) extends Widget {
         towerInner.style.height = s"${animationCount * animationHeightPx}px"
 
 
-        baseOffset = height.toDouble / width - 1
+        baseOffset = 0 //height.toDouble / width - 1
         animade.resize(width, height)
     }
 
