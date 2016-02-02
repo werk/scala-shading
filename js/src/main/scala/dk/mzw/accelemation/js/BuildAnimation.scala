@@ -1,15 +1,10 @@
 package dk.mzw.accelemation.js
 
-import dk.mzw.accelemation.Combinators._
 import dk.mzw.accelemation.Language._
 import dk.mzw.accelemation.ToGlsl
 import dk.mzw.accelemation.js.BuildOrder._
-import dk.mzw.accelemation.js.debug.{LongTime, ExecutionTime}
+import dk.mzw.accelemation.js.debug.{ExecutionTime, LongTime}
 import dk.mzw.accelemation.js.widget.Tiled
-
-import dk.mzw.accelemation.Animations.coordinateSystem
-import dk.mzw.accelemation.Combinators
-
 
 
 class BuildAnimation(
@@ -99,8 +94,7 @@ class BuildAnimation(
     def allList() : String = {
         val functions = sortedAnimations.map(compiled(_).glsl).mkString
         val (points, animation) = Tiled.grid(compiled.values.map(_.call).toList)
-        val corrected = scale (0.1, 0.1) (animation) _
-        val (glsl, time) = ExecutionTime(ToGlsl(corrected, functions))
+        val (glsl, time) = ExecutionTime(ToGlsl(animation, functions))
         println(s"All list to GLSL: ${glsl.length / 1000} KB in ${LongTime.pretty(time)}")
         glsl
 
