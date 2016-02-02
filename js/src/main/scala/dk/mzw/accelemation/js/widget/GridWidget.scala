@@ -43,8 +43,8 @@ class GridWidget(listType : ListType, setViewState : ViewState => Unit, buildAni
     ).toDom
 
     def onClick(e: MouseEvent): Unit = {
-        val x = animationCoordinatesX(e.clientX)
-        val y = animationCoordinatesY(e.clientY)
+        val x = animationCoordinatesX(e.pageX)
+        val y = animationCoordinatesY(e.pageY)
         println(s"Click ($x, $y)")
     }
 
