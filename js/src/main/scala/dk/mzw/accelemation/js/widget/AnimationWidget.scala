@@ -28,7 +28,10 @@ class AnimationWidget(build : BuildOrder, setViewState : ViewState => Unit, buil
             "width" -> "100%",
             "text-align" -> "center"
         )(
-            roundButton("Discard", "rgba(200, 100, 100, 0.5)", {setViewState(ShowGrid(Pick0))}).style("margin" -> "5px"),
+            roundButton("Discard", "rgba(200, 100, 100, 0.5)", {
+                println("Discard")
+                setViewState(ShowGrid(Pick0))
+            }).style("margin" -> "5px"),
             roundButton("Effect", "rgba(200, 100, 200, 0.5)", {setViewState(ShowGrid(Pick1(build)))}).style("margin" -> "5px"),
             roundButton("Combine", "rgba(100, 100, 200, 0.5)", {setViewState(ShowGrid(Pick2(build, None)))}).style("margin" -> "5px"),
             roundButton("Save", "rgba(100, 200, 100, 0.5)", {setViewState(ShowSave(build))}).style("margin" -> "5px")

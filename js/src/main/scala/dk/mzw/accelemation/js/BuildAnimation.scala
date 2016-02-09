@@ -79,7 +79,7 @@ class BuildAnimation(
         dependencies(buildOrder).flatMap(dep)
     }
 
-    def toGlsl(buildOrder : BuildOrder) : String = {
+    def toGlsl(buildOrder : BuildOrder) : String = ExecutionTime.print(s"toGlsl(${compiled(buildOrder.animationId).name})") {
         val used = dependenciesTransitive(buildOrder)
         //println(s"Used for ${buildOrder.saved}: ${used.mkString(",")}")
         val functions = sortedAnimations.filter(used).map(compiled(_).glsl).mkString
@@ -91,7 +91,7 @@ class BuildAnimation(
         glsl
     }
 
-    def grid(buildOrders : List[BuildOrder]) : (Map[(Int, Int), Int], String) = {
+    def grid(buildOrders : List[BuildOrder]) : (Map[(Int, Int), Int], String) = ExecutionTime.print("grid") {
         val functions = sortedAnimations.map(compiled(_).glsl).mkString
         val (points, animation) = Tiled.grid(buildOrders.map(makeAnimation))
         val (glsl, time) = ExecutionTime(ToGlsl(animation, functions))

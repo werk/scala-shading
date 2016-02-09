@@ -7,6 +7,8 @@ import dk.mzw.accelemation.js._
 import dk.mzw.accelemation.js.widget.Gui._
 import org.scalajs.dom
 import org.scalajs.dom.Element
+import dk.mzw.accelemation.js.Zoomable
+import scala.scalajs.js
 
 import scala.scalajs.js
 
@@ -62,6 +64,7 @@ class GridWidget(listType : ListType, setViewState : ViewState => Unit, buildAni
     }
 
     private val canvas = dom.document.createElement("canvas").asInstanceOf[dom.html.Element]
+    private val panZoom = Zoomable(canvas)
     private val animade = new Animade(Animade.Configuration(glsl, canvas))
     private val start = System.currentTimeMillis()
 
@@ -83,9 +86,9 @@ class GridWidget(listType : ListType, setViewState : ViewState => Unit, buildAni
         val now = System.currentTimeMillis()
         val t = (now - start)  / 1000.0
         val smallest = scala.math.min(width, height)
-        offsetX = dynamicWindow.panZoom.x.asInstanceOf[Double] / smallest * 2
-        offsetY = -dynamicWindow.panZoom.y.asInstanceOf[Double] / smallest * 2
-        zoom = dynamicWindow.panZoom.scale.asInstanceOf[Double]
+        offsetX = panZoom.x.asInstanceOf[Double] / smallest * 2
+        offsetY = -panZoom.y.asInstanceOf[Double] / smallest * 2
+        zoom = panZoom.scale.asInstanceOf[Double]
         animade.draw(Map(
             "u_time" -> List(t),
             "u_offset" -> List(offsetX, offsetY),
@@ -104,17 +107,16 @@ class GridWidget(listType : ListType, setViewState : ViewState => Unit, buildAni
     def onClick(x : Double, y : Double): Unit = {
         val animationX = animationCoordinatesX(x)
         val animationY = animationCoordinatesY(y)
-        println(s"Click ($animationX, $animationY)")
         val intX = scala.math.floor(animationX)
         val intY = scala.math.floor(animationY)
-        println(s"Click int ($intX, $intY)")
         onClickAnimation(intX.toInt, intY.toInt)
         onClickAnimation(intX.toInt, intY.toInt + 1)
         onClickAnimation(intX.toInt + 1, intY.toInt)
         onClickAnimation(intX.toInt + 1, intY.toInt + 1)
     }
 
-    dynamicWindow.panZoom.onClick = onClick _
+    panZoom.addClickHandler(onClick _)
+    panZoom.scale = 0.14
 
     def animationCoordinatesX(x : Double) : Double = {
         val streched_position = (x / width) * 2 - 1
