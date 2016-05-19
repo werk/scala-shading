@@ -50,10 +50,9 @@ object Main extends JSApp {
         val resolutionY = dom.window.innerHeight
         val aspectX = scala.math.max(resolutionX / resolutionY, 1.0)
         val aspectY = scala.math.max(resolutionY / resolutionX, 1.0)
-        val strechedPositionX = (pixelX / resolutionX) * 2.0 - aspectX
+        val strechedPositionX = (pixelX / resolutionX) * 2.0 - aspectX*0.5
         val strechedPositionY = (pixelY / resolutionY) * 2.0 - aspectY
         (-strechedPositionX * aspectX, strechedPositionY * aspectY)
-
     }
 
 }
