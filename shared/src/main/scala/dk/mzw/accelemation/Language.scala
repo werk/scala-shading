@@ -120,4 +120,10 @@ object Language {
         }
     }
 
+    implicit def liftUniformB(uniform : Uniform[Boolean]) : B = Term(UniformU(uniform, "bool"))
+    implicit def liftUniformR(uniform : Uniform[Double]) : R = Term(UniformU(uniform, "float"))
+    implicit def liftUniformVec2(uniform : Uniform[(Double, Double)]) : Vec2 = Term(UniformU(uniform, "vec2"))
+    implicit def liftUniformVec3(uniform : Uniform[(Double, Double, Double)]) : Vec3 = Term(UniformU(uniform, "vec3"))
+    implicit def liftUniformVec4(uniform : Uniform[(Double, Double, Double, Double)]) : Vec4 = Term(UniformU(uniform, "vec4"))
+
 }

@@ -1,62 +1,59 @@
 package dk.mzw.accelemation.js
 
-import dk.mzw.accelemation.js.BuildOrder.Id
-import dk.mzw.accelemation.js.ViewState.{ShowGrid, ShowAnimation, ShowList, Pick0}
-import dk.mzw.accelemation.js.widget.Widget
-import dk.mzw.accelemation.samples._
+import dk.mzw.accelemation.Animations._
+import dk.mzw.accelemation.Combinators._
+import dk.mzw.accelemation.Internal.Uniform
+import dk.mzw.accelemation.Language._
 import org.scalajs.dom
-import org.scalajs.dom.raw.UIEvent
+import org.scalajs.dom.raw.MouseEvent
 
 import scala.scalajs.js.JSApp
 
 object Main extends JSApp {
-    val animations = List(
-        TimeLens.apply,
-        HidingDevils.apply,
-        Spiral.apply
-    )
+
 
     def main() : Unit = {
 
-        var activeWidget : Widget = null
-        dom.window.onresize = { event : UIEvent =>
-            activeWidget.onResize(dom.window.innerWidth, dom.window.innerHeight)
+        val mouseX = new Uniform[Double]("mouseX", 0)
+        val mouseY = new Uniform[Double]("mouseY", 0)
+        val a : Animation = {
+            addition (gaussBall(0.05)) (translate(mouseX, mouseY) (gaussBall(0.1)))
         }
 
-        val buildAnimation = Prelude.buildAnimation
 
-        val widgetElement = dom.document.getElementById("widget")
-        def setWidget(widget : Widget): Unit = {
-            while(widgetElement.firstChild != null) widgetElement.removeChild(widgetElement.firstChild)
-            activeWidget = widget
-            widgetElement.appendChild(widget.element)
-            dom.window.onresize(null)
-        }
-        def reloadAnimations(onSuccess : () => Unit) : Unit = {
-            def onList(animations : Seq[(Id, BuildOrder)]) : Unit = {
-                println("On reload stored animations")
-                buildAnimation.addSavedBuildOrders(animations.map(_._2))
-                onSuccess()
-            }
-            WebscriptStore.store.list(onSuccess = onList, onError = println)
-        }
-        def setViewState(viewState : ViewState) : Unit = {
-            def run() = setWidget(ViewState.render(viewState, setViewState, buildAnimation))
-            if(viewState == ShowList(Pick0, 0, None)) reloadAnimations(run)
-            else run()
-        }
+        val (canvas, update) = AnimationCanvas(a)
+        dom.document.getElementById("widget").appendChild(canvas)
 
-        reloadAnimations(() => {
-            setViewState(ShowList(Pick0, 0, None))
-            //setViewState(ShowAnimation(BuildOrder(None, Id("prelude", "Ball"), Seq())))
-            //setViewState(ShowGrid())
-        })
+        var cursorX : Double = 0
+        var cursorY : Double = 0
+        dom.document.onmousemove = {e : MouseEvent => {
+            cursorX = e.pageX
+            cursorY = e.pageY
+        }}
 
+
+        val start = System.currentTimeMillis()
         def step(elapsed : Double) : Unit = {
-            if(activeWidget != null) activeWidget.onDraw()
+            val now = System.currentTimeMillis()
+            val t = (now - start) / 1000.0
+            val (x, y) = pixelToUnit(cursorX, cursorY)
+            mouseX.value = x
+            mouseY.value = y
+            update(t)
             dom.window.requestAnimationFrame(step _)
         }
         step(0)
+    }
+
+    def pixelToUnit(pixelX : Double, pixelY : Double) : (Double, Double) = {
+        val resolutionX = dom.window.innerWidth
+        val resolutionY = dom.window.innerHeight
+        val aspectX = scala.math.max(resolutionX / resolutionY, 1.0)
+        val aspectY = scala.math.max(resolutionY / resolutionX, 1.0)
+        val strechedPositionX = (pixelX / resolutionX) * 2.0 - aspectX
+        val strechedPositionY = (pixelY / resolutionY) * 2.0 - aspectY
+        (-strechedPositionX * aspectX, strechedPositionY * aspectY)
+
     }
 
 }

@@ -11,8 +11,8 @@ object ToHtml {
         //val after = "//]]>\n</script><script src=\"javascript/program.js\"></script></body></html>\n"
         //before ++ glsl ++ after
 
-        val glslSource = Source.fromFile("javascript/glsl.js").mkString
-        val glslcontainerSource = Source.fromFile("javascript/GlslContainer.js").mkString
+        //val glslSource = Source.fromFile("javascript/glsl.js").mkString
+        //val glslcontainerSource = Source.fromFile("javascript/GlslContainer.js").mkString
 
         s"""<!DOCTYPE html>
 <html lang="en">
@@ -33,11 +33,6 @@ object ToHtml {
     <script id="fragment" type="shader/x-fragment">$glsl    </script>
 
     <script type="text/javascript">
-$glslSource
-    </script>
-
-    <script type="text/javascript">
-$glslcontainerSource
     </script>
 
 </head>

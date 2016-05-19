@@ -9,7 +9,7 @@ object ToGlsl {
         Term(Call(name, List(Call("vec4",List(x.untyped, y.untyped, Constant(0), t.untyped)))))
     }
     
-    def function(name : String, f : Animation) : String = {
+    def function(name : String, f : Animation) : (String, Set[UniformU]) = {
         val compile = new Compiler()
 
         val t: Time = Term(BuiltIn("position.w"))
@@ -20,20 +20,26 @@ object ToGlsl {
         val compiled = compile(animation)
         val vs = compile.declarations
         val bindings        =  vs.reverse.mkString
-
+        val glsl =
 s"""
 vec4 $name(vec4 position) {
 $bindings    return $compiled;
 }
 """
+        (glsl, compile.uniforms)
     }
 
-    def apply(f : Animation, prelude : String = "") : String = {
-        boilerplate + prelude + function("animation", f)
+    def withUniforms(f : Animation, prelude : String = "") : (String, Seq[Uniform[_]]) = {
+        val (glsl, uniforms) = function("animation", f)
+        val all = boilerplateUniforms(uniforms) + boilerplateBefore + prelude + glsl + boilerplateAfter
+        (all, uniforms.toSeq.map(_.ref))
     }
+
+    def apply(f : Animation, prelude : String = "") : String = withUniforms(f, prelude)._1
 
     private class Compiler {
         var declarations = List[String]()
+        var uniforms = Set[UniformU]()
 
         def apply(u : Untyped) : String = u match {
             case Constant(n) =>
@@ -56,11 +62,26 @@ $bindings    return $compiled;
             case Prefix(operator, right) => s"($operator${apply(right)})"
             case Infix(operator, left, right) => s"(${apply(left)} $operator ${apply(right)})"
             case Call(name, arguments) => s"$name(${arguments.map(apply).mkString(", ")})"
+            case uniform : UniformU =>
+                uniforms += uniform
+                s"${uniform.ref.name}"
         }
 
     }
 
-private val boilerplate = """
+    private def boilerplateUniforms(uniforms : Set[UniformU]) = {
+        val us = uniforms.map(u => s"uniform ${u.variableType} ${u.ref.name};").mkString("\n")
+s"""
+precision mediump float;
+uniform vec2 u_resolution;
+uniform vec2 u_scale;
+uniform vec2 u_offset;
+uniform float u_time;
+$us
+"""
+    }
+
+    private val boilerplateBefore = """
 //
 // Description : Array and textureless GLSL 2D/3D/4D simplex
 //               noise functions.
@@ -174,5 +195,15 @@ vec4 rgbaToHsva(vec4 c) {
     return vec4(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x, c.a);
 }
 """
+
+    private val boilerplateAfter = """
+void main() {
+    vec2 streched_position = (gl_FragCoord.xy / u_resolution) * vec2(2.0, 2.0) - vec2(1.0, 1.0);
+    vec2 aspect = vec2(max(u_resolution.x / u_resolution.y, 1.0), max(u_resolution.y / u_resolution.x, 1.0));
+    vec2 position = streched_position * aspect;
+    gl_FragColor = animation(vec4(position / u_scale - u_offset, 0.0, u_time));
 }
+"""
+}
+
 
