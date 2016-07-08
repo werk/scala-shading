@@ -38,5 +38,9 @@ object Main extends JSApp {
         }
     }
 
-    def main() = AnimationGame(a, update)
+    def onClick(x : Double, y : Double) : Unit = {
+
+    }
+
+    def main() = AnimationGame(a, update, onClick)
 }
