@@ -2,12 +2,18 @@ package dk.mzw.accelemation.js
 
 import dk.mzw.accelemation.Language.Animation
 import org.scalajs.dom
+import org.scalajs.dom.html.Element
+
 
 object AnimationGame {
 
     def apply(animation : Animation, update : (Double, AnimationCanvas) => Unit, onClick : (Double, Double) => Unit) : Unit = {
         val canvas = new AnimationCanvas(animation)
         dom.document.getElementById("widget").appendChild(canvas.canvas)
+        canvas.canvas.addEventListener("click", { e : dom.MouseEvent =>
+            val (x, y) = canvas.pixelToUnit(e.clientX, e.clientY)
+            onClick(x, y)
+        })
         val start = System.currentTimeMillis()
         def step(elapsed : Double) : Unit = {
             val now = System.currentTimeMillis()
