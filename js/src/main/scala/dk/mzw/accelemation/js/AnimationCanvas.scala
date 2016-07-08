@@ -25,13 +25,13 @@ class AnimationCanvas(animation : Animation) {
     }
 
     def pixelToUnit(pixelX : Double, pixelY : Double) : (Double, Double) = {
-        val resolutionX = dom.window.innerWidth // TODO container size, offset, rtc
-        val resolutionY = dom.window.innerHeight
+        val resolutionX = dom.window.innerWidth.toDouble // TODO container size, offset, rtc
+        val resolutionY = dom.window.innerHeight.toDouble
+        val unitX = pixelX / resolutionX * 2.0 - 1
+        val unitY = pixelY / resolutionY * 2.0 - 1
         val aspectX = scala.math.max(resolutionX / resolutionY, 1.0)
         val aspectY = scala.math.max(resolutionY / resolutionX, 1.0)
-        val strechedPositionX = (pixelX / resolutionX) * 2.0 - aspectX*0.5
-        val strechedPositionY = (pixelY / resolutionY) * 2.0 - aspectY
-        (-strechedPositionX * aspectX, strechedPositionY * aspectY)
+        (-unitX * aspectX, unitY * aspectY)
     }
 
     def mouse = pixelToUnit(AnimationCanvas.cursorX, AnimationCanvas.cursorY)

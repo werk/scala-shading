@@ -7,7 +7,7 @@ import dk.mzw.accelemation.Language._
 
 object Spiral {
 
-    def apply = translate(0.4, 0.21) (fromPolarCoordinates(spiral)) _
+    def apply = translate(0.4, 0.21) (fromPolarCoordinates(spiral))
 
     //def zoomy(f : Animation) (t : R) (x : R) (y : R) : Color = scaleUniform (sinOne(t)) (f) (t) (x) (y)
 

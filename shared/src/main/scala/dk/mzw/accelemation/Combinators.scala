@@ -8,7 +8,7 @@ object Combinators {
 
     def liftColor(f : Color => Color) (animation : Animation) : Animation = t => x => y => f(animation(t) (x) (y))
 
-    def translate(dx : R, dy : R) (animation : Animation) (t : R) (x : R) (y : R) =
+    def translate(dx : R, dy : R) (animation : Animation) : Animation  = t => x => y =>
         (dx + x).bind{x2 => (dy + y).bind{y2 => animation (t) (x2) (y2)}}
 
     def scale(scaleX : R, scaleY : R) (animation : Animation) (t : R) (x : R) (y : R) =
@@ -25,12 +25,12 @@ object Combinators {
         }
 
     def scroll(speedX : R, speedY : R) (animation : Animation) (t : R) =
-        translate(speedX * t, speedY * t) (animation) (t) _
+        translate(speedX * t, speedY * t) (animation) (t)
 
     def circle(speed : R) = orbit(speed, speed) _
 
     def orbit(speedX : R, speedY : R) (animation : Animation) (t : R) =
-        translate(cos(speedX * t), sin(speedY * t)) (animation) (t) _
+        translate(cos(speedX * t), sin(speedY * t)) (animation) (t)
 
     def spin(speed : R) (animation : Animation) (t : R) =
         rotate (speed * t) (animation) (t) _

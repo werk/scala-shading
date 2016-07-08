@@ -5,7 +5,7 @@ import org.scalajs.dom
 
 object AnimationGame {
 
-    def apply(animation : Animation, update : (Double, AnimationCanvas) => Unit) : Unit = {
+    def apply(animation : Animation, update : (Double, AnimationCanvas) => Unit, onClick : (Double, Double) => Unit) : Unit = {
         val canvas = new AnimationCanvas(animation)
         dom.document.getElementById("widget").appendChild(canvas.canvas)
         val start = System.currentTimeMillis()
