@@ -19,8 +19,8 @@ object Main extends JSApp {
     val clickY = new Uniform[Double]("clickY", 0)
 
 
+    val rotationSpeed = 2
     val rotation = new Uniform[Double]("rotation", 0)
-    var rotationStarted : Double = 0
     var rotationFinal : Double = 0
 
     val a : Animation = {
@@ -32,6 +32,7 @@ object Main extends JSApp {
 
     var lastTime : Double = 0
     def update(time : Double, canvas : AnimationCanvas): Unit = {
+        val dt = time - lastTime
         lastTime = time
         val (x, y) = canvas.mouse
         mouseX.value = x
@@ -39,16 +40,16 @@ object Main extends JSApp {
 
         // Rotate
         {
-            val t = time - rotationStarted
-            rotation.value = scala.math.min(rotationFinal, t * 3)
+            rotation.value = scala.math.min(rotationFinal, rotation.value + dt * rotationSpeed)
         }
     }
 
     def onClick(x : Double, y : Double) : Unit = {
         clickX.value = x
         clickY.value = y
-        rotationStarted = lastTime
         rotationFinal += scala.math.Pi * 0.5
+        println(s"rotation.value: ${rotation.value}")
+        println(s"rotationFinal: $rotationFinal")
     }
 
     def main() = AnimationGame(a, update, onClick)
