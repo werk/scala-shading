@@ -65,12 +65,13 @@ $bindings    return $compiled;
             case uniform : UniformU =>
                 uniforms += uniform
                 s"${uniform.ref.name}"
+            case ArrayLookup(array, realIndex) => s"${apply(array)}[int(${apply(realIndex)})]"
         }
 
     }
 
     private def boilerplateUniforms(uniforms : Set[UniformU]) = {
-        val us = uniforms.map(u => s"uniform ${u.variableType} ${u.ref.name};").mkString("\n")
+        val us = uniforms.map(u => s"uniform ${u.variableType} ${u.ref.name}${u.arraySize.map(n => s"[$n]").mkString};").mkString("\n")
 s"""
 precision mediump float;
 uniform vec2 u_resolution;

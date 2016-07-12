@@ -62,6 +62,12 @@ object Language {
         def reflect(b : Term[T]) : Term[T] = Term(Call("reflect", List(a.untyped, b.untyped)))
     }
 
+
+    implicit class ArrayWithOperations[E](a : Term[Array[E]]){
+        def apply(i : R) : Term[E] = Term(ArrayLookup(a.untyped, i.untyped))
+        def length : R = Term(Call("length", List(a.untyped))) // TODO
+    }
+
     object Math {
         val pi : R = Term(BuiltIn("pi"))
 
@@ -125,5 +131,7 @@ object Language {
     implicit def liftUniformVec2(uniform : Uniform[(Double, Double)]) : Vec2 = Term(UniformU(uniform, "vec2"))
     implicit def liftUniformVec3(uniform : Uniform[(Double, Double, Double)]) : Vec3 = Term(UniformU(uniform, "vec3"))
     implicit def liftUniformVec4(uniform : Uniform[(Double, Double, Double, Double)]) : Vec4 = Term(UniformU(uniform, "vec4"))
+
+    implicit def liftUniformRArray(uniform : Uniform[Array[Double]]) : Term[Array[Double]] = Term(UniformU(uniform, "float", Some(uniform.value.length)))
 
 }
