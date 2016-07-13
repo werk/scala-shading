@@ -28,24 +28,14 @@ object Main extends JSApp {
     val clickX = new Uniform[Double]("clickX", 0)
     val clickY = new Uniform[Double]("clickY", 0)
 
-    var uniformArray = new Uniform[Array[Double]]("uniformArray", Array(0.4, 0.6, 0))
-    val array : Term[Array[Double]] = liftUniformRArray(uniformArray)
-
-
-    val cells = List(List(
-        new RotatedCell("1_1"),
-        new RotatedCell("2_1"),
-        new RotatedCell("3_1")
-    ))
+    val angles = new Uniform[Array[Double]]("angles", Array(0, 0, 0, 0))
 
 
     val a : Animation = {
-        val uniforms = cells.map(_.map(_.rotation))
-        val grid = testAnimation // Grid(testAnimation, uniforms)
+        val grid = Grid(testAnimation, angles)
         val cursor = translate(mouseX, mouseY) (colorBall(0.05, rgba(1, 1, 1, 1)))
         val click = translate(clickX, clickY) (colorBall(0.05, rgba(1, 0.3, 0.2, 1)))
-        val arrayTest = translate(array(0), array(1)) (colorBall(0.05, hsva(array(2), 0.9, 0.9, 1)))
-        subtract (addition (addition (grid) (cursor)) (click)) (arrayTest)
+        addition (addition (grid) (cursor)) (click)
     }
 
     var lastTime : Double = 0
@@ -55,10 +45,6 @@ object Main extends JSApp {
         val (x, y) = canvas.mouse
         mouseX.value = x
         mouseY.value = y
-
-        uniformArray.value(0) = 0.9 * scala.math.cos(time)
-        uniformArray.value(1) = 0.9 * scala.math.sin(time)
-        uniformArray.value(2) = time
 
         cells.foreach(_.foreach(_.update(dt)))
     }
