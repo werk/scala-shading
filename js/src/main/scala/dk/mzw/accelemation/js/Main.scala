@@ -4,11 +4,13 @@ import dk.mzw.accelemation.Animations._
 import dk.mzw.accelemation.Combinators._
 import dk.mzw.accelemation.Internal.Uniform
 import dk.mzw.accelemation.Language._
-import dk.mzw.accelemation.samples.HidingDevils
 
 import scala.scalajs.js.JSApp
 
 object Main extends JSApp {
+
+    val width = 2
+    val height = 2
 
     val testAnimation : Animation = t => x => y => {
         vec2(x, y).magnitude.bind { d =>
@@ -28,7 +30,11 @@ object Main extends JSApp {
     val clickX = new Uniform[Double]("clickX", 0)
     val clickY = new Uniform[Double]("clickY", 0)
 
-    val angles = new Uniform[Array[Double]]("angles", Array(0, 0, 0, 0))
+    val angles = new Uniform[Array[Double]]("angles", Array.ofDim(width * height))
+
+    val cells = angles.value.zipWithIndex.map{case (_, i) =>
+        new RotatedCell(i)
+    }
 
 
     val a : Animation = {
@@ -46,45 +52,44 @@ object Main extends JSApp {
         mouseX.value = x
         mouseY.value = y
 
-        cells.foreach(_.foreach(_.update(dt)))
+        cells.foreach(_.update(dt))
     }
 
     def cellCoordinates(x : Double, y : Double) : (Int, Int) = {
-        val width = cells.head.length
-        val height = cells.length
-        val cellIndex = scala.math.floor((1 + x) * 0.5 * width).toInt
+        val columnIndex = scala.math.floor((1 + x) * 0.5 * width).toInt
         val rowIndex = scala.math.floor((1 + y) * 0.5 * height).toInt
-        (cellIndex, rowIndex)
+        (columnIndex, rowIndex)
     }
+
+    def cellIndex(columnIndex : Int, rowIndex : Int) : Int = rowIndex * height + columnIndex
 
     def onClick(x : Double, y : Double) : Unit = {
         clickX.value = x
         clickY.value = y
 
         // Rotate clicked cell
-        val (cellIndex, rowIndex) = cellCoordinates(x, y)
-        val cell = cells(rowIndex)(cellIndex)
+        val (columnIndex, rowIndex) = cellCoordinates(x, y)
+        val cell : RotatedCell = cells(cellIndex(columnIndex, rowIndex))
         cell.click()
     }
 
     def main() = AnimationGame(a, update, onClick)
-}
 
-class RotatedCell(name: String) {
-    val rotationSpeed = 2
+    class RotatedCell(index : Int) {
+        val rotationSpeed = 2
+        def angle = angles.value(index)
+        var angleFinal : Double = 0
 
-    val rotation = new Uniform[Double](s"rotation_$name", 0)
-    var rotationFinal : Double = 0
+        def click() = {
+            angleFinal += scala.math.Pi * 0.5
+            println(s"($index): angle: $angle")
+            println(s"($index): angleFinal: $angleFinal")
+        }
 
-    def click() = {
-        rotationFinal += scala.math.Pi * 0.5
-        println(s"$name: rotation.value: ${rotation.value}")
-        println(s"$name: rotationFinal: $rotationFinal")
+        def update(dt : Double): Unit = {
+            angles.value(index) = scala.math.min(angleFinal, angle + dt * rotationSpeed)
+        }
 
     }
-
-    def update(dt : Double): Unit = {
-        rotation.value = scala.math.min(rotationFinal, rotation.value + dt * rotationSpeed)
-    }
-
 }
+
