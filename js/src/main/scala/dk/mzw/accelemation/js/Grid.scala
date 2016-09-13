@@ -22,9 +22,9 @@ object Grid {
         val height = angleRows.length
         val cellWidth = 2.0 / width
         val cellHeight = 2.0 / height
-        val cellIndex = floor((1 + x) * 0.5 * width)
-        val rowIndex = floor((1 + y) * 0.5 * height)
-        val cellCenterX : R = 0
+        val indexX = floor((1 + x) * 0.5 * width)
+        val indexY = floor((1 + y) * 0.5 * height)
+        val cellCenterX : R = 0.5
         val cellCenterY : R = 0
         val angle : R = horizontal(angleRows.head, x, y)
         rotateAbout(cellCenterX, cellCenterY, angle) ((x, y))
