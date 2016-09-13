@@ -9,7 +9,7 @@ object Combinators {
     def liftColor(f : Color => Color) (animation : Animation) : Animation = t => x => y => f(animation(t) (x) (y))
 
     def translate(dx : R, dy : R) (animation : Animation) : Animation  = t => x => y =>
-        (dx + x).bind{x2 => (dy + y).bind{y2 => animation (t) (x2) (y2)}}
+        (dx - x).bind{x2 => (dy - y).bind{y2 => animation (t) (x2) (y2)}}
 
     def scale(scaleX : R, scaleY : R) (animation : Animation) (t : R) (x : R) (y : R) =
         animation (t) (x / scaleX) (y / scaleY)

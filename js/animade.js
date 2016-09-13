@@ -8,7 +8,6 @@ Animade = function(configuration) {
     my.resize = resize;
     my.draw = draw;
     my.set = set;
-    my.setArray = setArray;
     
     function loadShader(gl, shaderSource, shaderType) {
         var shader = gl.createShader(shaderType);
@@ -67,15 +66,7 @@ Animade = function(configuration) {
         my.source = source;
         my.program = program;
     }
-
-    function setArray(key, array) {
-        if(!my.uniforms.hasOwnProperty(key)) {
-            my.uniforms[key] = my.gl.getUniformLocation(my.program, key);
-        }
-        var location = my.uniforms[key];
-        my.gl.uniform1fv(location, array);
-    }
-
+    
     function set(uniforms) {
         for(var key in uniforms) if(uniforms.hasOwnProperty(key)) {
             if(!my.uniforms.hasOwnProperty(key)) {

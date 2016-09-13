@@ -11,8 +11,7 @@ object Internal {
     case class Prefix(operator : String,  right: Untyped) extends Untyped
     case class Infix(operator : String,  left: Untyped, right : Untyped) extends Untyped
     case class Call(name : String, arguments : List[Untyped]) extends Untyped
-    case class UniformU(ref : Uniform[_], variableType : String, arraySize : Option[Int] = None) extends Untyped
-    case class ArrayLookup(array : Untyped, index : Untyped) extends Untyped
+    case class UniformU(ref : Uniform[_], variableType : String) extends Untyped
     /*case class LiftVec2(name : String, infix : Boolean, arguments : List[Untyped]) extends Untyped
     case class LiftVec3(name : String, infix : Boolean, arguments : List[Untyped]) extends Untyped
     case class LiftVec4(name : String, infix : Boolean, arguments : List[Untyped]) extends Untyped*/

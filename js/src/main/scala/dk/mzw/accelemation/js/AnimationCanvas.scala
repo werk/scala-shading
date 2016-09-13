@@ -8,23 +8,19 @@ import org.scalajs.dom.raw.{MouseEvent, Element}
 class AnimationCanvas(animation : Animation) {
 
     private val (glsl, uniforms) = ToGlsl.withUniforms(animation)
-    println(glsl)
+    //println(glsl)
     val canvas = dom.document.createElement("canvas")
     private val animade = new Animade(Animade.Configuration(glsl, canvas))
 
     def update(t : Double): Unit = {
         animade.resize(dom.window.innerWidth, dom.window.innerHeight) // TODO container size
-        val (arrayUniforms, simpleUniforms) = uniforms.partition(_.value.isInstanceOf[Array[_]])
-        val uniformMap = simpleUniforms.map{u => u.name -> (u.value match {
+        val uniformMap = uniforms.map{u => u.name -> (u.value match {
                 case d : Double => List(d)
                 case (d1 : Double, d2 : Double) => List(d1, d2)
                 case (d1 : Double, d2 : Double, d3 : Double) => List(d1, d2, d3)
                 case (d1 : Double, d2 : Double, d3 : Double, d4 : Double) => List(d1, d2, d3, d4)
             })}.toMap
         animade.set(uniformMap)
-        arrayUniforms.foreach{ u => u.value match {
-            case a : Array[Double] => animade.setArray(u.name, a)
-        }}
         animade.draw(Map("u_time" -> List[Double](t)))
     }
 
@@ -35,7 +31,7 @@ class AnimationCanvas(animation : Animation) {
         val unitY = pixelY / resolutionY * 2.0 - 1
         val aspectX = scala.math.max(resolutionX / resolutionY, 1.0)
         val aspectY = scala.math.max(resolutionY / resolutionX, 1.0)
-        (-unitX * aspectX, unitY * aspectY)
+        (unitX * aspectX, -unitY * aspectY)
     }
 
     def mouse = pixelToUnit(AnimationCanvas.cursorX, AnimationCanvas.cursorY)
