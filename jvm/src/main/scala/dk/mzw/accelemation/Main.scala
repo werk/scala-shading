@@ -34,19 +34,17 @@ object Main {
         printR(pi.bind(v => pow(v, 2) - v))
         println()
 
-        save(TimeLens, "TimeLens")
-        save(HidingDevils, "HidingDevils")
-        save(Spiral, "Spiral")
+        save(TimeLens.apply, "TimeLens")
+        save(HidingDevils.apply, "HidingDevils")
+        save(Spiral.apply, "Spiral")
     }
 
     def printR(e : R) = println(e)
     def printB(e : B) = println(e)
 
-    def save(o : {def apply : Animation}, name : String): Unit = {
-        //val fileName = s"${o.getClass.getSimpleName.filter(_.isLetterOrDigit)}.html"
+    def save(a : Animation, name : String): Unit = {
         val fileName = s"$name.html"
-        val html = ToHtml(o.apply)
-        println(html)
+        val html = ToHtml(ToGlsl(a), name)
         Files.write(Paths.get(fileName), html.getBytes(StandardCharsets.UTF_8))
     }
 

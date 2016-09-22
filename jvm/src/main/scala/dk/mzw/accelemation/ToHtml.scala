@@ -1,49 +1,26 @@
 package dk.mzw.accelemation
 
-import dk.mzw.accelemation.Language._
-
-import scala.io.Source
-
 object ToHtml {
-    def apply(animation : Animation) : String = {
-        val glsl = ToGlsl(animation)
-        //val before = "<html><head><title>Demo</title><style>body { margin: 0; }canvas { width: 100%; height: 100% }</style></head><body><script src=\"javascript/three.js\"></script><script id=\"fragmentShader\" type=\"x-shader/x-vertex\">\n//<![CDATA[\n"
-        //val after = "//]]>\n</script><script src=\"javascript/program.js\"></script></body></html>\n"
-        //before ++ glsl ++ after
 
-        //val glslSource = Source.fromFile("javascript/glsl.js").mkString
-        //val glslcontainerSource = Source.fromFile("javascript/GlslContainer.js").mkString
-
-        s"""<!DOCTYPE html>
-<html lang="en">
+    def apply(glsl : String, title : String) : String = s"""<!DOCTYPE html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Demo</title>
-
-    <style>
-        html, body {
-            height: 100%;
-            padding: 0;
-            margin: 0;
-            overflow-y: hidden;
-        }
-
-    </style>
-
-    <script id="fragment" type="shader/x-fragment">$glsl    </script>
-
-    <script type="text/javascript">
-    </script>
-
+    <meta charset="utf-8">
+    <title>$title</title>
+    <script type="text/javascript" src="https://rawgit.com/patriciogonzalezvivo/glslCanvas/master/build/GlslCanvas.js"></script>
 </head>
-<body>
-    <script type="text/javascript">
-        if (!Glsl.supported()) alert("WebGL is not supported.");
-        var loader = new GlslContainer(document.body);
-        loader.load(document.getElementById("fragment").innerHTML);
+<body style="margin: 0">
+    <canvas class="glslCanvas" style="position: absolute; width: 100%; height: 100%" data-fragment="
+$glsl
+    "></canvas>
+    <script>
+        // Fixes a problem where a resize is necessary
+        // TODO find a better solution
+        setTimeout(function() {
+            glslCanvases[0].width=1;
+        });
     </script>
 </body>
-</html>
-        """
-    }
+</html>"""
+
 }
