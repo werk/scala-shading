@@ -2,7 +2,9 @@ package dk.mzw.accelemation
 
 object ToHtml {
 
-    def apply(glsl : String, title : String) : String = s"""<!DOCTYPE html>
+    def apply(glsl : String, title : String) : String =
+        // language=html
+        s"""<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
