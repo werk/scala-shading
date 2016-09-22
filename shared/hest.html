@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Scala shading</title>
+    <script type="text/javascript" src="https://rawgit.com/patriciogonzalezvivo/glslCanvas/master/build/GlslCanvas.js"></script>
+
+    <style>
+        html, body {
+            padding: 0;
+            margin: 0;
+        }
+
+        .glslCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+        }
+    </style>
+</head>
+<body>
+
+<canvas class="glslCanvas" style="width: 100%; height: 100%" data-fragment="
+precision mediump float;
+uniform vec2 u_resolution;
+uniform float u_time;
+
+
+//
+// Description : Array and textureless GLSL 2D/3D/4D simplex
+//               noise functions.
+//      Author : Ian McEwan, Ashima Arts.
+//  Maintainer : ijm
+//     Lastmod : 20110822 (ijm)
+//     License : Copyright (C) 2011 Ashima Arts. All rights reserved.
+//               Distributed under the MIT License. See LICENSE file.
+//               https://github.com/ashima/webgl-noise
+//
+vec3 mod289(vec3 x) {
+    return x - floor(x * (1.0 / 289.0)) * 289.0;
+}
+
+vec4 mod289Vec4(vec4 x) {
+    return x - floor(x * (1.0 / 289.0)) * 289.0;
+}
+
+vec4 permute(vec4 x) {
+    return mod289Vec4(((x*34.0)+1.0)*x);
+}
+
+vec4 taylorInvSqrt(vec4 r) {
+    return 1.79284291400159 - 0.85373472095314 * r;
+}
+
+float snoise(vec3 v) {
+    const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
+    const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
+
+    // First corner
+    vec3 i  = floor(v + dot(v, C.yyy) );
+    vec3 x0 =   v - i + dot(i, C.xxx) ;
+
+    // Other corners
+    vec3 g = step(x0.yzx, x0.xyz);
+    vec3 l = 1.0 - g;
+    vec3 i1 = min( g.xyz, l.zxy );
+    vec3 i2 = max( g.xyz, l.zxy );
+
+    vec3 x1 = x0 - i1 + C.xxx;
+    vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y
+    vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y
+
+    // Permutations
+    i = mod289(i);
+    vec4 p = permute( permute( permute(
+             i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
+           + i.y + vec4(0.0, i1.y, i2.y, 1.0 ))
+           + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
+
+    // Gradients: 7x7 points over a square, mapped onto an octahedron.
+    // The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)
+    float n_ = 0.142857142857; // 1.0/7.0
+    vec3  ns = n_ * D.wyz - D.xzx;
+
+    vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)
+
+    vec4 x_ = floor(j * ns.z);
+    vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)
+
+    vec4 x = x_ *ns.x + ns.yyyy;
+    vec4 y = y_ *ns.x + ns.yyyy;
+    vec4 h = 1.0 - abs(x) - abs(y);
+
+    vec4 b0 = vec4( x.xy, y.xy );
+    vec4 b1 = vec4( x.zw, y.zw );
+
+    vec4 s0 = floor(b0)*2.0 + 1.0;
+    vec4 s1 = floor(b1)*2.0 + 1.0;
+    vec4 sh = -step(h, vec4(0.0));
+
+    vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
+    vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
+
+    vec3 p0 = vec3(a0.xy,h.x);
+    vec3 p1 = vec3(a0.zw,h.y);
+    vec3 p2 = vec3(a1.xy,h.z);
+    vec3 p3 = vec3(a1.zw,h.w);
+
+    //Normalise gradients
+    vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+    p0 *= norm.x;
+    p1 *= norm.y;
+    p2 *= norm.z;
+    p3 *= norm.w;
+
+    // Mix final noise value
+    vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+    m = m * m;
+    return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3) ) );
+}
+// END OF NOISE LIBRARY
+
+const float pi = 3.141592653589793238462643383;
+
+vec4 hsvaToRgba(vec4 c) {
+    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+    vec3 r = c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+    return vec4(r, c.a);
+}
+
+vec4 rgbaToHsva(vec4 c) {
+    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+
+    float d = q.x - min(q.w, q.y);
+    float e = 1.0e-10;
+    return vec4(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x, c.a);
+}
+
+vec4 animation(vec4 position) {
+    float v0 = (cos((5.0 * ((position.w + 1.0) * 0.05))) - position.x);
+    float v1 = (sin((5.0 * ((position.w + 1.0) * 0.05))) - position.y);
+    float v2 = (cos((2.5 * ((position.w + 1.0) * 0.05))) - v0);
+    float v3 = (sin((3.0 * ((position.w + 1.0) * 0.05))) - v1);
+    float v4 = ((v2 * cos((2.5 * ((position.w + 1.0) * 0.05)))) - (v3 * sin((2.5 * ((position.w + 1.0) * 0.05)))));
+    float v5 = ((v2 * sin((2.5 * ((position.w + 1.0) * 0.05)))) + (v3 * cos((2.5 * ((position.w + 1.0) * 0.05)))));
+    float v6 = length(vec2((v4 / 0.2), (v5 / 0.2)));
+    float v7 = ((((1.0 / sqrt(0.3)) * sqrt((2.0 * pi))) * exp(((-(v6 * v6)) / pow((2.0 * 0.3), 2.0)))) / (((1.0 / sqrt(0.3)) * sqrt((2.0 * pi))) * exp(((-(0.0 * 0.0)) / pow((2.0 * 0.3), 2.0)))));
+    vec4 v8 = vec4(((v7 * (v4 / 0.2)) / v6), ((v7 * (v5 / 0.2)) / v6), 0.0, 1.0);
+    float v9 = (cos((0.1 * ((position.w + 13.0) * 0.02))) - position.x);
+    float v10 = (sin((0.1 * ((position.w + 13.0) * 0.02))) - position.y);
+    float v11 = (cos((3.0 * ((position.w + 13.0) * 0.02))) - v9);
+    float v12 = (sin((9.0 * ((position.w + 13.0) * 0.02))) - v10);
+    float v13 = ((v11 * cos((0.5 * ((position.w + 13.0) * 0.02)))) - (v12 * sin((0.5 * ((position.w + 13.0) * 0.02)))));
+    float v14 = ((v11 * sin((0.5 * ((position.w + 13.0) * 0.02)))) + (v12 * cos((0.5 * ((position.w + 13.0) * 0.02)))));
+    float v15 = length(vec2((v13 / 0.1), (v14 / 0.1)));
+    float v16 = ((((1.0 / sqrt(0.3)) * sqrt((2.0 * pi))) * exp(((-(v15 * v15)) / pow((2.0 * 0.3), 2.0)))) / (((1.0 / sqrt(0.3)) * sqrt((2.0 * pi))) * exp(((-(0.0 * 0.0)) / pow((2.0 * 0.3), 2.0)))));
+    vec4 v17 = vec4(((v16 * (v13 / 0.1)) / v15), ((v16 * (v14 / 0.1)) / v15), 0.0, 1.0);
+    vec4 v18 = vec4(min(1.0, (v8.x + v17.x)), min(1.0, (v8.y + v17.y)), min(1.0, (v8.z + v17.z)), ((v8.w + v17.w) / 2.0));
+    float v19 = (cos((0.5 * ((position.w + 133.0) * 0.05))) - position.x);
+    float v20 = (sin((0.5 * ((position.w + 133.0) * 0.05))) - position.y);
+    float v21 = (cos((2.9 * ((position.w + 133.0) * 0.05))) - v19);
+    float v22 = (sin((2.0 * ((position.w + 133.0) * 0.05))) - v20);
+    float v23 = ((v21 * cos((1.0 * ((position.w + 133.0) * 0.05)))) - (v22 * sin((1.0 * ((position.w + 133.0) * 0.05)))));
+    float v24 = ((v21 * sin((1.0 * ((position.w + 133.0) * 0.05)))) + (v22 * cos((1.0 * ((position.w + 133.0) * 0.05)))));
+    float v25 = length(vec2((v23 / 0.4), (v24 / 0.4)));
+    float v26 = ((((1.0 / sqrt(0.3)) * sqrt((2.0 * pi))) * exp(((-(v25 * v25)) / pow((2.0 * 0.3), 2.0)))) / (((1.0 / sqrt(0.3)) * sqrt((2.0 * pi))) * exp(((-(0.0 * 0.0)) / pow((2.0 * 0.3), 2.0)))));
+    vec4 v27 = vec4(((v26 * (v23 / 0.4)) / v25), ((v26 * (v24 / 0.4)) / v25), 0.0, 1.0);
+    vec4 v28 = vec4(min(1.0, (v18.x + v27.x)), min(1.0, (v18.y + v27.y)), min(1.0, (v18.z + v27.z)), ((v18.w + v27.w) / 2.0));
+    float v29 = (cos((0.9 * ((position.w + 1337.0) * 0.04))) - position.x);
+    float v30 = (sin((0.9 * ((position.w + 1337.0) * 0.04))) - position.y);
+    float v31 = (cos((3.1 * ((position.w + 1337.0) * 0.04))) - v29);
+    float v32 = (sin((11.0 * ((position.w + 1337.0) * 0.04))) - v30);
+    float v33 = ((v31 * cos((5.0 * ((position.w + 1337.0) * 0.04)))) - (v32 * sin((5.0 * ((position.w + 1337.0) * 0.04)))));
+    float v34 = ((v31 * sin((5.0 * ((position.w + 1337.0) * 0.04)))) + (v32 * cos((5.0 * ((position.w + 1337.0) * 0.04)))));
+    float v35 = length(vec2((v33 / 0.9), (v34 / 0.9)));
+    float v36 = ((((1.0 / sqrt(0.3)) * sqrt((2.0 * pi))) * exp(((-(v35 * v35)) / pow((2.0 * 0.3), 2.0)))) / (((1.0 / sqrt(0.3)) * sqrt((2.0 * pi))) * exp(((-(0.0 * 0.0)) / pow((2.0 * 0.3), 2.0)))));
+    vec4 v37 = vec4(((v36 * (v33 / 0.9)) / v35), ((v36 * (v34 / 0.9)) / v35), 0.0, 1.0);
+    vec4 v38 = vec4(min(1.0, (v28.x + v37.x)), min(1.0, (v28.y + v37.y)), min(1.0, (v28.z + v37.z)), ((v28.w + v37.w) / 2.0));
+    float v39 = v38.x;
+    float v40 = v38.y;
+    float v41 = v38.z;
+    float v42 = v38.w;
+    float v43 = floor(mod(((position.x + (v39 * v42)) / 0.04), 2.0));
+    float v44 = floor(mod(((position.y + (v40 * v42)) / 0.04), 2.0));
+    float v45 = abs((v44 - v43));
+    vec4 v46 = vec4(v45, v45, v45, 1.0);
+    float v47 = ((position.x * cos((0.2 * (position.w * 0.2)))) - (position.y * sin((0.2 * (position.w * 0.2)))));
+    float v48 = ((position.x * sin((0.2 * (position.w * 0.2)))) + (position.y * cos((0.2 * (position.w * 0.2)))));
+    float v49 = (cos((1.0 * ((position.w * 0.2) + 1.0))) - v47);
+    float v50 = (sin((2.0 * ((position.w * 0.2) + 1.0))) - v48);
+    float v51 = ((v49 * cos((0.2 * ((position.w * 0.2) + 1.0)))) - (v50 * sin((0.2 * ((position.w * 0.2) + 1.0)))));
+    float v52 = ((v49 * sin((0.2 * ((position.w * 0.2) + 1.0)))) + (v50 * cos((0.2 * ((position.w * 0.2) + 1.0)))));
+    vec2 v53 = vec2((v51 / 0.5), (v52 / 0.6));
+    float v54 = length(v53);
+    float v55 = ((((1.0 / sqrt(0.3)) * sqrt((2.0 * pi))) * exp(((-(v54 * v54)) / pow((2.0 * 0.3), 2.0)))) / (((1.0 / sqrt(0.3)) * sqrt((2.0 * pi))) * exp(((-(0.0 * 0.0)) / pow((2.0 * 0.3), 2.0)))));
+    vec4 v56 = vec4(v55, v55, v55, 1.0);
+    vec4 v57 = vec4(0.7, 0.2, 0.2, 1.0);
+    vec4 v58 = vec4((v56.x * v57.x), (v56.y * v57.y), (v56.z * v57.z), ((v56.w + v57.w) / 2.0));
+    float v59 = ((position.x * cos((0.3 * (position.w * 0.3)))) - (position.y * sin((0.3 * (position.w * 0.3)))));
+    float v60 = ((position.x * sin((0.3 * (position.w * 0.3)))) + (position.y * cos((0.3 * (position.w * 0.3)))));
+    float v61 = (cos((1.0 * ((position.w * 0.3) + 133.0))) - v59);
+    float v62 = (sin((2.0 * ((position.w * 0.3) + 133.0))) - v60);
+    float v63 = ((v61 * cos((0.2 * ((position.w * 0.3) + 133.0)))) - (v62 * sin((0.2 * ((position.w * 0.3) + 133.0)))));
+    float v64 = ((v61 * sin((0.2 * ((position.w * 0.3) + 133.0)))) + (v62 * cos((0.2 * ((position.w * 0.3) + 133.0)))));
+    vec2 v65 = vec2((v63 / 0.5), (v64 / 0.6));
+    float v66 = length(v65);
+    float v67 = ((((1.0 / sqrt(0.3)) * sqrt((2.0 * pi))) * exp(((-(v66 * v66)) / pow((2.0 * 0.3), 2.0)))) / (((1.0 / sqrt(0.3)) * sqrt((2.0 * pi))) * exp(((-(0.0 * 0.0)) / pow((2.0 * 0.3), 2.0)))));
+    vec4 v68 = vec4(v67, v67, v67, 1.0);
+    vec4 v69 = vec4(0.2, 0.7, 0.2, 1.0);
+    vec4 v70 = vec4((v68.x * v69.x), (v68.y * v69.y), (v68.z * v69.z), ((v68.w + v69.w) / 2.0));
+    vec4 v71 = vec4(min(1.0, (v58.x + v70.x)), min(1.0, (v58.y + v70.y)), min(1.0, (v58.z + v70.z)), ((v58.w + v70.w) / 2.0));
+    float v72 = ((position.x * cos((0.4 * (position.w * 0.4)))) - (position.y * sin((0.4 * (position.w * 0.4)))));
+    float v73 = ((position.x * sin((0.4 * (position.w * 0.4)))) + (position.y * cos((0.4 * (position.w * 0.4)))));
+    float v74 = (cos((1.0 * ((position.w * 0.4) + 1337.0))) - v72);
+    float v75 = (sin((2.0 * ((position.w * 0.4) + 1337.0))) - v73);
+    float v76 = ((v74 * cos((0.2 * ((position.w * 0.4) + 1337.0)))) - (v75 * sin((0.2 * ((position.w * 0.4) + 1337.0)))));
+    float v77 = ((v74 * sin((0.2 * ((position.w * 0.4) + 1337.0)))) + (v75 * cos((0.2 * ((position.w * 0.4) + 1337.0)))));
+    vec2 v78 = vec2((v76 / 0.5), (v77 / 0.6));
+    float v79 = length(v78);
+    float v80 = ((((1.0 / sqrt(0.3)) * sqrt((2.0 * pi))) * exp(((-(v79 * v79)) / pow((2.0 * 0.3), 2.0)))) / (((1.0 / sqrt(0.3)) * sqrt((2.0 * pi))) * exp(((-(0.0 * 0.0)) / pow((2.0 * 0.3), 2.0)))));
+    vec4 v81 = vec4(v80, v80, v80, 1.0);
+    vec4 v82 = vec4(0.2, 0.2, 0.7, 1.0);
+    vec4 v83 = vec4((v81.x * v82.x), (v81.y * v82.y), (v81.z * v82.z), ((v81.w + v82.w) / 2.0));
+    vec4 v84 = vec4(min(1.0, (v71.x + v83.x)), min(1.0, (v71.y + v83.y)), min(1.0, (v71.z + v83.z)), ((v71.w + v83.w) / 2.0));
+    return vec4((v46.x * v84.x), (v46.y * v84.y), (v46.z * v84.z), ((v46.w + v84.w) / 2.0));
+}
+
+void main() {
+    vec2 streched_position = (gl_FragCoord.xy / u_resolution) * vec2(2.0, 2.0) - vec2(1.0, 1.0);
+    vec2 aspect = vec2(max(u_resolution.x / u_resolution.y, 1.0), max(u_resolution.y / u_resolution.x, 1.0));
+    vec2 position = streched_position * aspect;
+    gl_FragColor = animation(vec4(position, 0.0, u_time));
+}"> </canvas>
+
+
+</body>
+</html>

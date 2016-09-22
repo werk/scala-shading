@@ -74,8 +74,6 @@ $bindings    return $compiled;
 s"""
 precision mediump float;
 uniform vec2 u_resolution;
-uniform vec2 u_scale;
-uniform vec2 u_offset;
 uniform float u_time;
 $us
 """
@@ -201,7 +199,7 @@ void main() {
     vec2 streched_position = (gl_FragCoord.xy / u_resolution) * vec2(2.0, 2.0) - vec2(1.0, 1.0);
     vec2 aspect = vec2(max(u_resolution.x / u_resolution.y, 1.0), max(u_resolution.y / u_resolution.x, 1.0));
     vec2 position = streched_position * aspect;
-    gl_FragColor = animation(vec4(position / u_scale - u_offset, 0.0, u_time));
+    gl_FragColor = animation(vec4(position, 0.0, u_time));
 }
 """
 }
