@@ -106,17 +106,17 @@ object Language {
         def alpha : R = Term(Field("w", a.untyped))
     }
 
-    case class VariableType(t : String)
-    implicit def BoolType(v : B) : VariableType = VariableType("bool")
-    implicit def RealType(v : R) : VariableType = VariableType("float")
-    implicit def Vec2Type(v : Vec2) : VariableType = VariableType("vec2")
-    implicit def Vec3Type(v : Vec3) : VariableType = VariableType("vec3")
-    implicit def Vec4Type(v : Vec4) : VariableType = VariableType("vec4")
+    case class VariableType[T](t : String)
+    implicit def BoolType = VariableType[B]("bool")
+    implicit def RealType = VariableType[R]("float")
+    implicit def Vec2Type = VariableType[Vec2]("vec2")
+    implicit def Vec3Type = VariableType[Vec3]("vec3")
+    implicit def Vec4Type = VariableType[Vec4]("vec4")
 
-    implicit class Bindable[A](a : Term[A]) (implicit variableType : Term[A] => VariableType){
+    implicit class Bindable[A](a : Term[A]) (implicit variableType : VariableType[Term[A]]){
         def bind[B](f : Term[A] => Term[B]) : Term[B] = {
             def body(a: Untyped): Untyped = f(Term(a)).untyped
-            Term(Bind(variableType(a).t, a.untyped, body))
+            Term(Bind(variableType.t, a.untyped, body))
         }
     }
 
