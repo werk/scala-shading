@@ -1,5 +1,6 @@
 package dk.mzw.accelemation
 
+import dk.mzw.accelemation.CompileFunction.CompiledFunction
 import dk.mzw.accelemation.Internal._
 import dk.mzw.accelemation.Language._
 
@@ -9,65 +10,13 @@ object ToGlsl {
         Term(Call(name, List(Call("vec4",List(x.untyped, y.untyped, Constant(0), t.untyped)))))
     }
     
-    def function(name : String, f : Animation) : (String, Set[UniformU]) = {
-        val compile = new Compiler()
-
-        val t: Time = Term(BuiltIn("position.w"))
-        val x: R = Term(BuiltIn("position.x"))
-        val y: R = Term(BuiltIn("position.y"))
-        val Term(animation) = f(t)(x)(y)
-
-        val compiled = compile(animation)
-        val vs = compile.declarations
-        val bindings        =  vs.reverse.mkString
-        val glsl =
-s"""
-vec4 $name(vec4 position) {
-$bindings    return $compiled;
-}
-"""
-        (glsl, compile.uniforms)
-    }
-
     def withUniforms(f : Animation, prelude : String = "") : (String, Seq[Uniform[_]]) = {
-        val (glsl, uniforms) = function("animation", f)
+        val CompiledFunction(glsl, uniforms) = CompileFunction.function3(f, "animation", "t", "x", "y")
         val all = boilerplateUniforms(uniforms) + boilerplateBefore + prelude + glsl + boilerplateAfter
         (all, uniforms.toSeq.map(_.ref))
     }
 
     def apply(f : Animation, prelude : String = "") : String = withUniforms(f, prelude)._1
-
-    private class Compiler {
-        var declarations = List[String]()
-        var uniforms = Set[UniformU]()
-
-        def apply(u : Untyped) : String = u match {
-            case Constant(n) =>
-                // We need the decimal point to denote a float.
-                // Scala JS will not generate this for integers.
-                // This is not a problem in JVM
-                val s = n.toString
-                if(s.contains('.')) s
-                else s + ".0";
-            case Bind(variableType, argument, body) =>
-                val a = apply(argument)
-                val i = declarations.length
-                val declaration = s"    $variableType v$i = $a;\n"
-                declarations ::= declaration
-                apply(body(Variable(i)))
-            case Variable(n) => s"v$n"
-            case Field(label, target) => s"${apply(target)}.$label"
-            case If(condition, whenTrue, whenFalse) => s"(${apply(condition)} ? ${apply(whenTrue)} : ${apply(whenFalse)})"
-            case BuiltIn(name) => name
-            case Prefix(operator, right) => s"($operator${apply(right)})"
-            case Infix(operator, left, right) => s"(${apply(left)} $operator ${apply(right)})"
-            case Call(name, arguments) => s"$name(${arguments.map(apply).mkString(", ")})"
-            case uniform : UniformU =>
-                uniforms += uniform
-                s"${uniform.ref.name}"
-        }
-
-    }
 
     private def boilerplateUniforms(uniforms : Set[UniformU]) = {
         val us = uniforms.map(u => s"uniform ${u.variableType} ${u.ref.name};").mkString("\n")
@@ -201,7 +150,7 @@ void main() {
     vec2 streched_position = (gl_FragCoord.xy / u_resolution) * vec2(2.0, 2.0) - vec2(1.0, 1.0);
     vec2 aspect = vec2(max(u_resolution.x / u_resolution.y, 1.0), max(u_resolution.y / u_resolution.x, 1.0));
     vec2 position = streched_position * aspect;
-    gl_FragColor = animation(vec4(position, 0.0, u_time));
+    gl_FragColor = animation(u_time, position.x, position.y);
 }
 """
 }
