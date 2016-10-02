@@ -6,9 +6,25 @@ import dk.mzw.accelemation.samples.HidingDevils
 
 object CompileFunction {
 
+    case class CompiledFunction(source : String, uniforms : Set[UniformU], dependencies : Set[BindF3])
+    case class SourceAndUniforms(source : String, uniforms : Set[UniformU])
+
+    def compileAnimationWithDep(f : Animation) : SourceAndUniforms = {
+        val CompiledFunction(source, uniforms, dependencies) = function3(f, "animation")
+
+        SourceAndUniforms(source, uniforms)
+    }
+
+    def compileBound(bound : BindF3) : SourceAndUniforms = {
+        val List(a1, a2, a3) = List("a1", "a2", "a3")
+        val body = bound.f (BuiltIn(a1)) (BuiltIn(a2)) (BuiltIn(a3))
+        val CompiledFunction(source, uniforms, dependencies) = finish(body, bound.t4, bound.name, List(bound.t1 -> a1, bound.t2 -> a2, bound.t3 -> a3))
+        SourceAndUniforms(source, uniforms)
+    }
+
+
     private def v[A](name : String) : Term[A] = Term(BuiltIn(name))
 
-    case class CompiledFunction(source : String, uniforms : Set[UniformU])
 
     def function3[A1, A2, A3, A4](f : Term[A1] => Term[A2] => Term[A3] => Term[A4], name : String, a1 : String = "a1", a2 : String = "a2", a3 : String = "a3")(implicit
         typeA1 : VariableType[Term[A1]],
@@ -43,18 +59,19 @@ object CompileFunction {
 
     private def finish[A](r : Term[A], name : String, arguments : List[(String, String)])
          (implicit typeR : VariableType[Term[A]])
-        : CompiledFunction =
-    {
+        : CompiledFunction = finish(r.untyped, typeR.t, name, arguments)
+
+    private def finish(body : Untyped, returnType : String, name : String, arguments : List[(String, String)]) : CompiledFunction = {
         val compile = new Compiler()
-        val compiled = compile(r.untyped)
+        val compiled = compile(body)
         val vs = compile.declarations
         val bindings = vs.reverse.mkString
         val source = s"""
-${typeR.t} $name(${arguments.map{case (t, a) => s"$t $a"}.mkString(", ")}) {
+$returnType $name(${arguments.map{case (t, a) => s"$t $a"}.mkString(", ")}) {
 $bindings    return $compiled;
 }
 """
-        CompiledFunction(source, compile.uniforms)
+        CompiledFunction(source, compile.uniforms, compile.functions)
 
     }
 
@@ -79,6 +96,7 @@ $bindings    return $compiled;
     private class Compiler {
         var declarations = List[String]()
         var uniforms = Set[UniformU]()
+        var functions = Set[BindF3]()
 
         def apply(u : Untyped) : String = u match {
             case Constant(n) =>
@@ -104,6 +122,9 @@ $bindings    return $compiled;
             case uniform : UniformU =>
                 uniforms += uniform
                 s"${uniform.ref.name}"
+            case CallF3(bound : BindF3, a1, a2, a3) =>
+                functions += bound
+                s"${bound.name}(${List(a1, a2, a3).map(apply).mkString(", ")})"
         }
 
     }

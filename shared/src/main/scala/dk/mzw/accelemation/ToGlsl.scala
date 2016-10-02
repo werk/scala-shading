@@ -11,7 +11,7 @@ object ToGlsl {
     }
     
     def withUniforms(f : Animation, prelude : String = "") : (String, Seq[Uniform[_]]) = {
-        val CompiledFunction(glsl, uniforms) = CompileFunction.function3(f, "animation", "t", "x", "y")
+        val CompiledFunction(glsl, uniforms, dependencies) = CompileFunction.function3(f, "animation", "t", "x", "y")
         val all = boilerplateUniforms(uniforms) + boilerplateBefore + prelude + glsl + boilerplateAfter
         (all, uniforms.toSeq.map(_.ref))
     }
