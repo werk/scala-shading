@@ -1,6 +1,6 @@
 package dk.mzw.accelemation
 
-import dk.mzw.accelemation.CompileFunction.CompiledFunction
+import dk.mzw.accelemation.CompileFunction.SourceAndUniforms
 import dk.mzw.accelemation.Internal._
 import dk.mzw.accelemation.Language._
 
@@ -11,7 +11,7 @@ object ToGlsl {
     }
     
     def withUniforms(f : Animation, prelude : String = "") : (String, Seq[Uniform[_]]) = {
-        val CompiledFunction(glsl, uniforms, dependencies) = CompileFunction.function3(f, "animation", "t", "x", "y")
+        val SourceAndUniforms(glsl, uniforms) = CompileFunction.compileAnimationWithDependencies(f, "animation", "t", "x", "y")
         val all = boilerplateUniforms(uniforms) + boilerplateBefore + prelude + glsl + boilerplateAfter
         (all, uniforms.toSeq.map(_.ref))
     }

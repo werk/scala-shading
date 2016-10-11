@@ -126,4 +126,31 @@ object Language {
     implicit def liftUniformVec3(uniform : Uniform[(Double, Double, Double)]) : Vec3 = Term(UniformU(uniform, "vec3"))
     implicit def liftUniformVec4(uniform : Uniform[(Double, Double, Double, Double)]) : Vec4 = Term(UniformU(uniform, "vec4"))
 
+
+    // Bind functions experiment
+
+    def bind2[A1, A2, A3](f : Term[A1] => Term[A2] => Term[A3], nameHint : String)(implicit
+        typeA1 : VariableType[Term[A1]],
+        typeA2 : VariableType[Term[A2]],
+        typeA3 : VariableType[Term[A3]]
+    ) : Term[A1] => Term[A2] => Term[A3] = {a1 : Term[A1] => a2 : Term[A2] => Term[A3](FunctionDefinitionCall(
+        definition = FunctionDefinition(
+            signature = Signature(nameHint, typeA3.t, Seq(typeA1.t, typeA2.t)),
+            body = {case Seq(a, b) => f(Term[A1](a))(Term[A2](b)).untyped}
+        ),
+        call = Seq(a1.untyped, a2.untyped)
+    ))}
+
+    def bind3[A1, A2, A3, A4](f : Term[A1] => Term[A2] => Term[A3] => Term[A4], nameHint : String)(implicit
+        typeA1 : VariableType[Term[A1]],
+        typeA2 : VariableType[Term[A2]],
+        typeA3 : VariableType[Term[A3]],
+        typeA4 : VariableType[Term[A4]]
+    ) : Term[A1] => Term[A2] => Term[A3] => Term[A4] = {a1 : Term[A1] => a2 : Term[A2] => a3 : Term[A3] => Term[A4](FunctionDefinitionCall(
+        definition = FunctionDefinition(
+            signature = Signature(nameHint, typeA4.t, Seq(typeA1.t, typeA2.t, typeA3.t)),
+            body = {case Seq(a, b, c) => f(Term[A1](a))(Term[A2](b))(Term[A3](c)).untyped}
+        ),
+        call = Seq(a1.untyped, a2.untyped, a3.untyped)
+    ))}
 }
