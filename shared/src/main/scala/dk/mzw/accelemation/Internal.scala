@@ -16,12 +16,10 @@ object Internal {
     case class LiftVec3(name : String, infix : Boolean, arguments : List[Untyped]) extends Untyped
     case class LiftVec4(name : String, infix : Boolean, arguments : List[Untyped]) extends Untyped*/
 
-    //case class BindF3(name : String, f : Untyped => Untyped => Untyped => Untyped, t1 : String, t2 : String, t3 : String, t4 : String) extends Untyped
-    //case class CallF3(boundF3 : Untyped, a1 : Untyped, a2 : Untyped, a3 : Untyped) extends Untyped
-
-    case class FunctionDefinitionCall(definition : FunctionDefinition, call : Seq[Untyped]) extends Untyped
+    case class FunctionDefinitionCall(definition : FunctionDefinition, arguments : Seq[Untyped]) extends Untyped
 
     case class FunctionDefinition(
+        identity : AnyRef,
         signature : Signature,
         body : Seq[Untyped] => Untyped
     )

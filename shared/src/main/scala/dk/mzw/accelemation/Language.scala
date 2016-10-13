@@ -135,10 +135,11 @@ object Language {
         typeA3 : VariableType[Term[A3]]
     ) : Term[A1] => Term[A2] => Term[A3] = {a1 : Term[A1] => a2 : Term[A2] => Term[A3](FunctionDefinitionCall(
         definition = FunctionDefinition(
+            identity = f,
             signature = Signature(nameHint, typeA3.t, Seq(typeA1.t, typeA2.t)),
             body = {case Seq(a, b) => f(Term[A1](a))(Term[A2](b)).untyped}
         ),
-        call = Seq(a1.untyped, a2.untyped)
+        arguments = Seq(a1.untyped, a2.untyped)
     ))}
 
     def bind3[A1, A2, A3, A4](f : Term[A1] => Term[A2] => Term[A3] => Term[A4], nameHint : String)(implicit
@@ -148,9 +149,10 @@ object Language {
         typeA4 : VariableType[Term[A4]]
     ) : Term[A1] => Term[A2] => Term[A3] => Term[A4] = {a1 : Term[A1] => a2 : Term[A2] => a3 : Term[A3] => Term[A4](FunctionDefinitionCall(
         definition = FunctionDefinition(
+            identity = f,
             signature = Signature(nameHint, typeA4.t, Seq(typeA1.t, typeA2.t, typeA3.t)),
             body = {case Seq(a, b, c) => f(Term[A1](a))(Term[A2](b))(Term[A3](c)).untyped}
         ),
-        call = Seq(a1.untyped, a2.untyped, a3.untyped)
+        arguments = Seq(a1.untyped, a2.untyped, a3.untyped)
     ))}
 }
