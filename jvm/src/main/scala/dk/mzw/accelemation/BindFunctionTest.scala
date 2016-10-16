@@ -9,8 +9,12 @@ object BindFunctionTest {
     def main(args: Array[String]) {
         def plus(a : R) (b : R) = a + b
         val plus2 = plus _
-        val plusBuild = bind2(plus2, "plus")
-        val plusBuild2 = bind2(plus2, "plus")
+        val plus3 = {a : R => b : R => a + b}
+
+        val plusBuild = bind2(plus, "plus")
+        val plusBuild2 = bind2(plus2, "plus2")
+        val plusBuild3 = bind2(plus3, "plus3")
+
 
         val p1 = plusBuild (1) (1).untyped.asInstanceOf[FunctionDefinitionCall].definition
         val p2 = plusBuild2 (1) (1).untyped.asInstanceOf[FunctionDefinitionCall].definition
@@ -33,7 +37,7 @@ object BindFunctionTest {
             time_lens(t / 2)(1 + x)(y - 1) bind {tl =>
                 hiding_devils(t)(x)(y) bind { hd =>
                     spiral(t)(x)(y) bind { s =>
-                        vec4(plusBuild(plusBuild(tl.magnitude)(42))(12), plusBuild2(hd.magnitude)(1337), s.magnitude, 0)
+                        vec4(plusBuild(plusBuild2(tl.magnitude)(42))(12), plusBuild3(hd.magnitude)(1337), s.magnitude, 0)
                     }
                 }
             }
