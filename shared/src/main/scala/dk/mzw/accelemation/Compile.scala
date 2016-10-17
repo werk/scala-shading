@@ -113,8 +113,10 @@ object Compile {
     }
 
     def unparenthesize(s : String) : String = {
-        if (s.startsWith("(") && s.endsWith(")")) unparenthesize(s.drop(1).dropRight(1))
-        else s
+        // TODO re-think this eg unparenthesize("(a) + (b)")
+        //if (s.startsWith("(") && s.endsWith(")")) unparenthesize(s.drop(1).dropRight(1))
+        //else s
+        s
     }
 }
 
@@ -133,8 +135,7 @@ class GlslFunctionParser(glsl : String) {
     def argumentTypes = arguments.map(_._1)
 
     def reassemble(rename : String) =
-s"""
-$returnType $rename(${arguments.map{case (t, v) => s"$t $v"}.mkString(", ")}) {
+s"""$returnType $rename(${arguments.map{case (t, v) => s"$t $v"}.mkString(", ")}) {
 ${bodyLines.map("    " + _).mkString("\n")}
 }
 """

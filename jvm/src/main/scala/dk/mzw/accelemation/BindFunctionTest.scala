@@ -17,8 +17,8 @@ object BindFunctionTest {
         """)
 
         val plus4 = bindNative2[Double, Double, Double]("""
-            float plus(float a1, float a2) {
-                return a1 + a2;
+            float plus(float a1, float a3) {
+                return a1 + a3;
             }
         """)
 
