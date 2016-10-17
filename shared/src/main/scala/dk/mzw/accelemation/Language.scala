@@ -127,14 +127,26 @@ object Language {
     implicit def liftUniformVec4(uniform : Uniform[(Double, Double, Double, Double)]) : Vec4 = Term(UniformU(uniform, "vec4"))
 
 
-    // Bind functions experiment
+    // Bind native functions
+
+    def bind1[A1, A2](f : Term[A1] => Term[A2], nameHint : String)(implicit
+        typeA1 : VariableType[Term[A1]],
+        typeA2 : VariableType[Term[A2]]
+    ) : Term[A1] => Term[A2] = {a1 : Term[A1] => Term[A2](FunctionDefinitionCall(
+        definition = NativeFunctionDefinition(
+            identity = f,
+            signature = Signature(nameHint, typeA2.t, Seq(typeA1.t)),
+            body = {case Seq(a) => f(Term[A1](a)).untyped}
+        ),
+        arguments = Seq(a1.untyped)
+    ))}
 
     def bind2[A1, A2, A3](f : Term[A1] => Term[A2] => Term[A3], nameHint : String)(implicit
         typeA1 : VariableType[Term[A1]],
         typeA2 : VariableType[Term[A2]],
         typeA3 : VariableType[Term[A3]]
     ) : Term[A1] => Term[A2] => Term[A3] = {a1 : Term[A1] => a2 : Term[A2] => Term[A3](FunctionDefinitionCall(
-        definition = FunctionDefinition(
+        definition = NativeFunctionDefinition(
             identity = f,
             signature = Signature(nameHint, typeA3.t, Seq(typeA1.t, typeA2.t)),
             body = {case Seq(a, b) => f(Term[A1](a))(Term[A2](b)).untyped}
@@ -148,11 +160,39 @@ object Language {
         typeA3 : VariableType[Term[A3]],
         typeA4 : VariableType[Term[A4]]
     ) : Term[A1] => Term[A2] => Term[A3] => Term[A4] = {a1 : Term[A1] => a2 : Term[A2] => a3 : Term[A3] => Term[A4](FunctionDefinitionCall(
-        definition = FunctionDefinition(
+        definition = NativeFunctionDefinition(
             identity = f,
             signature = Signature(nameHint, typeA4.t, Seq(typeA1.t, typeA2.t, typeA3.t)),
             body = {case Seq(a, b, c) => f(Term[A1](a))(Term[A2](b))(Term[A3](c)).untyped}
         ),
         arguments = Seq(a1.untyped, a2.untyped, a3.untyped)
+    ))}
+
+
+    // Bind foreign functions
+
+    def bindNative1[A1, A2](source : String)(implicit
+        typeA1 : VariableType[Term[A1]],
+        typeA2 : VariableType[Term[A2]]
+    ) : Term[A1] => Term[A2] = {a1 : Term[A1] => Term[A2](FunctionDefinitionCall(
+        definition = ForeignFunctionDefinition(
+            source = source,
+            returnType = typeA2.t,
+            argumentTypes = Seq(typeA1.t)
+        ),
+        arguments = Seq(a1.untyped)
+    ))}
+
+    def bindNative2[A1, A2, A3](source : String)(implicit
+        typeA1 : VariableType[Term[A1]],
+        typeA2 : VariableType[Term[A2]],
+        typeA3 : VariableType[Term[A3]]
+    ) : Term[A1] => Term[A2] => Term[A3] = {a1 : Term[A1] => a2 : Term[A2] => Term[A3](FunctionDefinitionCall(
+        definition = ForeignFunctionDefinition(
+            source = source,
+            returnType = typeA3.t,
+            argumentTypes = Seq(typeA1.t, typeA2.t)
+        ),
+        arguments = Seq(a1.untyped, a2.untyped)
     ))}
 }

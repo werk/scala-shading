@@ -12,22 +12,30 @@ object Internal {
     case class Infix(operator : String,  left: Untyped, right : Untyped) extends Untyped
     case class Call(name : String, arguments : List[Untyped]) extends Untyped
     case class UniformU(ref : Uniform[_], variableType : String) extends Untyped
-    /*case class LiftVec2(name : String, infix : Boolean, arguments : List[Untyped]) extends Untyped
-    case class LiftVec3(name : String, infix : Boolean, arguments : List[Untyped]) extends Untyped
-    case class LiftVec4(name : String, infix : Boolean, arguments : List[Untyped]) extends Untyped*/
-
     case class FunctionDefinitionCall(definition : FunctionDefinition, arguments : Seq[Untyped]) extends Untyped
-
-    case class FunctionDefinition(
-        identity : AnyRef,
-        signature : Signature,
-        body : Seq[Untyped] => Untyped
-    )
-    case class Signature(name : String, returnType : String, argumentTypes : Seq[String])
-
 
     class Uniform[V](
         val name: String,
         var value : V
     )
+
+    case class Signature(
+        name : String,
+        returnType : String,
+        argumentTypes : Seq[String]
+    )
+
+    sealed trait FunctionDefinition
+
+    case class NativeFunctionDefinition(
+        identity : AnyRef,
+        signature : Signature,
+        body : Seq[Untyped] => Untyped
+    ) extends FunctionDefinition
+
+    case class ForeignFunctionDefinition(
+        source : String,
+        returnType : String,
+        argumentTypes : Seq[String]
+    ) extends FunctionDefinition
 }
