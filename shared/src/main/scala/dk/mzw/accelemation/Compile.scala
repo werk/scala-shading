@@ -1,5 +1,6 @@
 package dk.mzw.accelemation
 
+import dk.mzw.accelemation.FunctionParser.{DecomposedConstant, DecomposedFunction}
 import dk.mzw.accelemation.Internal._
 import dk.mzw.accelemation.Language._
 
@@ -53,14 +54,35 @@ object Compile {
         }
 
         def compileForeignFunction(definition : ForeignFunctionDefinition) : CompiledFunction = {
-            val parser = new GlslFunctionParser(definition.source)
-            val base = NamelessEqualityBase(parser.returnType, parser.argumentTypes, parser.bodyLines)
-            canonical.get(base) match {
-                case Some(cached) => cached
-                case None =>
-                    val name = unusedName(parser.name)
-                    CompiledFunction(name, parser.reassemble(name), Set(), Set())
+            val definitions = FunctionParser.parse(definition.source)
+
+            var previous : Option[CompiledFunction] = None
+            definitions.map{
+                case f : DecomposedFunction =>
+                    val base = NamelessEqualityBase(f.returnType, f.typedArguments.map(_._1), f.body)
+                    canonical.get(base) match {
+                        case Some(cached) => cached
+                        case None =>
+                            val name = unusedName(f.name)
+                            val source = FunctionParser.reassemble(f.copy(name = name))
+                            val result = CompiledFunction(name, source, Set(), previous.toSet)
+                            previous = Some(result)
+                            result
+                    }
+                case c : DecomposedConstant =>
+                    val base = NamelessEqualityBase(c.returnType, Seq(), List(c.value))
+                    canonical.get(base) match {
+                        case Some(cached) => cached
+                        case None =>
+                            val name = unusedName(c.name)
+                            val source = FunctionParser.reassemble(c.copy(name = name))
+                            val result = CompiledFunction(name, source, Set(), previous.toSet)
+                            previous = Some(result)
+                            result
+                    }
+
             }
+            previous.get
         }
 
         def formatFunction(signature : Signature, argumentsNames : List[String], body : List[String]) = {
@@ -119,37 +141,3 @@ object Compile {
         s
     }
 }
-
-class GlslFunctionParser(glsl : String) {
-    private val in = new MutableString(glsl.trim)
-    val returnType = in.takeWhile(_.isLetterOrDigit).mkString
-    in.dropWhile(_.isWhitespace)
-    val name = in.takeWhile(_.isLetterOrDigit).mkString
-    in.dropWhile(c => c.isWhitespace || c == '(')
-    private val parameters = in.takeWhile(_ != ')').mkString
-    val arguments = parameters.trim.split("""\s*,\s*""").map(_.split("""\s+""") match {case Array(t, v) => (t, v)}).toList
-    in.dropWhile(c => c == ')' || c.isWhitespace || c == '{')
-    private val body = in.takeWhile(_ != '}').mkString
-    var bodyLines = body.trim.split("""\s*[\n\r]+\s*""").toList
-
-    def argumentTypes = arguments.map(_._1)
-
-    def reassemble(rename : String) =
-s"""$returnType $rename(${arguments.map{case (t, v) => s"$t $v"}.mkString(", ")}) {
-${bodyLines.map("    " + _).mkString("\n")}
-}
-"""
-}
-
-class MutableString(var s : String) {
-    def takeWhile(p : Char => Boolean) : String = {
-        val part = s.takeWhile(p)
-        s = s.drop(part.length)
-        part
-    }
-
-    def dropWhile(p : Char => Boolean) : Unit = takeWhile(p)
-
-    override def toString() = s
-}
-

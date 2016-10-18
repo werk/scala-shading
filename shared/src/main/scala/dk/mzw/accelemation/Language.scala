@@ -26,9 +26,6 @@ object Language {
     def if_[A](condition : B, whenTrue : Term[A], whenFalse : Term[A]) : Term[A] = Term(If(condition.untyped, whenTrue.untyped, whenFalse.untyped))
 
     val rgba : (R, R, R, R) => Color = vec4
-    def hsva (h : R, s : R, v : R, a : R) : Color = Term(Call("hsvaToRgba",List(Call("vec4",List(h.untyped, s.untyped, v.untyped, a.untyped)))))
-    def rgbaToHsva (rgbaColor : Color) : Color = Term(Call("rgbaToHsva",List(rgbaColor.untyped)))
-    def simplexNoise (x : R, y : R, z : R) : R = Term(Call("snoise",List(Call("vec3",List(x.untyped, y.untyped, z.untyped)))))
 
     implicit def fromDouble(r : Double) : R = Term(Constant(r))
     implicit def fromInteger(r : Int) : R = fromDouble(r.toDouble)
@@ -195,4 +192,36 @@ object Language {
         ),
         arguments = Seq(a1.untyped, a2.untyped)
     ))}
+
+    def bindNative4[A1, A2, A3, A4, A5](source : String)(implicit
+        typeA1 : VariableType[Term[A1]],
+        typeA2 : VariableType[Term[A2]],
+        typeA3 : VariableType[Term[A3]],
+        typeA4 : VariableType[Term[A4]],
+        typeA5 : VariableType[Term[A5]]
+    ) : Term[A1] => Term[A2] => Term[A3] => Term[A4] => Term[A5] = {a1 : Term[A1] => a2 : Term[A2] => a3 : Term[A3] => a4 : Term[A4] => Term[A5](FunctionDefinitionCall(
+        definition = ForeignFunctionDefinition(
+            source = source,
+            returnType = typeA5.t,
+            argumentTypes = Seq(typeA1.t, typeA2.t, typeA3.t, typeA4.t)
+        ),
+        arguments = Seq(a1.untyped, a2.untyped, a3.untyped, a4.untyped)
+    ))}
+
+    // Move to library
+    //def hsva (h : R, s : R, v : R, a : R) : Color = Term(Call("hsvaToRgba",List(Call("vec4",List(h.untyped, s.untyped, v.untyped, a.untyped)))))
+    val hsva = Function.uncurried(bindNative4[Double, Double, Double, Double, (Double, Double, Double, Double)]("""
+        const float pi = 3.141592653589793238462643383;
+
+        vec4 hsvaToRgba(float a1, float a2, float a3, float a4) {
+            vec4 c = vec4(a1, a2, a3, a4);
+            vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+            vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+            vec3 r = c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+            return vec4(r, c.a);
+        }
+    """))
+    def rgbaToHsva (rgbaColor : Color) : Color = Term(Call("rgbaToHsva",List(rgbaColor.untyped)))
+    def simplexNoise (x : R, y : R, z : R) : R = Term(Call("snoise",List(Call("vec3",List(x.untyped, y.untyped, z.untyped)))))
+
 }

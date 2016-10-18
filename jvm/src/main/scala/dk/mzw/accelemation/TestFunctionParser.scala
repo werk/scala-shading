@@ -1,53 +1,23 @@
 package dk.mzw.accelemation
 
-import dk.mzw.accelemation.Compile.SourceAndUniforms
-import dk.mzw.accelemation.Internal._
-import dk.mzw.accelemation.Language._
+object TestFunctionParser {
 
-object ToGlsl {
+    def main(args: Array[String]) {
+        for(f <- FunctionParser.parse(functinos)) {
+            println(FunctionParser.reassemble(f))
+        }
 
-    def provided(name : String) : Animation = t => x => y => {
-        Term(Call(name, List(Call("vec4",List(x.untyped, y.untyped, Constant(0), t.untyped)))))
-    }
-    
-    def withUniforms(f : Animation, prelude : String = "") : (String, Seq[Uniform[_]]) = {
-        val SourceAndUniforms(glsl, uniforms) = Compile(f, "animation", "t", "x", "y")
-        val all = boilerplateUniforms(uniforms) + /*boilerplateBefore + */ prelude + glsl + boilerplateAfter
-        (all, uniforms.toSeq.map(_.ref))
-    }
-
-    def apply(f : Animation, prelude : String = "") : String = withUniforms(f, prelude)._1
-
-    private def boilerplateUniforms(uniforms : Set[UniformU]) = {
-        val us = uniforms.map(u => s"uniform ${u.variableType} ${u.ref.name};").mkString("\n")
-s"""
-precision mediump float;
-uniform vec2 u_resolution;
-uniform vec2 u_scale;
-uniform vec2 u_offset;
-uniform float u_time;
-$us
-"""
-    }
-
-    private val boilerplateBefore = """
-//
-// Description : Array and textureless GLSL 2D/3D/4D simplex
-//               noise functions.
-//      Author : Ian McEwan, Ashima Arts.
-//  Maintainer : ijm
-//     Lastmod : 20110822 (ijm)
-//     License : Copyright (C) 2011 Ashima Arts. All rights reserved.
-//               Distributed under the MIT License. See LICENSE file.
-//               https://github.com/ashima/webgl-noise
-//
-vec3 mod289(vec3 x) {
-    return x - floor(x * (1.0 / 289.0)) * 289.0;
-}
+        def functinos = """
 
 vec4 mod289Vec4(vec4 x) {
     return x - floor(x * (1.0 / 289.0)) * 289.0;
 }
+
+vec3 mod289(vec3 x) {
+    return x - floor(x * (1.0 / 289.0)) * 289.0;
+}
+
+
 
 vec4 permute(vec4 x) {
     return mod289Vec4(((x*34.0)+1.0)*x);
@@ -143,16 +113,8 @@ vec4 rgbaToHsva(vec4 c) {
     float e = 1.0e-10;
     return vec4(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x, c.a);
 }
-"""
+        """
+    }
 
-    private val boilerplateAfter = """
-void main() {
-    vec2 streched_position = (gl_FragCoord.xy / u_resolution) * vec2(2.0, 2.0) - vec2(1.0, 1.0);
-    vec2 aspect = vec2(max(u_resolution.x / u_resolution.y, 1.0), max(u_resolution.y / u_resolution.x, 1.0));
-    vec2 position = streched_position * aspect;
-    gl_FragColor = animation(u_time, position.x, position.y);
 }
-"""
-}
-
 
