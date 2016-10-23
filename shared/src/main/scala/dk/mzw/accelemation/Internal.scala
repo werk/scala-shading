@@ -12,7 +12,7 @@ object Internal {
     case class Infix(operator : String,  left: Untyped, right : Untyped) extends Untyped
     case class Call(name : String, arguments : List[Untyped]) extends Untyped
     case class UniformU(ref : Uniform[_], variableType : String) extends Untyped
-    case class FunctionDefinitionCall(definition : FunctionDefinition, arguments : Seq[Untyped]) extends Untyped
+    case class FunctionDefinitionCall(definition : FunctionDefinition, arguments : Option[Seq[Untyped]]) extends Untyped
 
     class Uniform[V](
         val name: String,

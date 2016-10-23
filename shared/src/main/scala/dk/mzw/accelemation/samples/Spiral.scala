@@ -4,6 +4,7 @@ import dk.mzw.accelemation.Arithmetic._
 import dk.mzw.accelemation.Combinators._
 import dk.mzw.accelemation.Language.Math._
 import dk.mzw.accelemation.Language._
+import dk.mzw.accelemation.Prelude._
 
 object Spiral {
 

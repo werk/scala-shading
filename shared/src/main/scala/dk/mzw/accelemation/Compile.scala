@@ -57,30 +57,33 @@ object Compile {
             val definitions = FunctionParser.parse(definition.source)
 
             var previous : Option[CompiledFunction] = None
-            definitions.map{
-                case f : DecomposedFunction =>
-                    val base = NamelessEqualityBase(f.returnType, f.typedArguments.map(_._1), f.body)
-                    canonical.get(base) match {
-                        case Some(cached) => cached
-                        case None =>
-                            val name = unusedName(f.name)
-                            val source = FunctionParser.reassemble(f.copy(name = name))
-                            val result = CompiledFunction(name, source, Set(), previous.toSet)
-                            previous = Some(result)
-                            result
-                    }
-                case c : DecomposedConstant =>
-                    val base = NamelessEqualityBase(c.returnType, Seq(), List(c.value))
-                    canonical.get(base) match {
-                        case Some(cached) => cached
-                        case None =>
-                            val name = unusedName(c.name)
-                            val source = FunctionParser.reassemble(c.copy(name = name))
-                            val result = CompiledFunction(name, source, Set(), previous.toSet)
-                            previous = Some(result)
-                            result
-                    }
-
+            definitions.map{d =>
+                val compiledFunction = d match {
+                    case f: DecomposedFunction =>
+                        val base = NamelessEqualityBase(f.returnType, f.typedArguments.map(_._1), f.body)
+                        canonical.get(base) match {
+                            case Some(cached) => cached
+                            case None =>
+                                val name = unusedName(f.name)
+                                val source = FunctionParser.reassemble(f.copy(name = name))
+                                val c = CompiledFunction(name, source, Set(), previous.toSet)
+                                canonical += base -> c
+                                c
+                        }
+                    case c: DecomposedConstant =>
+                        val base = NamelessEqualityBase(c.returnType, Seq(), List(c.value))
+                        canonical.get(base) match {
+                            case Some(cached) => cached
+                            case None =>
+                                val name = unusedName(c.name)
+                                val source = FunctionParser.reassemble(c.copy(name = name))
+                                val f = CompiledFunction(name, source, Set(), previous.toSet)
+                                canonical += base -> f
+                                f
+                        }
+                }
+                previous = Some(compiledFunction)
+                compiledFunction
             }
             previous.get
         }
@@ -119,10 +122,14 @@ object Compile {
                 case uniform : UniformU =>
                     uniforms += uniform
                     s"${uniform.ref.name}"
-                case FunctionDefinitionCall(definition, call) =>
+                case FunctionDefinitionCall(definition, arguments) =>
                     val compiledFunction = compileFunction(definition)
                     functions += compiledFunction
-                    s"${compiledFunction.name}(${call.map((apply _).andThen(unparenthesize)).mkString(", ")})"
+                    val call = arguments.map{as => "(" + as.map { a =>
+                        unparenthesize(apply(a))
+                    }.mkString(", ") + ")"
+                    }.getOrElse("")
+                    s"${compiledFunction.name}$call"
             }
         }
 

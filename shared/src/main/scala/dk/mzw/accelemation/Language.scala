@@ -59,8 +59,37 @@ object Language {
         def reflect(b : Term[T]) : Term[T] = Term(Call("reflect", List(a.untyped, b.untyped)))
     }
 
+    implicit class BoolWithOperations(a : B){
+        def unary_!() : B = Term(Prefix("!", a.untyped))
+        def &&(b : B) : B = Term(Infix("&&", a.untyped, b.untyped))
+        def ||(b : B) : B = Term(Infix("||", a.untyped, b.untyped))
+    }
+
+    implicit class ColorWithOperations(a : Color){
+        def red : R = Term(Field("x", a.untyped))
+        def green : R = Term(Field("y", a.untyped))
+        def blue : R = Term(Field("z", a.untyped))
+        def alpha : R = Term(Field("w", a.untyped))
+    }
+
+    case class VariableType[T](t : String)
+    implicit def BoolType = VariableType[B]("bool")
+    implicit def RealType = VariableType[R]("float")
+    implicit def Vec2Type = VariableType[Vec2]("vec2")
+    implicit def Vec3Type = VariableType[Vec3]("vec3")
+    implicit def Vec4Type = VariableType[Vec4]("vec4")
+
+    implicit class Bindable[A](a : Term[A]) (implicit variableType : VariableType[Term[A]]){
+        def bind[B](f : Term[A] => Term[B]) : Term[B] = {
+            def body(a: Untyped): Untyped = f(Term(a)).untyped
+            Term(Bind(variableType.t, a.untyped, body))
+        }
+    }
+
     object Math {
-        val pi : R = Term(BuiltIn("pi"))
+        val pi = bindNativeConstant[Double]("""
+            const float pi = 3.141592653589793238462643383;
+        """)
 
         def abs(a : R) : R = Term(Call("abs", List(a.untyped)))
         def sign(a : R) : R = Term(Call("sign", List(a.untyped)))
@@ -90,33 +119,6 @@ object Language {
         def atan2(x : R, y : R) : R = 2 * atan(y / (sqrt (pow(x, 2) + pow(y, 2)) + x))
     }
 
-    implicit class BoolWithOperations(a : B){
-        def unary_!() : B = Term(Prefix("!", a.untyped))
-        def &&(b : B) : B = Term(Infix("&&", a.untyped, b.untyped))
-        def ||(b : B) : B = Term(Infix("||", a.untyped, b.untyped))
-    }
-
-    implicit class ColorWithOperations(a : Color){
-        def red : R = Term(Field("x", a.untyped))
-        def green : R = Term(Field("y", a.untyped))
-        def blue : R = Term(Field("z", a.untyped))
-        def alpha : R = Term(Field("w", a.untyped))
-    }
-
-    case class VariableType[T](t : String)
-    implicit def BoolType = VariableType[B]("bool")
-    implicit def RealType = VariableType[R]("float")
-    implicit def Vec2Type = VariableType[Vec2]("vec2")
-    implicit def Vec3Type = VariableType[Vec3]("vec3")
-    implicit def Vec4Type = VariableType[Vec4]("vec4")
-
-    implicit class Bindable[A](a : Term[A]) (implicit variableType : VariableType[Term[A]]){
-        def bind[B](f : Term[A] => Term[B]) : Term[B] = {
-            def body(a: Untyped): Untyped = f(Term(a)).untyped
-            Term(Bind(variableType.t, a.untyped, body))
-        }
-    }
-
     implicit def liftUniformB(uniform : Uniform[Boolean]) : B = Term(UniformU(uniform, "bool"))
     implicit def liftUniformR(uniform : Uniform[Double]) : R = Term(UniformU(uniform, "float"))
     implicit def liftUniformVec2(uniform : Uniform[(Double, Double)]) : Vec2 = Term(UniformU(uniform, "vec2"))
@@ -135,7 +137,7 @@ object Language {
             signature = Signature(nameHint, typeA2.t, Seq(typeA1.t)),
             body = {case Seq(a) => f(Term[A1](a)).untyped}
         ),
-        arguments = Seq(a1.untyped)
+        arguments = Some(Seq(a1.untyped))
     ))}
 
     def bind2[A1, A2, A3](f : Term[A1] => Term[A2] => Term[A3], nameHint : String)(implicit
@@ -148,7 +150,7 @@ object Language {
             signature = Signature(nameHint, typeA3.t, Seq(typeA1.t, typeA2.t)),
             body = {case Seq(a, b) => f(Term[A1](a))(Term[A2](b)).untyped}
         ),
-        arguments = Seq(a1.untyped, a2.untyped)
+        arguments = Some(Seq(a1.untyped, a2.untyped))
     ))}
 
     def bind3[A1, A2, A3, A4](f : Term[A1] => Term[A2] => Term[A3] => Term[A4], nameHint : String)(implicit
@@ -162,12 +164,33 @@ object Language {
             signature = Signature(nameHint, typeA4.t, Seq(typeA1.t, typeA2.t, typeA3.t)),
             body = {case Seq(a, b, c) => f(Term[A1](a))(Term[A2](b))(Term[A3](c)).untyped}
         ),
-        arguments = Seq(a1.untyped, a2.untyped, a3.untyped)
+        arguments = Some(Seq(a1.untyped, a2.untyped, a3.untyped))
     ))}
 
 
     // Bind foreign functions
 
+    def bindNativeConstant[A](source : String)(implicit
+        typeA : VariableType[Term[A]]
+    ) : Term[A] = {Term[A](FunctionDefinitionCall(
+        definition = ForeignFunctionDefinition(
+            source = source,
+            returnType = typeA.t,
+            argumentTypes = Seq()
+        ),
+        arguments = None
+    ))}
+
+    def bindNative0[A](source : String)(implicit
+        typeA : VariableType[Term[A]]
+    ) : Term[A] = {Term[A](FunctionDefinitionCall(
+        definition = ForeignFunctionDefinition(
+            source = source,
+            returnType = typeA.t,
+            argumentTypes = Seq()
+        ),
+        arguments = Some(Seq())
+    ))}
     def bindNative1[A1, A2](source : String)(implicit
         typeA1 : VariableType[Term[A1]],
         typeA2 : VariableType[Term[A2]]
@@ -177,7 +200,7 @@ object Language {
             returnType = typeA2.t,
             argumentTypes = Seq(typeA1.t)
         ),
-        arguments = Seq(a1.untyped)
+        arguments = Some(Seq(a1.untyped))
     ))}
 
     def bindNative2[A1, A2, A3](source : String)(implicit
@@ -190,7 +213,7 @@ object Language {
             returnType = typeA3.t,
             argumentTypes = Seq(typeA1.t, typeA2.t)
         ),
-        arguments = Seq(a1.untyped, a2.untyped)
+        arguments = Some(Seq(a1.untyped, a2.untyped))
     ))}
 
     def bindNative4[A1, A2, A3, A4, A5](source : String)(implicit
@@ -205,23 +228,6 @@ object Language {
             returnType = typeA5.t,
             argumentTypes = Seq(typeA1.t, typeA2.t, typeA3.t, typeA4.t)
         ),
-        arguments = Seq(a1.untyped, a2.untyped, a3.untyped, a4.untyped)
+        arguments = Some(Seq(a1.untyped, a2.untyped, a3.untyped, a4.untyped))
     ))}
-
-    // Move to library
-    //def hsva (h : R, s : R, v : R, a : R) : Color = Term(Call("hsvaToRgba",List(Call("vec4",List(h.untyped, s.untyped, v.untyped, a.untyped)))))
-    val hsva = Function.uncurried(bindNative4[Double, Double, Double, Double, (Double, Double, Double, Double)]("""
-        const float pi = 3.141592653589793238462643383;
-
-        vec4 hsvaToRgba(float a1, float a2, float a3, float a4) {
-            vec4 c = vec4(a1, a2, a3, a4);
-            vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-            vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-            vec3 r = c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-            return vec4(r, c.a);
-        }
-    """))
-    def rgbaToHsva (rgbaColor : Color) : Color = Term(Call("rgbaToHsva",List(rgbaColor.untyped)))
-    def simplexNoise (x : R, y : R, z : R) : R = Term(Call("snoise",List(Call("vec3",List(x.untyped, y.untyped, z.untyped)))))
-
 }
