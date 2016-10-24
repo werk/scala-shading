@@ -50,6 +50,15 @@ object Language {
     implicit def vec3IsVector(v : Vec3) : IsVector.type = IsVector
     implicit def vec4IsVector(v : Vec4) : IsVector.type = IsVector
 
+    implicit class Vector2WithOperations(v : Term[(Double, Double )]){
+        def x : R = Term(Field("x", v.untyped))
+        def y : R = Term(Field("y", v.untyped))
+        def xx : Vec2 = Term(Field("xx", v.untyped))
+        def xy : Vec2 = v
+        def yx : Vec2 = Term(Field("yx", v.untyped))
+        def yy : Vec2 = Term(Field("yy", v.untyped))
+    }
+
     implicit class VectorWithOperations[T](a : Term[T])(implicit evidence: Term[T] => IsVector.type){
         def dot(b : Term[T]) : R = Term(Call("dot", List(a.untyped, b.untyped)))
         def magnitude : R = Term(Call("length", List(a.untyped)))

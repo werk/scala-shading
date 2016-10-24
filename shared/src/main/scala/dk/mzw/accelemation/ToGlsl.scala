@@ -6,10 +6,6 @@ import dk.mzw.accelemation.Language._
 
 object ToGlsl {
 
-    def provided(name : String) : Animation = t => x => y => {
-        Term(Call(name, List(Call("vec4",List(x.untyped, y.untyped, Constant(0), t.untyped)))))
-    }
-    
     def withUniforms(f : Animation, prelude : String = "") : (String, Seq[Uniform[_]]) = {
         val SourceAndUniforms(glsl, uniforms) = Compile(f, "animation", "t", "x", "y")
         val all = boilerplateUniforms(uniforms) + /*boilerplateBefore + */ prelude + glsl + boilerplateAfter

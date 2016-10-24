@@ -44,7 +44,7 @@ object Main {
 
     def save(a : Animation, name : String): Unit = {
         val fileName = s"$name.html"
-        val html = ToHtml(ToGlsl(a), name)
+        val html = ToHtml(Compile.apply4real(a), name)
         Files.write(Paths.get(fileName), html.getBytes(StandardCharsets.UTF_8))
     }
 
