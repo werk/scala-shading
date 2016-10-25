@@ -3,6 +3,7 @@ package dk.mzw.accelemation
 import dk.mzw.accelemation.FunctionParser.{DecomposedConstant, DecomposedFunction}
 import dk.mzw.accelemation.Internal._
 import dk.mzw.accelemation.Language._
+import dk.mzw.accelemation.Prelude.pixelToUnit
 
 
 object Compile {
@@ -16,12 +17,24 @@ object Compile {
     }
 
     private val defaultTimeUniform = new Uniform[Double]("u_time", 0)
+    private val defaultResolutionUniform = new Uniform[(Double, Double)]("u_resolution", (1,1))
 
-    def apply4real(f : Animation, timeUniform : Uniform[Double] = defaultTimeUniform) : String = {
-        apply4real(f (timeUniform))
+    def unit(f : Animation, timeUniform : Uniform[Double] = defaultTimeUniform, resolutionUniform : Uniform[(Double, Double)] = defaultResolutionUniform) : String = {
+        val trans = pixelToUnit(resolutionUniform)
+        val g : Animation = {t => x => y =>
+            trans(vec2(x, y)) bind {xy =>
+                f(t) (xy.x) (xy.y)
+            }
+
+        }
+        pixel(g, timeUniform)
     }
 
-    def apply4real(f : Image) : String = {
+    def pixel(f : Animation, timeUniform : Uniform[Double] = defaultTimeUniform) : String = {
+        pixel(f (timeUniform))
+    }
+
+    def pixel(f : Image) : String = {
         val pixel = Term[(Double, Double)](BuiltIn("gl_FragCoord"))
         val applied = f (pixel.x) (pixel.y)
         val SourceAndUniforms(source, _) = new GlobalScope().compile(applied.untyped)
@@ -100,16 +113,16 @@ void main() {
         }
 
         private def compileFunction(definition : FunctionDefinition) : CompiledFunction = definition match {
+            case d : DomainFunctionDefinition => compileDomainFunction(d)
             case d : NativeFunctionDefinition => compileNativeFunction(d)
-            case d : ForeignFunctionDefinition => compileForeignFunction(d)
         }
 
-        private def compileNativeFunction(definition : NativeFunctionDefinition) : CompiledFunction = {
+        private def compileDomainFunction(definition : DomainFunctionDefinition) : CompiledFunction = {
             val argumentsNames = formalParameters.take(definition.signature.argumentTypes.length).toList
             val body = definition.body(argumentsNames.map(BuiltIn))
 
             val compiled = compileExpression(body)
-            val lines = (s"return $compiled;" :: compiled.declarations).reverse
+            val lines =  compiled.declarations ++ List(s"return ${compiled.expressionCode};")
             val base = NamelessEqualityBase(definition.signature.returnType, definition.signature.argumentTypes, lines)
             canonical.get(base) match {
                 case Some(cached) => cached
@@ -122,7 +135,7 @@ void main() {
             }
         }
 
-        private def compileForeignFunction(definition : ForeignFunctionDefinition) : CompiledFunction = {
+        private def compileNativeFunction(definition : NativeFunctionDefinition) : CompiledFunction = {
             val definitions = FunctionParser.parse(definition.source)
 
             var previous : Option[CompiledFunction] = None

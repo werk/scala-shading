@@ -27,7 +27,7 @@ object Prelude {
     """))
 
     val pixelToUnit = bindNative2[(Double, Double), (Double, Double), (Double, Double)] ("""
-        vec4 pixelToUnit(vec2 resolution, vec2 pixel) {
+        vec2 pixelToUnit(vec2 resolution, vec2 pixel) {
             vec2 streched_position = (pixel / resolution) * vec2(2.0, 2.0) - vec2(1.0, 1.0);
             vec2 aspect = vec2(max(resolution.x / resolution.y, 1.0), max(resolution.y / resolution.x, 1.0));
             return streched_position * aspect;

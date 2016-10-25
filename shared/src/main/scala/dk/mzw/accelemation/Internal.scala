@@ -27,13 +27,13 @@ object Internal {
 
     sealed trait FunctionDefinition
 
-    case class NativeFunctionDefinition(
+    case class DomainFunctionDefinition(
         identity : AnyRef,
         signature : Signature,
         body : Seq[Untyped] => Untyped
     ) extends FunctionDefinition
 
-    case class ForeignFunctionDefinition(
+    case class NativeFunctionDefinition(
         source : String,
         returnType : String,
         argumentTypes : Seq[String]
