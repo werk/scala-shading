@@ -2,17 +2,18 @@ package dk.mzw.accelemation
 
 import dk.mzw.accelemation.Language._
 import dk.mzw.accelemation.Language.Math._
+import dk.mzw.accelemation.Global._
 
 object Arithmetic {
     private def gaussianP(variance: R, x: R): R =
         1 / sqrt(variance) * sqrt(2 * pi) * exp(-(x * x) / pow(2 * variance, 2))
-    val gaussian = bind2u(gaussianP, "gaussian")
+    val gaussian = (gaussianP _).global("gaussian")
 
     private def gaussianOneP(variance : R, x : R) : R =
         exp((-x * x) / (4 * variance * variance))
-    val gaussianOne = bind2u(gaussianOneP, "gaussianOne")
+    val gaussianOne = gaussianOneP _ global "gaussianOne"
 
-    def sigmoid(x : R) : R = 1 / (1 + exp (-x))
+    val sigmoid = {x : R => 1 / (1 + exp (-x))}.global
 
     def sigfade(x : R) : R = sigmoid((x - 0.5) * 10)
 
