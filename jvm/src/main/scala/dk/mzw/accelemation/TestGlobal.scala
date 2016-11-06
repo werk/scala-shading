@@ -15,18 +15,36 @@ object TestGlobal {
         println(f3.global("foobar3")(1)(2)(3))
 
         for{
-            a <- 'x' to 'z'
-            b <- 'x' to 'z'
+            a <- "rgba"
         } {
-            println(s"""def $a$b : Vec3 = Term(Field("$a$b", v.untyped))""")
+            println(s"""def $a : Vec4 = Term(Field("$a", v.untyped))""")
         }
+        println()
 
         for{
-            a <- 'x' to 'z'
-            b <- 'x' to 'z'
-            c <- 'x' to 'z'
+            a <- "rgba"
+            b <- "rgba"
         } {
-            println(s"""def $a$b$c : Vec3 = Term(Field("$a$b$c", v.untyped))""")
+            println(s"""def $a$b : Vec4 = Term(Field("$a$b", v.untyped))""")
+        }
+        println()
+
+        for{
+            a <- "rgba"
+            b <- "rgba"
+            c <- "rgba"
+        } {
+            println(s"""def $a$b$c : Vec4 = Term(Field("$a$b$c", v.untyped))""")
+        }
+        println()
+
+        for{
+            a <- "rgba"
+            b <- "rgba"
+            c <- "rgba"
+            d <- "rgba"
+        } {
+            println(s"""def $a$b$c$d : Vec4 = Term(Field("$a$b$c$d", v.untyped))""")
         }
     }
 }

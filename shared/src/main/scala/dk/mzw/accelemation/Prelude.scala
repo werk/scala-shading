@@ -1,6 +1,7 @@
 package dk.mzw.accelemation
 
 import dk.mzw.accelemation.Language._
+import GlslFunction._
 
 object Prelude {
 
@@ -13,6 +14,19 @@ object Prelude {
             return vec4(r, c.a);
         }
     """))
+
+    /*
+    def rgbaToHsva(r : R, g : R, b : R, a : R) : Vec4 = {
+        val c = vec4(r, g, b, a)
+        val K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0)
+        val p = vec4(c.bg, K.wz).mix(vec4(c.gb, K.xy), c.b.step(c.g))
+        val q = vec4(p.xyw, c.r).mix(vec4(c.r, p.yzx), p.x.step(c.r))
+
+        val d = q.x - q.w.min(q.y)
+        val e : R = 1.0e-10
+        vec4((q.z + (q.w - q.y) / (6.0 * d + e)).abs, d / (q.x + e), q.x, c.a)
+    }
+    */
 
     val rgbaToHsva = Function.uncurried(bindNative4[Double, Double, Double, Double, (Double, Double, Double, Double)]("""
         vec4 rgbaToHsva(vec4 c) {
