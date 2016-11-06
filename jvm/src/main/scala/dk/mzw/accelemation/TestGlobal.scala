@@ -14,5 +14,19 @@ object TestGlobal {
         println(f2.global(1)(2))
         println(f3.global("foobar3")(1)(2)(3))
 
+        for{
+            a <- 'x' to 'z'
+            b <- 'x' to 'z'
+        } {
+            println(s"""def $a$b : Vec3 = Term(Field("$a$b", v.untyped))""")
+        }
+
+        for{
+            a <- 'x' to 'z'
+            b <- 'x' to 'z'
+            c <- 'x' to 'z'
+        } {
+            println(s"""def $a$b$c : Vec3 = Term(Field("$a$b$c", v.untyped))""")
+        }
     }
 }
