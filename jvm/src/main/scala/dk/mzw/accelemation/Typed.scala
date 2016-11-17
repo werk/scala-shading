@@ -7,19 +7,22 @@ object Typed {
 
     sealed abstract class Typed[T] {
         val untyped : Untyped
+        val make : Untyped => this.type
     }
 
     trait Vec extends Typed[Double] {
         def magnitude : R = R(Call("length", List(untyped)))
-        //def normalize : this.type = this.copy
+        def normalize : this.type = make(Call("length", List(untyped)))
+
+        def +(b : this.type) : this.type = make(Infix("+", untyped, b.untyped))
+        def -(b : this.type) : this.type = make(Infix("-", untyped, b.untyped))
+        def *(b : this.type) : this.type = make(Infix("*", untyped, b.untyped))
+        def unary_-() : this.type = make(Prefix("-", untyped))
+        def /(b : this.type) : this.type = make(Infix("/", untyped, b.untyped))
     }
-    
-    case class R(untyped : Untyped) extends Typed[Double] {
-        def +(b : R) : R = R(Infix("+", untyped, b.untyped))
-        def -(b : R) : R = R(Infix("-", untyped, b.untyped))
-        def *(b : R) : R = R(Infix("*", untyped, b.untyped))
-        def unary_-() : R = R(Prefix("-", untyped))
-        def /(b : R) : R = R(Infix("/", untyped, b.untyped))
+
+    case class R(untyped : Untyped) extends Typed[Double] with Vec {
+        val make = copy _
 
         def ===(b : R) : B = B(Infix("==", untyped, b.untyped))
         def !=(b : R) : B = B(Infix("!=", untyped, b.untyped))
@@ -29,33 +32,87 @@ object Typed {
         def >=(b : R) : B = B(Infix(">=", untyped, b.untyped))
 
     }
-    
-    case class B(untyped : Untyped) extends Typed[Boolean]
-    case class I(untyped : Untyped) extends Typed[Int]
 
-    case class Vec2(untyped : Untyped) extends Typed[Double]
-    case class Vec3(untyped : Untyped) extends Typed[Double]
-    case class Vec4(untyped : Untyped) extends Typed[Double]
+    case class B(untyped : Untyped) extends Typed[Boolean] {
+        val make = copy _
+    }
+    case class I(untyped : Untyped) extends Typed[Int] {
+        val make = copy _
+    }
 
-    case class BVec2(untyped : Untyped) extends Typed[Boolean]
-    case class BVec3(untyped : Untyped) extends Typed[Boolean]
-    case class BVec4(untyped : Untyped) extends Typed[Boolean]
+    case class Vec2(untyped : Untyped) extends Typed[Double] {
+        val make = copy _
+    }
 
-    case class IVec2(untyped : Untyped) extends Typed[Int]
-    case class IVec3(untyped : Untyped) extends Typed[Int]
-    case class IVec4(untyped : Untyped) extends Typed[Int]
+    case class Vec3(untyped : Untyped) extends Typed[Double] {
+        val make = copy _
+    }
+
+    case class Vec4(untyped : Untyped) extends Typed[Double] {
+        val make = copy _
+    }
+
+    case class BVec2(untyped : Untyped) extends Typed[Boolean] {
+        val make = copy _
+    }
+
+    case class BVec3(untyped : Untyped) extends Typed[Boolean] {
+        val make = copy _
+    }
+
+    case class BVec4(untyped : Untyped) extends Typed[Boolean] {
+        val make = copy _
+    }
+
+    case class IVec2(untyped : Untyped) extends Typed[Int] {
+        val make = copy _
+    }
+
+    case class IVec3(untyped : Untyped) extends Typed[Int] {
+        val make = copy _
+    }
+
+    case class IVec4(untyped : Untyped) extends Typed[Int] {
+        val make = copy _
+    }
+
+
+    object R {
+        def apply(r : Double) = R(Constant(r))
+    }
+
+    object B {
+        //def apply(b : Boolean) = R(Constant(b)) // TODO support boolean constants
+    }
+
+    object Vec2 {
+        def apply(x : R, y : R) = Vec2(Call("vec2",List(x.untyped, y.untyped)))
+    }
+
+    object Vec3 {
+        def apply(x : R, y : R, z : R) = Vec3(Call("vec3",List(x.untyped, y.untyped, z.untyped)))
+    }
+
+    object Vec4 {
+        def apply(x : R, y : R, z : R, w : R) = Vec4(Call("vec4",List(x.untyped, y.untyped, z.untyped, w.untyped)))
+    }
+
 
 
     def main(args: Array[String]) {
-        val r = R(Constant(1))
-        println(Functions.sin(r+r))
+        val r1 = R(1)
+        val r2 = R(2)
+        val vec2 = Vec2(r1, r2)
+
+        println(Functions.sin(r1.*(r2)))
+
     }
 
 }
 
 object Functions {
-    
-    private def call(name : String, arguments : Typed[_]*) : Untyped = Call("radians", arguments.map(_.untyped).toList) 
+
+    private def call(name : String, arguments : Typed[_]*) : Untyped = Call("radians", arguments.map(_.untyped).toList)
 
     def radians(degrees : R) = R(call("radians", degrees))
     def radians(degrees : Vec2) = Vec2(call("radians", degrees))
@@ -127,67 +184,67 @@ object Functions {
     def log2(x : Vec3) = Vec3(call("log2", x))
     def log2(x : Vec4) = Vec4(call("log2", x))
 
-/*    //vec3 sqrt(vec3 x)
-    def sqrt : Typed[Double] = wrap(v)(Call("sqrt", List(v.untyped)))
+    /*    //vec3 sqrt(vec3 x)
+        def sqrt : Typed[Double] = wrap(v)(Call("sqrt", List(v.untyped)))
 
-    //vec3 inversesqrt(vec3 x)
-    def inversesqrt : Typed[Double] = wrap(v)(Call("inversesqrt", List(v.untyped)))
+        //vec3 inversesqrt(vec3 x)
+        def inversesqrt : Typed[Double] = wrap(v)(Call("inversesqrt", List(v.untyped)))
 
-    //vec3 abs(vec3 x)
-    def abs : Typed[Double] = wrap(v)(Call("abs", List(v.untyped)))
+        //vec3 abs(vec3 x)
+        def abs : Typed[Double] = wrap(v)(Call("abs", List(v.untyped)))
 
-    //vec3 sign(vec3 x)
-    def sign : Typed[Double] = wrap(v)(Call("sign", List(v.untyped)))
+        //vec3 sign(vec3 x)
+        def sign : Typed[Double] = wrap(v)(Call("sign", List(v.untyped)))
 
-    //vec3 floor(vec3 x)
-    def floor : Typed[Double] = wrap(v)(Call("floor", List(v.untyped)))
+        //vec3 floor(vec3 x)
+        def floor : Typed[Double] = wrap(v)(Call("floor", List(v.untyped)))
 
-    //vec3 ceil(vec3 x)
-    def ceil : Typed[Double] = wrap(v)(Call("ceil", List(v.untyped)))
+        //vec3 ceil(vec3 x)
+        def ceil : Typed[Double] = wrap(v)(Call("ceil", List(v.untyped)))
 
-    //vec3 fract(vec3 x)
-    def fract : Typed[Double] = wrap(v)(Call("fract", List(v.untyped)))
+        //vec3 fract(vec3 x)
+        def fract : Typed[Double] = wrap(v)(Call("fract", List(v.untyped)))
 
-    //vec3 mod(vec3 x, vec3 y)
-    def mod(y : Typed[Double]) : Typed[Double] = wrap(v)(Call("mod", List(v.untyped, y.untyped)))
+        //vec3 mod(vec3 x, vec3 y)
+        def mod(y : Typed[Double]) : Typed[Double] = wrap(v)(Call("mod", List(v.untyped, y.untyped)))
 
-    //vec3 min(vec3 x, vec3 y)
-    def min(y : Typed[Double]) : Typed[Double] = wrap(v)(Call("min", List(v.untyped, y.untyped)))
+        //vec3 min(vec3 x, vec3 y)
+        def min(y : Typed[Double]) : Typed[Double] = wrap(v)(Call("min", List(v.untyped, y.untyped)))
 
-    //vec3 max(vec3 x, vec3 y)
-    def max(y : Typed[Double]) : Typed[Double] = wrap(v)(Call("max", List(v.untyped, y.untyped)))
+        //vec3 max(vec3 x, vec3 y)
+        def max(y : Typed[Double]) : Typed[Double] = wrap(v)(Call("max", List(v.untyped, y.untyped)))
 
-    //vec3 clamp(vec3 x, vec3 minVal, vec3 maxVal)
-    def clamp(minVal : Typed[Double], maxVal : Typed[Double]) : Typed[Double] = wrap(v)(Call("clamp", List(v.untyped, minVal.untyped, maxVal.untyped)))
+        //vec3 clamp(vec3 x, vec3 minVal, vec3 maxVal)
+        def clamp(minVal : Typed[Double], maxVal : Typed[Double]) : Typed[Double] = wrap(v)(Call("clamp", List(v.untyped, minVal.untyped, maxVal.untyped)))
 
-    //vec3 mix(vec3 x, vec3 y, vec3 a)
-    def mix(y : Typed[Double], a : Typed[Double]) : Typed[Double] = wrap(v)(Call("mix", List(v.untyped, y.untyped, a.untyped)))
+        //vec3 mix(vec3 x, vec3 y, vec3 a)
+        def mix(y : Typed[Double], a : Typed[Double]) : Typed[Double] = wrap(v)(Call("mix", List(v.untyped, y.untyped, a.untyped)))
 
-    //vec3 step(vec3 edge, vec3 x)
-    def step(edge : Typed[Double]) : Typed[Double] = wrap(v)(Call("step", List(edge.untyped, v.untyped)))
+        //vec3 step(vec3 edge, vec3 x)
+        def step(edge : Typed[Double]) : Typed[Double] = wrap(v)(Call("step", List(edge.untyped, v.untyped)))
 
-    //smoothstep(vec3 edge0, vec3 edge1, vec3 x)
-    def smoothstep(edge0 : Typed[Double], edge1 : Typed[Double]) : Typed[Double] = wrap(v)(Call("smoothstep", List(edge0.untyped, edge1.untyped, v.untyped)))
+        //smoothstep(vec3 edge0, vec3 edge1, vec3 x)
+        def smoothstep(edge0 : Typed[Double], edge1 : Typed[Double]) : Typed[Double] = wrap(v)(Call("smoothstep", List(edge0.untyped, edge1.untyped, v.untyped)))
 
-    //float length(vec3 x)
-    def length : Typed[Double] = wrap(v)(Call("length", List(v.untyped)))
+        //float length(vec3 x)
+        def length : Typed[Double] = wrap(v)(Call("length", List(v.untyped)))
 
-    //float distance(vec3 p0, vec3 p1)
-    def distance(p1 : Typed[Double]) : Typed[Double] = wrap(v)(Call("distance", List(v.untyped, p1.untyped)))
+        //float distance(vec3 p0, vec3 p1)
+        def distance(p1 : Typed[Double]) : Typed[Double] = wrap(v)(Call("distance", List(v.untyped, p1.untyped)))
 
-    //float dot(vec3 x, vec3 y)
-    def dot : Typed[Double] = wrap(v)(Call("dot", List(v.untyped)))
+        //float dot(vec3 x, vec3 y)
+        def dot : Typed[Double] = wrap(v)(Call("dot", List(v.untyped)))
 
-    //vec3 normalize(vec3 x)
-    def normalize : Typed[Double] = wrap(v)(Call("normalize", List(v.untyped)))
+        //vec3 normalize(vec3 x)
+        def normalize : Typed[Double] = wrap(v)(Call("normalize", List(v.untyped)))
 
-    //vec3 faceforward(vec3 N, vec3 I, vec3 Nref)
-    def faceforward(I : Typed[Double], Nref : Typed[Double]) : Typed[Double] = wrap(v)(Call("faceforward", List(v.untyped, I.untyped, Nref.untyped)))
+        //vec3 faceforward(vec3 N, vec3 I, vec3 Nref)
+        def faceforward(I : Typed[Double], Nref : Typed[Double]) : Typed[Double] = wrap(v)(Call("faceforward", List(v.untyped, I.untyped, Nref.untyped)))
 
-    //vec3 reflect(vec3 I, vec3 N)
-    def reflect(N : Typed[Double]) : Typed[Double] = wrap(v)(Call("reflect", List(v.untyped, N.untyped)))
+        //vec3 reflect(vec3 I, vec3 N)
+        def reflect(N : Typed[Double]) : Typed[Double] = wrap(v)(Call("reflect", List(v.untyped, N.untyped)))
 
-    //vec3 refract(vec3 I, vec3 N, float eta)
-    def refract(N : Typed[Double], eta : R) : Typed[Double] = wrap(v)(Call("refract", List(v.untyped, N.untyped, eta.untyped)))
-*/
+        //vec3 refract(vec3 I, vec3 N, float eta)
+        def refract(N : Typed[Double], eta : R) : Typed[Double] = wrap(v)(Call("refract", List(v.untyped, N.untyped, eta.untyped)))
+    */
 }
