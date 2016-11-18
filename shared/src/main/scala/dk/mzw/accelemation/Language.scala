@@ -30,7 +30,7 @@ object Language {
 
     val rgba : (R, R, R, R) => Color = vec4
 
-    implicit def fromDouble(r : Double) : R = Term(Constant(r))
+    implicit def fromDouble(r : Double) : R = Term(ConstantFloat(r))
     implicit def fromInteger(r : Int) : R = fromDouble(r.toDouble)
 
     implicit class RealWithOperations[A](a : A) (implicit toReal : A => R){

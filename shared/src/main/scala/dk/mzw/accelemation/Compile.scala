@@ -181,13 +181,15 @@ void main() {
             var functions = Set[CompiledFunction]()
 
             def inner(u : Untyped) : String = u match {
-                case Constant(n) =>
+                case ConstantFloat(n) =>
                     // We need the decimal point to denote a float.
                     // Scala JS will not generate this for integers.
                     // This is not a problem in JVM
                     val s = n.toString
                     if(s.contains('.')) s
                     else s + ".0";
+                case ConstantInt(i) => i.toString
+                case ConstantBoolean(b) => b.toString
                 case Bind(variableType, argument, body) =>
                     val a = inner(argument)
                     val i = declarations.length

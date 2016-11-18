@@ -2,7 +2,9 @@ package dk.mzw.accelemation
 
 object Internal {
     abstract sealed class Untyped
-    case class Constant(n : Double) extends Untyped
+    case class ConstantFloat(n : Double) extends Untyped
+    case class ConstantInt(n : Int) extends Untyped
+    case class ConstantBoolean(n : Boolean) extends Untyped
     case class Bind (variableType : String, argument : Untyped, body : Untyped => Untyped) extends Untyped
     case class Variable(n : Int) extends Untyped
     case class Field(label : String, target : Untyped) extends Untyped

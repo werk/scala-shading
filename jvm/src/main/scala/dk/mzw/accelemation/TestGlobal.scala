@@ -14,37 +14,49 @@ object TestGlobal {
         println(f2.global(1)(2))
         println(f3.global("foobar3")(1)(2)(3))
 
-        for{
-            a <- "rgba"
-        } {
-            println(s"""def $a : Vec4 = Term(Field("$a", v.untyped))""")
-        }
-        println()
+        generate(2, "xyzw", "rgba", "stpq")
+        generate(3, "xyzw", "rgba", "stpq")
+        generate(4, "xyzw", "rgba", "stpq")
 
-        for{
-            a <- "rgba"
-            b <- "rgba"
-        } {
-            println(s"""def $a$b : Vec4 = Term(Field("$a$b", v.untyped))""")
-        }
-        println()
+        def generate(n : Int, axesList : String*): Unit = {
+            def line(a : String) = s"""        def $a : Self$n = make$n(Field("$a", untyped))"""
+            def block(axes : String) : Unit = {
+                val letters = axes.take(n)
+                for{
+                    a <- letters
+                } println(line(s"$a"))
+                println()
 
-        for{
-            a <- "rgba"
-            b <- "rgba"
-            c <- "rgba"
-        } {
-            println(s"""def $a$b$c : Vec4 = Term(Field("$a$b$c", v.untyped))""")
-        }
-        println()
+                if(n < 2) return
+                for{
+                    a <- letters
+                    b <- letters
+                } println(line(s"$a$b"))
+                println()
 
-        for{
-            a <- "rgba"
-            b <- "rgba"
-            c <- "rgba"
-            d <- "rgba"
-        } {
-            println(s"""def $a$b$c$d : Vec4 = Term(Field("$a$b$c$d", v.untyped))""")
+                if(n < 3) return
+                for{
+                    a <- letters
+                    b <- letters
+                    c <- letters
+                } println(line(s"$a$b$c"))
+                println()
+
+                if(n < 4) return
+                for{
+                    a <- letters
+                    b <- letters
+                    c <- letters
+                    d <- letters
+                } println(line(s"$a$b$c$d"))
+                println()
+            }
+
+            println(s"    sealed trait XVec$n extends XVec {")
+            axesList.foreach(block)
+            println(s"    }")
+            println()
         }
+
     }
 }
