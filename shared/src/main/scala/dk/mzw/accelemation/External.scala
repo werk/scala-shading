@@ -4,15 +4,37 @@ import dk.mzw.accelemation.Internal._
 
 object External {
 
-    def typed[T <: Typed](untyped : Untyped) : T = ??? // TODO
+    /**
+      * Grant access to the internal untyped AST
+      */
     def untyped[T <: Typed](t : T) = t.untyped
 
     implicit def doubleToR(r : Double) : R = R(ConstantFloat(r))
     implicit def intToR(r : Int) : R = R(ConstantFloat(r))
     implicit def intToI(i : Int) : I = I(i)
 
-    // GLSL implicit convertions
+    // GLSL implicit conversions
     implicit def iToR(i : I) : R = R(i.untyped)
+    // TODO ivec to vec
+
+    // implicit constructors used for bind
+    case class Bridge[T](
+        make : Untyped => T,
+        glslTypeName : String
+    )
+
+    implicit def bridgeR = Bridge[R](R(_), "float")
+    implicit def bridgeB = Bridge[B](B(_), "bool")
+    implicit def bridgeI = Bridge[I](I(_), "int")
+    implicit def bridgeVec2 = Bridge[Vec2](Vec2(_), "vec2")
+    implicit def bridgeVec3 = Bridge[Vec3](Vec3(_), "vec3")
+    implicit def bridgeVec4 = Bridge[Vec4](Vec4(_), "vec4")
+    implicit def bridgeBVec2 = Bridge[BVec2](BVec2(_), "bvec2")
+    implicit def bridgeBVec3 = Bridge[BVec3](BVec3(_), "bvec3")
+    implicit def bridgeBVec4 = Bridge[BVec4](BVec4(_), "bvec4")
+    implicit def bridgeIVec2 = Bridge[IVec2](IVec2(_), "ivec2")
+    implicit def bridgeIVec3 = Bridge[IVec3](IVec3(_), "ivec3")
+    implicit def bridgeIVec4 = Bridge[IVec4](IVec4(_), "ivec4")
 
     /**
       * Any supported GLSL type
@@ -26,10 +48,9 @@ object External {
         def ===(b : Self) : B = B(Infix("==", untyped, b.untyped))
         def !=(b : Self) : B = B(Infix("!=", untyped, b.untyped))
 
-        def bind[B](f : Typed => Typed) : Typed = {
+        def bind[T <: Typed](f : Self => T) (implicit bridgeT : Bridge[T]) : T = {
             def body(a: Untyped) : Untyped = f(make(a)).untyped
-            val makeB : Untyped => Typed = null // TODO
-            makeB(Bind(typeName, untyped, body))
+            bridgeT.make(Bind(typeName, untyped, body))
         }
     }
 
