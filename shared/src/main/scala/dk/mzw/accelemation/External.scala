@@ -7,7 +7,7 @@ object External {
     /**
       * Grant access to the internal untyped AST
       */
-    def untyped[T <: Typed](t : T) = t.untyped
+    def untyped(t : Typed[_]) : Untyped = t.untyped
 
     implicit def doubleToR(r : Double) : R = R(ConstantFloat(r))
     implicit def intToR(r : Int) : R = R(ConstantFloat(r))
@@ -39,8 +39,7 @@ object External {
     /**
       * Any supported GLSL type
       */
-    sealed trait Typed {
-        protected[External] type Self <: Typed
+    sealed trait Typed[Self <: Typed[Self]] { /*this : Self =>*/
         protected[External] val make : Untyped => Self
         protected[External] val typeName : String
         protected[External] val untyped : Untyped
@@ -48,7 +47,7 @@ object External {
         def ===(b : Self) : B = B(Infix("==", untyped, b.untyped))
         def !=(b : Self) : B = B(Infix("!=", untyped, b.untyped))
 
-        def bind[T <: Typed](f : Self => T) (implicit bridgeT : Bridge[T]) : T = {
+        def bind[T <: Typed[T]](f : Self => T) (implicit bridgeT : Bridge[T]) : T = {
             def body(a: Untyped) : Untyped = f(make(a)).untyped
             bridgeT.make(Bind(typeName, untyped, body))
         }
@@ -57,12 +56,7 @@ object External {
     /**
       *  Models a GLSL vec2, vec3, vec4, bvec2, bvec3, bvec4, ivec2, ivec3 or ivec4
       */
-    sealed trait XVec extends Typed {
-        protected[External] type Self1 <: Typed
-        protected[External] type Self2 <: Typed
-        protected[External] type Self3 <: Typed
-        protected[External] type Self4 <: Typed
-
+    sealed trait XVec[Self <: XVec[Self, Self1, Self2, Self3, Self4], Self1, Self2, Self3, Self4] extends Typed[Self] {
         protected[External] val make1 : Untyped => Self1
         protected[External] val make2 : Untyped => Self2
         protected[External] val make3 : Untyped => Self3
@@ -72,25 +66,20 @@ object External {
     /**
       * Models a GLSL vec2, vec3 or vec4
       */
-    sealed trait Vec extends FloatN with XVec {
-        protected[External] type Self1 = R
-        protected[External] type Self2 = Vec2
-        protected[External] type Self3 = Vec3
-        protected[External] type Self4 = Vec4
-
+    sealed trait Vec[Self <: Vec[Self]] extends FloatN[Self] with XVec[Self, R, Vec2, Vec3, Vec4] {
         protected[External] val make1 = {u : Untyped => R(u)}
         protected[External] val make2 = {u : Untyped => Vec2(u)}
         protected[External] val make3 = {u : Untyped => Vec3(u)}
         protected[External] val make4 = {u : Untyped => Vec4(u)}
 
         def magnitude : R = R(Call("length", List(untyped)))
-        def normalize : Self = make(Call("length", List(untyped)))
+        def normalize : Self = make(Call("normalize", List(untyped)))
     }
 
     /**
       *  Models a GLSL float, vec2, vec3 or vec4
       */
-    sealed trait FloatN extends Typed {
+    sealed trait FloatN[Self <: FloatN[Self]] extends Typed[Self] {
         def +(b : Self) : Self = make(Infix("+", untyped, b.untyped))
         def -(b : Self) : Self = make(Infix("-", untyped, b.untyped))
         def unary_-() : Self = make(Prefix("-", untyped))
@@ -103,8 +92,8 @@ object External {
     /**
       *  Models a GLSL float
       */
-    case class R(protected[External] val untyped : Untyped) extends FloatN {
-        protected[External] type Self = R
+    case class R(protected[External] val untyped : Untyped) extends FloatN[R] {
+        //protected[External] type Self = R
         protected[External] val make = copy _
         protected[External] val typeName = "float"
 
@@ -115,8 +104,8 @@ object External {
     }
 
     // GLSL bool
-    case class B(protected[External] val untyped : Untyped) extends Typed {
-        protected[External] type Self = B
+    case class B(protected[External] val untyped : Untyped) extends Typed[B] {
+        //protected[External] type Self = B
         protected[External] val make = copy _
         protected[External] val typeName = "bool"
 
@@ -126,62 +115,62 @@ object External {
     }
 
     // GLSL int
-    case class I(protected[External] val untyped : Untyped) extends Typed {
-        protected[External] type Self = I
+    case class I(protected[External] val untyped : Untyped) extends Typed[I] {
+        //protected[External] type Self = I
         protected[External] val make = copy _
         protected[External] val typeName = "int"
     }
 
-    case class Vec2(protected[External] val untyped : Untyped) extends Vec with XVec2 {
-        protected[External] type Self = Vec2
+    case class Vec2(protected[External] val untyped : Untyped) extends Vec[Vec2] with XVec2[Vec2, R, Vec2, Vec3, Vec4] {
+        //protected[External] type Self = Vec2
         protected[External] val make = copy _
         protected[External] val typeName = "vec2"
     }
 
-    case class Vec3(protected[External] val untyped : Untyped) extends Vec {
-        protected[External] type Self = Vec3
+    case class Vec3(protected[External] val untyped : Untyped) extends Vec[Vec3] {
+        //protected[External] type Self = Vec3
         protected[External] val make = copy _
         protected[External] val typeName = "vec3"
     }
 
-    case class Vec4(protected[External] val untyped : Untyped) extends Vec {
-        protected[External] type Self = Vec4
+    case class Vec4(protected[External] val untyped : Untyped) extends Vec[Vec4] {
+        //protected[External] type Self = Vec4
         protected[External] val make = copy _
         protected[External] val typeName = "vec4"
     }
 
-    case class BVec2(protected[External] val untyped : Untyped) extends Typed {
-        protected[External] type Self = BVec2
+    case class BVec2(protected[External] val untyped : Untyped) extends Typed[BVec2] {
+        //protected[External] type Self = BVec2
         protected[External] val make = copy _
         protected[External] val typeName = "bvec2"
     }
 
-    case class BVec3(protected[External] val untyped : Untyped) extends Typed {
-        protected[External] type Self = BVec3
+    case class BVec3(protected[External] val untyped : Untyped) extends Typed[BVec3] {
+        //protected[External] type Self = BVec3
         protected[External] val make = copy _
         protected[External] val typeName = "bvec3"
     }
 
-    case class BVec4(protected[External] val untyped : Untyped) extends Typed {
-        protected[External] type Self = BVec4
+    case class BVec4(protected[External] val untyped : Untyped) extends Typed[BVec4] {
+        //protected[External] type Self = BVec4
         protected[External] val make = copy _
         protected[External] val typeName = "bvec4"
     }
 
-    case class IVec2(protected[External] val untyped : Untyped) extends Typed {
-        protected[External] type Self = IVec2
+    case class IVec2(protected[External] val untyped : Untyped) extends Typed[IVec2] {
+        //protected[External] type Self = IVec2
         protected[External] val make = copy _
         protected[External] val typeName = "ivec2"
     }
 
-    case class IVec3(protected[External] val untyped : Untyped) extends Typed {
-        protected[External] type Self = IVec3
+    case class IVec3(protected[External] val untyped : Untyped) extends Typed[IVec3] {
+        //protected[External] type Self = IVec3
         protected[External] val make = copy _
         protected[External] val typeName = "ivec3"
     }
 
-    case class IVec4(protected[External] val untyped : Untyped) extends Typed {
-        protected[External] type Self = IVec4
+    case class IVec4(protected[External] val untyped : Untyped) extends Typed[IVec4] {
+        //protected[External] type Self = IVec4
         protected[External] val make = copy _
         protected[External] val typeName = "ivec4"
     }
@@ -221,7 +210,7 @@ object External {
         def apply(x : R, yzw : Vec3) : Vec4 = Vec4(Call("vec4", List(x.untyped, yzw.untyped)))
     }
 
-    sealed trait XVec2 extends XVec {
+    sealed trait XVec2[Self <: XVec2[Self, Self1, Self2, Self3, Self4], Self1, Self2, Self3, Self4] extends XVec[Self, Self1, Self2, Self3, Self4] {
         def x : Self2 = make2(Field("x", untyped))
         def y : Self2 = make2(Field("y", untyped))
 
@@ -247,7 +236,7 @@ object External {
         def tt : Self2 = make2(Field("tt", untyped))
     }
 
-    sealed trait XVec3 extends XVec {
+    sealed trait XVec3[Self <: XVec2[Self, Self1, Self2, Self3, Self4], Self1, Self2, Self3, Self4] extends XVec[Self, Self1, Self2, Self3, Self4] {
         def x : Self3 = make3(Field("x", untyped))
         def y : Self3 = make3(Field("y", untyped))
         def z : Self3 = make3(Field("z", untyped))
@@ -376,7 +365,7 @@ object External {
 
     }
 
-    sealed trait XVec4 extends XVec {
+    sealed trait XVec4[Self <: XVec2[Self, Self1, Self2, Self3, Self4], Self1, Self2, Self3, Self4] extends XVec[Self, Self1, Self2, Self3, Self4] {
         def x : Self4 = make4(Field("x", untyped))
         def y : Self4 = make4(Field("y", untyped))
         def z : Self4 = make4(Field("z", untyped))

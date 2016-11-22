@@ -10,14 +10,16 @@ object TestExternal {
         val vec2 = Vec2(r1, r2)
 
         val x = vec2.normalize
-        val r3 : R = r1 + r2
-        val r4 : R = 1 + r3
-        val r5 : R = r3 + 1
-        val r6 : R = 1.1 + r3
-        val r7 : R = r3 + 1.1
+        val r3 = r1 + r2
+        val r4 = 1 + r3
+        val r5 = r3 + 1
+        val r6 = 1.1 + r3
+        val r7 = r3 + 1.1
 
-        val vec2b : Vec2 = Vec2(sin(r3), r1)
-        println(untyped(vec2b))
+        val vec2b = Vec2(sin(r3), r1)
+        val vec2c = vec2b.bind{ v => v.yx}
+
+        println(untyped(vec2c.xx))
 
     }
 

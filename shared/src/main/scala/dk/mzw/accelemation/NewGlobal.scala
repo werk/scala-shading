@@ -22,7 +22,7 @@ object NewGlobal {
         def global(nameHint : String) : F = make(Thunk(original, untyped, nameHint, Seq(), Seq()))
     }
 
-    implicit def simpleTermFunction[A <: Typed](a : A) (implicit
+    implicit def simpleTermFunction[A <: Typed[A]](a : A) (implicit
         bridgeA : Bridge[A]
     ) = TermFunction[A](
         original = a,
@@ -37,7 +37,7 @@ object NewGlobal {
         ))}
     )
 
-    implicit def tuple1TermFunction[A <: Typed, G](f : A => G) (implicit
+    implicit def tuple1TermFunction[A <: Typed[A], G](f : A => G) (implicit
         bridgeA : Bridge[A],
         gIsTermFunction : G => TermFunction[G]
     ) = TermFunction[A => G](
@@ -49,7 +49,7 @@ object NewGlobal {
         ))}
     )
 
-    implicit def tuple2TermFunction[A <: Typed, B <: Typed, G](f : (A, B) => G) (implicit
+    implicit def tuple2TermFunction[A <: Typed[A], B <: Typed[B], G](f : (A, B) => G) (implicit
         bridgeA : Bridge[A],
         bridgeB : Bridge[B],
         gIsTermFunction : G => TermFunction[G]
@@ -62,7 +62,7 @@ object NewGlobal {
         ))}}
     )
 
-    implicit def tuple3TermFunction[A <: Typed, B <: Typed, C <: Typed, G](f : (A, B, C) => G) (implicit
+    implicit def tuple3TermFunction[A <: Typed[A], B <: Typed[B], C <: Typed[C], G](f : (A, B, C) => G) (implicit
         bridgeA : Bridge[A],
         bridgeB : Bridge[B],
         bridgeC : Bridge[C],

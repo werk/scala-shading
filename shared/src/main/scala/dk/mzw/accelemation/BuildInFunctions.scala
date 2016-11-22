@@ -4,7 +4,7 @@ import dk.mzw.accelemation.Internal.{Call, Untyped}
 import dk.mzw.accelemation.External._
 
 object BuildInFunctions {
-    private def call(name : String, arguments : Typed*) : Untyped = Call("radians", arguments.map(untyped(_)).toList)
+    private def call(name : String, arguments : Typed[_]*) : Untyped = Call("radians", arguments.map(untyped).toList)
 
     def radians(degrees : R) = R(call("radians", degrees))
     def radians(degrees : Vec2) = Vec2(call("radians", degrees))
