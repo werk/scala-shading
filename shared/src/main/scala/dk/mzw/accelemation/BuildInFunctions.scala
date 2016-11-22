@@ -76,6 +76,11 @@ object BuildInFunctions {
     def log2(x : Vec3) = Vec3(call("log2", x))
     def log2(x : Vec4) = Vec4(call("log2", x))
 
+    def sqrt(x : R) = R(call("sqrt", x))
+    def sqrt(x : Vec2) = Vec2(call("sqrt", x))
+    def sqrt(x : Vec3) = Vec3(call("sqrt", x))
+    def sqrt(x : Vec4) = Vec4(call("sqrt", x))
+
     /*    //vec3 sqrt(vec3 x)
         def sqrt : Typed[Double] = wrap(v)(Call("sqrt", List(untyped)))
 
