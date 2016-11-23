@@ -3,8 +3,8 @@ package dk.mzw.accelemation
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Paths, Files}
 
-import dk.mzw.accelemation.Language._
-import dk.mzw.accelemation.Language.Math._
+import dk.mzw.accelemation.BuildInFunctions._
+import dk.mzw.accelemation.External._
 import dk.mzw.accelemation.samples.{HidingDevils, Spiral, TimeLens}
 
 object Main {

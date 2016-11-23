@@ -1,6 +1,8 @@
 package dk.mzw.accelemation
 
-import dk.mzw.accelemation.Language._
+import dk.mzw.accelemation.External._
+import dk.mzw.accelemation.Global._
+import dk.mzw.accelemation.BindNative._
 import dk.mzw.accelemation.samples.{HidingDevils, Spiral, TimeLens}
 
 object BindFunctionTest {
@@ -10,23 +12,23 @@ object BindFunctionTest {
         val plus2 = plus _
         val plus3 = {a : R => b : R => a + b}
 
-        val inc = bindNative1[Double, Double]("""
+        val inc = bindNative1[R, R]("""
             float inc(float x) {
                 return x + 1
             }
         """)
 
-        val plus4 = bindNative2[Double, Double, Double]("""
+        val plus4 = bindNative2[R, R, R]("""
             float plus(float a1, float a3) {
                 return a1 + a3;
             }
         """)
 
-        val plusBuild = bind2(plus, "plus")
-        val plusBuild2 = bind2(plus2, "plus2")
-        val plusBuild3 = bind2(plus3, "plus3")
+        val plusBuild = (plus _).global("plus")
+        val plusBuild2 = plus2.global("plus2")
+        val plusBuild3 = plus3.global("plus3")
 
-        val spiral = bind3(Spiral.apply, "spiral")
+        val spiral = Spiral.apply.global("spiral")
 
         val timeLens2 : Animation = { t => x => y =>
             spiral(t)(x)(y) bind { s =>
@@ -34,8 +36,8 @@ object BindFunctionTest {
             }
         }
 
-        val time_lens = bind3(timeLens2, "time_lens")
-        val hiding_devils = bind3(HidingDevils.apply, "hiding_devils")
+        val time_lens = timeLens2.global("time_lens")
+        val hiding_devils = HidingDevils.apply.global("hiding_devils")
         val x = time_lens(1)(2)(3)
         println(x)
 

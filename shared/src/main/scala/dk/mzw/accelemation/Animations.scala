@@ -1,7 +1,7 @@
 package dk.mzw.accelemation
 
-import dk.mzw.accelemation.Language._
-import dk.mzw.accelemation.Language.Math._
+import dk.mzw.accelemation.External._
+import dk.mzw.accelemation.BuildInFunctions._
 import dk.mzw.accelemation.Arithmetic._
 
 object Animations {

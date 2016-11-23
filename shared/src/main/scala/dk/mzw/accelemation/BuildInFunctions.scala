@@ -6,6 +6,13 @@ import dk.mzw.accelemation.External._
 object BuildInFunctions {
     private def call(name : String, arguments : Typed[_]*) : Untyped = Call("radians", arguments.map(untyped).toList)
 
+    private def iterate[A <: Typed[_]](name : String, make : Untyped => A, x : A, y : A, zs : Seq[A]) : A = {
+        make(zs.foldLeft(call("min", x, y)){case (m, a) => call("min", make(m), a)})
+    }
+
+    // TODO make global
+    val pi : R = 3.141592653589793238462643383
+
     def radians(degrees : R) = R(call("radians", degrees))
     def radians(degrees : Vec2) = Vec2(call("radians", degrees))
     def radians(degrees : Vec3) = Vec3(call("radians", degrees))
@@ -81,41 +88,70 @@ object BuildInFunctions {
     def sqrt(x : Vec3) = Vec3(call("sqrt", x))
     def sqrt(x : Vec4) = Vec4(call("sqrt", x))
 
-    /*    //vec3 sqrt(vec3 x)
-        def sqrt : Typed[Double] = wrap(v)(Call("sqrt", List(untyped)))
+    def inversesqrt(x : R) = R(call("inversesqrt", x))
+    def inversesqrt(x : Vec2) = Vec2(call("inversesqrt", x))
+    def inversesqrt(x : Vec3) = Vec3(call("inversesqrt", x))
+    def inversesqrt(x : Vec4) = Vec4(call("inversesqrt", x))
 
-        //vec3 inversesqrt(vec3 x)
-        def inversesqrt : Typed[Double] = wrap(v)(Call("inversesqrt", List(untyped)))
+    def abs(x : R) = R(call("abs", x))
+    def abs(x : Vec2) = Vec2(call("abs", x))
+    def abs(x : Vec3) = Vec3(call("abs", x))
+    def abs(x : Vec4) = Vec4(call("abs", x))
 
-        //vec3 abs(vec3 x)
-        def abs : Typed[Double] = wrap(v)(Call("abs", List(untyped)))
+    def sign(x : R) = R(call("sign", x))
+    def sign(x : Vec2) = Vec2(call("sign", x))
+    def sign(x : Vec3) = Vec3(call("sign", x))
+    def sign(x : Vec4) = Vec4(call("sign", x))
 
-        //vec3 sign(vec3 x)
-        def sign : Typed[Double] = wrap(v)(Call("sign", List(untyped)))
+    def floor(x : R) = R(call("floor", x))
+    def floor(x : Vec2) = Vec2(call("floor", x))
+    def floor(x : Vec3) = Vec3(call("floor", x))
+    def floor(x : Vec4) = Vec4(call("floor", x))
 
-        //vec3 floor(vec3 x)
-        def floor : Typed[Double] = wrap(v)(Call("floor", List(untyped)))
+    def ceil(x : R) = R(call("ceil", x))
+    def ceil(x : Vec2) = Vec2(call("ceil", x))
+    def ceil(x : Vec3) = Vec3(call("ceil", x))
+    def ceil(x : Vec4) = Vec4(call("ceil", x))
 
-        //vec3 ceil(vec3 x)
-        def ceil : Typed[Double] = wrap(v)(Call("ceil", List(untyped)))
+    def fract(x : R) = R(call("fract", x))
+    def fract(x : Vec2) = Vec2(call("fract", x))
+    def fract(x : Vec3) = Vec3(call("fract", x))
+    def fract(x : Vec4) = Vec4(call("fract", x))
 
-        //vec3 fract(vec3 x)
-        def fract : Typed[Double] = wrap(v)(Call("fract", List(untyped)))
+    def mod(x : R, y : R) = R(call("mod", x, y))
+    def mod(x : Vec2, y : Vec2) = Vec2(call("mod", x, y))
+    def mod(x : Vec3, y : Vec3) = Vec3(call("mod", x, y))
+    def mod(x : Vec4, y : Vec4) = Vec4(call("mod", x, y))
 
-        //vec3 mod(vec3 x, vec3 y)
-        def mod(y : Typed[Double]) : Typed[Double] = wrap(v)(Call("mod", List(untyped, y.untyped)))
+    def min(x : R, y : R, zs : R*) = iterate("min", R(_), x, y, zs)
+    def min(x : Vec2, y : Vec2, zs : Vec2*) = iterate("min", Vec2(_), x, y, zs)
+    def min(x : Vec3, y : Vec3, zs : Vec3*) = iterate("min", Vec3(_), x, y, zs)
+    def min(x : Vec4, y : Vec4, zs : Vec4*) = iterate("min", Vec4(_), x, y, zs)
 
-        //vec3 min(vec3 x, vec3 y)
-        def min(y : Typed[Double]) : Typed[Double] = wrap(v)(Call("min", List(untyped, y.untyped)))
+    def max(x : R, y : R, zs : R*) = iterate("max", R(_), x, y, zs)
+    def max(x : Vec2, y : Vec2, zs : Vec2*) = iterate("max", Vec2(_), x, y, zs)
+    def max(x : Vec3, y : Vec3, zs : Vec3*) = iterate("max", Vec3(_), x, y, zs)
+    def max(x : Vec4, y : Vec4, zs : Vec4*) = iterate("max", Vec4(_), x, y, zs)
 
-        //vec3 max(vec3 x, vec3 y)
-        def max(y : Typed[Double]) : Typed[Double] = wrap(v)(Call("max", List(untyped, y.untyped)))
 
-        //vec3 clamp(vec3 x, vec3 minVal, vec3 maxVal)
-        def clamp(minVal : Typed[Double], maxVal : Typed[Double]) : Typed[Double] = wrap(v)(Call("clamp", List(untyped, minVal.untyped, maxVal.untyped)))
+    def clamp(x : R, minVal : R, maxVal : R) = R(call("clamp", x, minVal, maxVal))
+    def clamp(x : Vec2, minVal : Vec2, maxVal : Vec2) = Vec2(call("clamp", x, minVal, maxVal))
+    def clamp(x : Vec3, minVal : Vec3, maxVal : Vec3) = Vec3(call("clamp", x, minVal, maxVal))
+    def clamp(x : Vec4, minVal : Vec4, maxVal : Vec4) = Vec4(call("clamp", x, minVal, maxVal))
+    def clamp(x : Vec2, minVal : R, maxVal : R) = Vec2(call("clamp", x, minVal, maxVal))
+    def clamp(x : Vec3, minVal : R, maxVal : R) = Vec3(call("clamp", x, minVal, maxVal))
+    def clamp(x : Vec4, minVal : R, maxVal : R) = Vec4(call("clamp", x, minVal, maxVal))
 
-        //vec3 mix(vec3 x, vec3 y, vec3 a)
-        def mix(y : Typed[Double], a : Typed[Double]) : Typed[Double] = wrap(v)(Call("mix", List(untyped, y.untyped, a.untyped)))
+    def mix(x : R, y : R, a : R) = R(call("mix", x, y, a))
+    def mix(x : Vec2, y : Vec2, a : Vec2) = Vec2(call("mix", x, y, a))
+    def mix(x : Vec3, y : Vec3, a : Vec3) = Vec3(call("mix", x, y, a))
+    def mix(x : Vec4, y : Vec4, a : Vec4) = Vec4(call("mix", x, y, a))
+    def mix(x : Vec2, y : Vec2, a : R) = Vec2(call("mix", x, y, a))
+    def mix(x : Vec3, y : Vec3, a : R) = Vec3(call("mix", x, y, a))
+    def mix(x : Vec4, y : Vec4, a : R) = Vec4(call("mix", x, y, a))
+
+    /*
+
 
         //vec3 step(vec3 edge, vec3 x)
         def step(edge : Typed[Double]) : Typed[Double] = wrap(v)(Call("step", List(edge.untyped, untyped)))

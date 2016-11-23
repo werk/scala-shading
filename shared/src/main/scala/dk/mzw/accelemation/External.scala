@@ -4,6 +4,32 @@ import dk.mzw.accelemation.Internal._
 
 object External {
 
+    def if_[A <: Typed[A]](condition : B, whenTrue : Typed[A], whenFalse : Typed[A]) : Typed[A] = whenTrue.make(If(condition.untyped, whenTrue.untyped, whenFalse.untyped))
+
+    def vec2(x : R, y : R) = Vec2(x, y)
+    def vec3(x : R, y : R, z : R) = Vec3(x, y, z)
+    def vec4(x : R, y : R, z : R, w : R) = Vec4(x, y, z, w)
+    def rgba(r : R, g : R, b : R, a : R) : Color = Vec4(r, g, b, a)
+
+    type Time = R
+    type Color = Vec4
+
+    type Image = R => R => Color
+    type Animation = Time => Image
+
+    implicit def liftUniformB(uniform : Uniform[Boolean]) : B = B(UniformU(uniform, "bool"))
+    implicit def liftUniformR(uniform : Uniform[Double]) : R = R(UniformU(uniform, "float"))
+    implicit def liftUniformI(uniform : Uniform[Int]) : I = I(UniformU(uniform, "int"))
+    implicit def liftUniformVec2(uniform : Uniform[(Double, Double)]) : Vec2 = Vec2(UniformU(uniform, "vec2"))
+    implicit def liftUniformVec3(uniform : Uniform[(Double, Double, Double)]) : Vec3 = Vec3(UniformU(uniform, "vec3"))
+    implicit def liftUniformVec4(uniform : Uniform[(Double, Double, Double, Double)]) : Vec4 = Vec4(UniformU(uniform, "vec4"))
+    implicit def liftUniformBVec2(uniform : Uniform[(Boolean, Boolean)]) : BVec2 = BVec2(UniformU(uniform, "vec2"))
+    implicit def liftUniformBVec3(uniform : Uniform[(Boolean, Boolean, Boolean)]) : BVec3 = BVec3(UniformU(uniform, "vec3"))
+    implicit def liftUniformBVec4(uniform : Uniform[(Boolean, Boolean, Boolean, Boolean)]) : BVec4 = BVec4(UniformU(uniform, "vec4"))
+    implicit def liftUniformIVec2(uniform : Uniform[(Int, Int)]) : IVec2 = IVec2(UniformU(uniform, "vec2"))
+    implicit def liftUniformIVec3(uniform : Uniform[(Int, Int, Int)]) : IVec3 = IVec3(UniformU(uniform, "vec3"))
+    implicit def liftUniformIVec4(uniform : Uniform[(Int, Int, Int, Int)]) : IVec4 = IVec4(UniformU(uniform, "vec4"))
+
     /**
       * Grant access to the internal untyped AST
       */
@@ -20,21 +46,22 @@ object External {
     // implicit constructors used for bind
     case class Bridge[T](
         make : Untyped => T,
-        glslTypeName : String
+        glslTypeName : String,
+        untyped : T => Untyped
     )
 
-    implicit def bridgeR = Bridge[R](R(_), "float")
-    implicit def bridgeB = Bridge[B](B(_), "bool")
-    implicit def bridgeI = Bridge[I](I(_), "int")
-    implicit def bridgeVec2 = Bridge[Vec2](Vec2(_), "vec2")
-    implicit def bridgeVec3 = Bridge[Vec3](Vec3(_), "vec3")
-    implicit def bridgeVec4 = Bridge[Vec4](Vec4(_), "vec4")
-    implicit def bridgeBVec2 = Bridge[BVec2](BVec2(_), "bvec2")
-    implicit def bridgeBVec3 = Bridge[BVec3](BVec3(_), "bvec3")
-    implicit def bridgeBVec4 = Bridge[BVec4](BVec4(_), "bvec4")
-    implicit def bridgeIVec2 = Bridge[IVec2](IVec2(_), "ivec2")
-    implicit def bridgeIVec3 = Bridge[IVec3](IVec3(_), "ivec3")
-    implicit def bridgeIVec4 = Bridge[IVec4](IVec4(_), "ivec4")
+    implicit def bridgeR = Bridge[R](R(_), "float", {_.untyped})
+    implicit def bridgeB = Bridge[B](B(_), "bool", {_.untyped})
+    implicit def bridgeI = Bridge[I](I(_), "int", {_.untyped})
+    implicit def bridgeVec2 = Bridge[Vec2](Vec2(_), "vec2", {_.untyped})
+    implicit def bridgeVec3 = Bridge[Vec3](Vec3(_), "vec3", {_.untyped})
+    implicit def bridgeVec4 = Bridge[Vec4](Vec4(_), "vec4", {_.untyped})
+    implicit def bridgeBVec2 = Bridge[BVec2](BVec2(_), "bvec2", {_.untyped})
+    implicit def bridgeBVec3 = Bridge[BVec3](BVec3(_), "bvec3", {_.untyped})
+    implicit def bridgeBVec4 = Bridge[BVec4](BVec4(_), "bvec4", {_.untyped})
+    implicit def bridgeIVec2 = Bridge[IVec2](IVec2(_), "ivec2", {_.untyped})
+    implicit def bridgeIVec3 = Bridge[IVec3](IVec3(_), "ivec3", {_.untyped})
+    implicit def bridgeIVec4 = Bridge[IVec4](IVec4(_), "ivec4", {_.untyped})
 
     /**
       * Any supported GLSL type
@@ -127,13 +154,13 @@ object External {
         protected[External] val typeName = "vec2"
     }
 
-    case class Vec3(protected[External] val untyped : Untyped) extends Vec[Vec3] {
+    case class Vec3(protected[External] val untyped : Untyped) extends Vec[Vec3] with XVec3[Vec3, R, Vec2, Vec3, Vec4] {
         //protected[External] type Self = Vec3
         protected[External] val make = copy _
         protected[External] val typeName = "vec3"
     }
 
-    case class Vec4(protected[External] val untyped : Untyped) extends Vec[Vec4] {
+    case class Vec4(protected[External] val untyped : Untyped) extends Vec[Vec4] with XVec4[Vec4, R, Vec2, Vec3, Vec4] {
         //protected[External] type Self = Vec4
         protected[External] val make = copy _
         protected[External] val typeName = "vec4"
@@ -211,24 +238,24 @@ object External {
     }
 
     sealed trait XVec2[Self <: XVec2[Self, Self1, Self2, Self3, Self4], Self1, Self2, Self3, Self4] extends XVec[Self, Self1, Self2, Self3, Self4] {
-        def x : Self2 = make2(Field("x", untyped))
-        def y : Self2 = make2(Field("y", untyped))
+        def x : Self1 = make1(Field("x", untyped))
+        def y : Self1 = make1(Field("y", untyped))
 
         def xx : Self2 = make2(Field("xx", untyped))
         def xy : Self2 = make2(Field("xy", untyped))
         def yx : Self2 = make2(Field("yx", untyped))
         def yy : Self2 = make2(Field("yy", untyped))
 
-        def r : Self2 = make2(Field("r", untyped))
-        def g : Self2 = make2(Field("g", untyped))
+        def r : Self1 = make1(Field("r", untyped))
+        def g : Self1 = make1(Field("g", untyped))
 
         def rr : Self2 = make2(Field("rr", untyped))
         def rg : Self2 = make2(Field("rg", untyped))
         def gr : Self2 = make2(Field("gr", untyped))
         def gg : Self2 = make2(Field("gg", untyped))
 
-        def s : Self2 = make2(Field("s", untyped))
-        def t : Self2 = make2(Field("t", untyped))
+        def s : Self1 = make1(Field("s", untyped))
+        def t : Self1 = make1(Field("t", untyped))
 
         def ss : Self2 = make2(Field("ss", untyped))
         def st : Self2 = make2(Field("st", untyped))
@@ -236,20 +263,20 @@ object External {
         def tt : Self2 = make2(Field("tt", untyped))
     }
 
-    sealed trait XVec3[Self <: XVec2[Self, Self1, Self2, Self3, Self4], Self1, Self2, Self3, Self4] extends XVec[Self, Self1, Self2, Self3, Self4] {
-        def x : Self3 = make3(Field("x", untyped))
-        def y : Self3 = make3(Field("y", untyped))
-        def z : Self3 = make3(Field("z", untyped))
+    sealed trait XVec3[Self <: XVec3[Self, Self1, Self2, Self3, Self4], Self1, Self2, Self3, Self4] extends XVec[Self, Self1, Self2, Self3, Self4] {
+        def x : Self1 = make1(Field("x", untyped))
+        def y : Self1 = make1(Field("y", untyped))
+        def z : Self1 = make1(Field("z", untyped))
 
-        def xx : Self3 = make3(Field("xx", untyped))
-        def xy : Self3 = make3(Field("xy", untyped))
-        def xz : Self3 = make3(Field("xz", untyped))
-        def yx : Self3 = make3(Field("yx", untyped))
-        def yy : Self3 = make3(Field("yy", untyped))
-        def yz : Self3 = make3(Field("yz", untyped))
-        def zx : Self3 = make3(Field("zx", untyped))
-        def zy : Self3 = make3(Field("zy", untyped))
-        def zz : Self3 = make3(Field("zz", untyped))
+        def xx : Self2 = make2(Field("xx", untyped))
+        def xy : Self2 = make2(Field("xy", untyped))
+        def xz : Self2 = make2(Field("xz", untyped))
+        def yx : Self2 = make2(Field("yx", untyped))
+        def yy : Self2 = make2(Field("yy", untyped))
+        def yz : Self2 = make2(Field("yz", untyped))
+        def zx : Self2 = make2(Field("zx", untyped))
+        def zy : Self2 = make2(Field("zy", untyped))
+        def zz : Self2 = make2(Field("zz", untyped))
 
         def xxx : Self3 = make3(Field("xxx", untyped))
         def xxy : Self3 = make3(Field("xxy", untyped))
@@ -279,6 +306,7 @@ object External {
         def zzy : Self3 = make3(Field("zzy", untyped))
         def zzz : Self3 = make3(Field("zzz", untyped))
 
+        // TODO regenerate Self1 not Self3 etc
         def r : Self3 = make3(Field("r", untyped))
         def g : Self3 = make3(Field("g", untyped))
         def b : Self3 = make3(Field("b", untyped))
@@ -365,93 +393,93 @@ object External {
 
     }
 
-    sealed trait XVec4[Self <: XVec2[Self, Self1, Self2, Self3, Self4], Self1, Self2, Self3, Self4] extends XVec[Self, Self1, Self2, Self3, Self4] {
-        def x : Self4 = make4(Field("x", untyped))
-        def y : Self4 = make4(Field("y", untyped))
-        def z : Self4 = make4(Field("z", untyped))
-        def w : Self4 = make4(Field("w", untyped))
+    sealed trait XVec4[Self <: XVec4[Self, Self1, Self2, Self3, Self4], Self1, Self2, Self3, Self4] extends XVec[Self, Self1, Self2, Self3, Self4] {
+        def x : Self1 = make1(Field("x", untyped))
+        def y : Self1 = make1(Field("y", untyped))
+        def z : Self1 = make1(Field("z", untyped))
+        def w : Self1 = make1(Field("w", untyped))
 
-        def xx : Self4 = make4(Field("xx", untyped))
-        def xy : Self4 = make4(Field("xy", untyped))
-        def xz : Self4 = make4(Field("xz", untyped))
-        def xw : Self4 = make4(Field("xw", untyped))
-        def yx : Self4 = make4(Field("yx", untyped))
-        def yy : Self4 = make4(Field("yy", untyped))
-        def yz : Self4 = make4(Field("yz", untyped))
-        def yw : Self4 = make4(Field("yw", untyped))
-        def zx : Self4 = make4(Field("zx", untyped))
-        def zy : Self4 = make4(Field("zy", untyped))
-        def zz : Self4 = make4(Field("zz", untyped))
-        def zw : Self4 = make4(Field("zw", untyped))
-        def wx : Self4 = make4(Field("wx", untyped))
-        def wy : Self4 = make4(Field("wy", untyped))
-        def wz : Self4 = make4(Field("wz", untyped))
-        def ww : Self4 = make4(Field("ww", untyped))
+        def xx : Self2 = make2(Field("xx", untyped))
+        def xy : Self2 = make2(Field("xy", untyped))
+        def xz : Self2 = make2(Field("xz", untyped))
+        def xw : Self2 = make2(Field("xw", untyped))
+        def yx : Self2 = make2(Field("yx", untyped))
+        def yy : Self2 = make2(Field("yy", untyped))
+        def yz : Self2 = make2(Field("yz", untyped))
+        def yw : Self2 = make2(Field("yw", untyped))
+        def zx : Self2 = make2(Field("zx", untyped))
+        def zy : Self2 = make2(Field("zy", untyped))
+        def zz : Self2 = make2(Field("zz", untyped))
+        def zw : Self2 = make2(Field("zw", untyped))
+        def wx : Self2 = make2(Field("wx", untyped))
+        def wy : Self2 = make2(Field("wy", untyped))
+        def wz : Self2 = make2(Field("wz", untyped))
+        def ww : Self2 = make2(Field("ww", untyped))
 
-        def xxx : Self4 = make4(Field("xxx", untyped))
-        def xxy : Self4 = make4(Field("xxy", untyped))
-        def xxz : Self4 = make4(Field("xxz", untyped))
-        def xxw : Self4 = make4(Field("xxw", untyped))
-        def xyx : Self4 = make4(Field("xyx", untyped))
-        def xyy : Self4 = make4(Field("xyy", untyped))
-        def xyz : Self4 = make4(Field("xyz", untyped))
-        def xyw : Self4 = make4(Field("xyw", untyped))
-        def xzx : Self4 = make4(Field("xzx", untyped))
-        def xzy : Self4 = make4(Field("xzy", untyped))
-        def xzz : Self4 = make4(Field("xzz", untyped))
-        def xzw : Self4 = make4(Field("xzw", untyped))
-        def xwx : Self4 = make4(Field("xwx", untyped))
-        def xwy : Self4 = make4(Field("xwy", untyped))
-        def xwz : Self4 = make4(Field("xwz", untyped))
-        def xww : Self4 = make4(Field("xww", untyped))
-        def yxx : Self4 = make4(Field("yxx", untyped))
-        def yxy : Self4 = make4(Field("yxy", untyped))
-        def yxz : Self4 = make4(Field("yxz", untyped))
-        def yxw : Self4 = make4(Field("yxw", untyped))
-        def yyx : Self4 = make4(Field("yyx", untyped))
-        def yyy : Self4 = make4(Field("yyy", untyped))
-        def yyz : Self4 = make4(Field("yyz", untyped))
-        def yyw : Self4 = make4(Field("yyw", untyped))
-        def yzx : Self4 = make4(Field("yzx", untyped))
-        def yzy : Self4 = make4(Field("yzy", untyped))
-        def yzz : Self4 = make4(Field("yzz", untyped))
-        def yzw : Self4 = make4(Field("yzw", untyped))
-        def ywx : Self4 = make4(Field("ywx", untyped))
-        def ywy : Self4 = make4(Field("ywy", untyped))
-        def ywz : Self4 = make4(Field("ywz", untyped))
-        def yww : Self4 = make4(Field("yww", untyped))
-        def zxx : Self4 = make4(Field("zxx", untyped))
-        def zxy : Self4 = make4(Field("zxy", untyped))
-        def zxz : Self4 = make4(Field("zxz", untyped))
-        def zxw : Self4 = make4(Field("zxw", untyped))
-        def zyx : Self4 = make4(Field("zyx", untyped))
-        def zyy : Self4 = make4(Field("zyy", untyped))
-        def zyz : Self4 = make4(Field("zyz", untyped))
-        def zyw : Self4 = make4(Field("zyw", untyped))
-        def zzx : Self4 = make4(Field("zzx", untyped))
-        def zzy : Self4 = make4(Field("zzy", untyped))
-        def zzz : Self4 = make4(Field("zzz", untyped))
-        def zzw : Self4 = make4(Field("zzw", untyped))
-        def zwx : Self4 = make4(Field("zwx", untyped))
-        def zwy : Self4 = make4(Field("zwy", untyped))
-        def zwz : Self4 = make4(Field("zwz", untyped))
-        def zww : Self4 = make4(Field("zww", untyped))
-        def wxx : Self4 = make4(Field("wxx", untyped))
-        def wxy : Self4 = make4(Field("wxy", untyped))
-        def wxz : Self4 = make4(Field("wxz", untyped))
-        def wxw : Self4 = make4(Field("wxw", untyped))
-        def wyx : Self4 = make4(Field("wyx", untyped))
-        def wyy : Self4 = make4(Field("wyy", untyped))
-        def wyz : Self4 = make4(Field("wyz", untyped))
-        def wyw : Self4 = make4(Field("wyw", untyped))
-        def wzx : Self4 = make4(Field("wzx", untyped))
-        def wzy : Self4 = make4(Field("wzy", untyped))
-        def wzz : Self4 = make4(Field("wzz", untyped))
-        def wzw : Self4 = make4(Field("wzw", untyped))
-        def wwx : Self4 = make4(Field("wwx", untyped))
-        def wwy : Self4 = make4(Field("wwy", untyped))
-        def wwz : Self4 = make4(Field("wwz", untyped))
-        def www : Self4 = make4(Field("www", untyped))
+        def xxx : Self3 = make3(Field("xxx", untyped))
+        def xxy : Self3 = make3(Field("xxy", untyped))
+        def xxz : Self3 = make3(Field("xxz", untyped))
+        def xxw : Self3 = make3(Field("xxw", untyped))
+        def xyx : Self3 = make3(Field("xyx", untyped))
+        def xyy : Self3 = make3(Field("xyy", untyped))
+        def xyz : Self3 = make3(Field("xyz", untyped))
+        def xyw : Self3 = make3(Field("xyw", untyped))
+        def xzx : Self3 = make3(Field("xzx", untyped))
+        def xzy : Self3 = make3(Field("xzy", untyped))
+        def xzz : Self3 = make3(Field("xzz", untyped))
+        def xzw : Self3 = make3(Field("xzw", untyped))
+        def xwx : Self3 = make3(Field("xwx", untyped))
+        def xwy : Self3 = make3(Field("xwy", untyped))
+        def xwz : Self3 = make3(Field("xwz", untyped))
+        def xww : Self3 = make3(Field("xww", untyped))
+        def yxx : Self3 = make3(Field("yxx", untyped))
+        def yxy : Self3 = make3(Field("yxy", untyped))
+        def yxz : Self3 = make3(Field("yxz", untyped))
+        def yxw : Self3 = make3(Field("yxw", untyped))
+        def yyx : Self3 = make3(Field("yyx", untyped))
+        def yyy : Self3 = make3(Field("yyy", untyped))
+        def yyz : Self3 = make3(Field("yyz", untyped))
+        def yyw : Self3 = make3(Field("yyw", untyped))
+        def yzx : Self3 = make3(Field("yzx", untyped))
+        def yzy : Self3 = make3(Field("yzy", untyped))
+        def yzz : Self3 = make3(Field("yzz", untyped))
+        def yzw : Self3 = make3(Field("yzw", untyped))
+        def ywx : Self3 = make3(Field("ywx", untyped))
+        def ywy : Self3 = make3(Field("ywy", untyped))
+        def ywz : Self3 = make3(Field("ywz", untyped))
+        def yww : Self3 = make3(Field("yww", untyped))
+        def zxx : Self3 = make3(Field("zxx", untyped))
+        def zxy : Self3 = make3(Field("zxy", untyped))
+        def zxz : Self3 = make3(Field("zxz", untyped))
+        def zxw : Self3 = make3(Field("zxw", untyped))
+        def zyx : Self3 = make3(Field("zyx", untyped))
+        def zyy : Self3 = make3(Field("zyy", untyped))
+        def zyz : Self3 = make3(Field("zyz", untyped))
+        def zyw : Self3 = make3(Field("zyw", untyped))
+        def zzx : Self3 = make3(Field("zzx", untyped))
+        def zzy : Self3 = make3(Field("zzy", untyped))
+        def zzz : Self3 = make3(Field("zzz", untyped))
+        def zzw : Self3 = make3(Field("zzw", untyped))
+        def zwx : Self3 = make3(Field("zwx", untyped))
+        def zwy : Self3 = make3(Field("zwy", untyped))
+        def zwz : Self3 = make3(Field("zwz", untyped))
+        def zww : Self3 = make3(Field("zww", untyped))
+        def wxx : Self3 = make3(Field("wxx", untyped))
+        def wxy : Self3 = make3(Field("wxy", untyped))
+        def wxz : Self3 = make3(Field("wxz", untyped))
+        def wxw : Self3 = make3(Field("wxw", untyped))
+        def wyx : Self3 = make3(Field("wyx", untyped))
+        def wyy : Self3 = make3(Field("wyy", untyped))
+        def wyz : Self3 = make3(Field("wyz", untyped))
+        def wyw : Self3 = make3(Field("wyw", untyped))
+        def wzx : Self3 = make3(Field("wzx", untyped))
+        def wzy : Self3 = make3(Field("wzy", untyped))
+        def wzz : Self3 = make3(Field("wzz", untyped))
+        def wzw : Self3 = make3(Field("wzw", untyped))
+        def wwx : Self3 = make3(Field("wwx", untyped))
+        def wwy : Self3 = make3(Field("wwy", untyped))
+        def wwz : Self3 = make3(Field("wwz", untyped))
+        def www : Self3 = make3(Field("www", untyped))
 
         def xxxx : Self4 = make4(Field("xxxx", untyped))
         def xxxy : Self4 = make4(Field("xxxy", untyped))
@@ -710,10 +738,10 @@ object External {
         def wwwz : Self4 = make4(Field("wwwz", untyped))
         def wwww : Self4 = make4(Field("wwww", untyped))
 
-        def r : Self4 = make4(Field("r", untyped))
-        def g : Self4 = make4(Field("g", untyped))
-        def b : Self4 = make4(Field("b", untyped))
-        def a : Self4 = make4(Field("a", untyped))
+        def r : Self1 = make1(Field("r", untyped))
+        def g : Self1 = make1(Field("g", untyped))
+        def b : Self1 = make1(Field("b", untyped))
+        def a : Self1 = make1(Field("a", untyped))
 
         def rr : Self4 = make4(Field("rr", untyped))
         def rg : Self4 = make4(Field("rg", untyped))

@@ -2,27 +2,37 @@ package dk.mzw.accelemation
 
 import dk.mzw.accelemation.FunctionParser.{DecomposedConstant, DecomposedFunction}
 import dk.mzw.accelemation.Internal._
-import dk.mzw.accelemation.Language._
-import dk.mzw.accelemation.Prelude.pixelToUnit
+import dk.mzw.accelemation.External._
+import dk.mzw.accelemation.Global._
+import dk.mzw.accelemation.BuildInFunctions._
 
 
 object Compile {
     case class SourceAndUniforms(source : String, uniforms : Set[UniformU])
 
     def apply(f : Animation, name : String, t : String, x : String, y : String) : SourceAndUniforms = {
-        val bound = bind3(f, name)
-        val applied = bound (Term[Double](BuiltIn(t))) (Term[Double](BuiltIn(x))) (Term[Double](BuiltIn(y)))
-        val definition = applied.untyped.asInstanceOf[FunctionDefinitionCall].definition
+        val bound = f.global(name)
+        val applied = bound (R(BuiltIn(t))) (R(BuiltIn(x))) (R(BuiltIn(y)))
+        val definition = untyped(applied).asInstanceOf[FunctionDefinitionCall].definition
         new GlobalScope().compile(definition)
     }
 
     private val defaultTimeUniform = new Uniform[Double]("u_time", 0)
     private val defaultResolutionUniform = new Uniform[(Double, Double)]("u_resolution", (1,1))
 
+
+    // TODO move to util library
+    def pixelToUnit(resolution : Vec2)(pixel : Vec2) : Vec2 = {
+        val streched_position = (pixel / resolution) * Vec2(2.0, 2.0) - Vec2(1.0, 1.0)
+        val aspect = Vec2(max(resolution.x / resolution.y, 1.0), max(resolution.y / resolution.x, 1.0))
+        streched_position * aspect
+    }
+
+
     def unit(f : Animation, timeUniform : Uniform[Double] = defaultTimeUniform, resolutionUniform : Uniform[(Double, Double)] = defaultResolutionUniform) : String = {
-        val trans = pixelToUnit(resolutionUniform)
+        val trans = pixelToUnit(resolutionUniform) _
         val g : Animation = {t => x => y =>
-            trans(vec2(x, y)) bind {xy =>
+            trans(Vec2(x, y)) bind {xy =>
                 f(t) (xy.x) (xy.y)
             }
 
@@ -35,9 +45,9 @@ object Compile {
     }
 
     def pixel(f : Image) : String = {
-        val pixel = Term[(Double, Double)](BuiltIn("gl_FragCoord"))
+        val pixel = Vec2(BuiltIn("gl_FragCoord"))
         val applied = f (pixel.x) (pixel.y)
-        val SourceAndUniforms(source, _) = new GlobalScope().compile(applied.untyped)
+        val SourceAndUniforms(source, _) = new GlobalScope().compile(untyped(applied))
         source
     }
     

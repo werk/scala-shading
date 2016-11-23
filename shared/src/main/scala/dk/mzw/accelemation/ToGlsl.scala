@@ -2,7 +2,7 @@ package dk.mzw.accelemation
 
 import dk.mzw.accelemation.Compile.SourceAndUniforms
 import dk.mzw.accelemation.Internal._
-import dk.mzw.accelemation.Language._
+import dk.mzw.accelemation.External._
 
 object ToGlsl {
 

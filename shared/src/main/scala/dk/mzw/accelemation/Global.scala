@@ -1,7 +1,7 @@
 package dk.mzw.accelemation
 
 import dk.mzw.accelemation.Internal._
-import dk.mzw.accelemation.Language._
+import dk.mzw.accelemation.External._
 
 object Global {
 
@@ -22,57 +22,57 @@ object Global {
         def global(nameHint : String) : F = make(Thunk(original, untyped, nameHint, Seq(), Seq()))
     }
 
-    implicit def simpleTermFunction[A](a : Term[A]) (implicit
-        typeA : VariableType[Term[A]]
-    ) = TermFunction[Term[A]](
+    implicit def simpleTermFunction[A <: Typed[A]](a : A) (implicit
+        bridgeA : Bridge[A]
+    ) = TermFunction[A](
         original = a,
-        untyped = {case Seq() => a.untyped},
-        make = {case thunk => Term[A](FunctionDefinitionCall(
+        untyped = {case Seq() => untyped(a)},
+        make = {case thunk => bridgeA.make(FunctionDefinitionCall(
             definition = DomainFunctionDefinition(
                 identity = thunk.original,
-                signature = Signature(thunk.nameHint, typeA.t, thunk.signature),
+                signature = Signature(thunk.nameHint, bridgeA.glslTypeName, thunk.signature),
                 body = thunk.untyped
             ),
             arguments = Some(thunk.arguments)
         ))}
     )
 
-    implicit def tuple1TermFunction[A, G](f : Term[A] => G) (implicit
-        typeA : VariableType[Term[A]],
+    implicit def tuple1TermFunction[A <: Typed[A], G](f : A => G) (implicit
+        bridgeA : Bridge[A],
         gIsTermFunction : G => TermFunction[G]
-    ) = TermFunction[Term[A] => G](
+    ) = TermFunction[A => G](
         original = f,
-        untyped = { case a :: as => gIsTermFunction(f(Term(a))).untyped(as)},
-        make = {case thunk => a : Term[A] => gIsTermFunction(f(Term(null))).make(thunk.copy(
-            signature = thunk.signature ++ List(typeA.t),
-            arguments = thunk.arguments ++ List(a.untyped)
+        untyped = { case a :: as => gIsTermFunction(f(bridgeA.make(a))).untyped(as)},
+        make = {case thunk => a : A => gIsTermFunction(f(bridgeA.make(null))).make(thunk.copy(
+            signature = thunk.signature ++ List(bridgeA.glslTypeName),
+            arguments = thunk.arguments ++ List(untyped(a))
         ))}
     )
 
-    implicit def tuple2TermFunction[A, B, G](f : (Term[A], Term[B]) => G) (implicit
-        typeA : VariableType[Term[A]],
-        typeB : VariableType[Term[B]],
+    implicit def tuple2TermFunction[A <: Typed[A], B <: Typed[B], G](f : (A, B) => G) (implicit
+        bridgeA : Bridge[A],
+        bridgeB : Bridge[B],
         gIsTermFunction : G => TermFunction[G]
-    ) = TermFunction[(Term[A], Term[B]) => G](
+    ) = TermFunction[(A, B) => G](
         original = f,
-        untyped = { case a :: b :: as => gIsTermFunction(f(Term(a), Term(b))).untyped(as)},
-        make = {case thunk => {case (a : Term[A], b : Term[B]) => gIsTermFunction(f(Term(null), Term(null))).make(thunk.copy(
-            signature = thunk.signature ++ List(typeA.t, typeB.t),
-            arguments = thunk.arguments ++ List(a.untyped, b.untyped)
+        untyped = { case a :: b :: as => gIsTermFunction(f(bridgeA.make(a), bridgeB.make(b))).untyped(as)},
+        make = {case thunk => {case (a : A, b : B) => gIsTermFunction(f(bridgeA.make(null), bridgeB.make(null))).make(thunk.copy(
+            signature = thunk.signature ++ List(bridgeA.glslTypeName, bridgeB.glslTypeName),
+            arguments = thunk.arguments ++ List(untyped(a), untyped(b))
         ))}}
     )
 
-    implicit def tuple3TermFunction[A, B, C, G](f : (Term[A], Term[B], Term[C]) => G) (implicit
-        typeA : VariableType[Term[A]],
-        typeB : VariableType[Term[B]],
-        typeC : VariableType[Term[C]],
+    implicit def tuple3TermFunction[A <: Typed[A], B <: Typed[B], C <: Typed[C], G](f : (A, B, C) => G) (implicit
+        bridgeA : Bridge[A],
+        bridgeB : Bridge[B],
+        bridgeC : Bridge[C],
         gIsTermFunction : G => TermFunction[G]
-    ) = TermFunction[(Term[A], Term[B], Term[C]) => G](
+    ) = TermFunction[(A, B, C) => G](
         original = f,
-        untyped = { case a :: b :: c :: as => gIsTermFunction(f(Term(a), Term(b), Term(c))).untyped(as)},
-        make = {case thunk => {case (a : Term[A], b : Term[B], c : Term[C]) => gIsTermFunction(f(Term(null), Term(null), Term(null))).make(thunk.copy(
-            signature = thunk.signature ++ List(typeA.t, typeB.t, typeC.t),
-            arguments = thunk.arguments ++ List(a.untyped, b.untyped, c.untyped)
+        untyped = { case a :: b :: c :: as => gIsTermFunction(f(bridgeA.make(a), bridgeB.make(b), bridgeC.make(c))).untyped(as)},
+        make = {case thunk => {case (a : A, b : B, c : C) => gIsTermFunction(f(bridgeA.make(null), bridgeB.make(null), bridgeC.make(null))).make(thunk.copy(
+            signature = thunk.signature ++ List(bridgeA.glslTypeName, bridgeB.glslTypeName, bridgeC.glslTypeName),
+            arguments = thunk.arguments ++ List(untyped(a), untyped(b), untyped(c))
         ))}}
     )
 

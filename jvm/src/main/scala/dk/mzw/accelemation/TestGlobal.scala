@@ -1,7 +1,7 @@
 package dk.mzw.accelemation
 
 import dk.mzw.accelemation.Language._
-import dk.mzw.accelemation.Global._
+import dk.mzw.accelemation.TermGlobal._
 
 object TestGlobal {
 

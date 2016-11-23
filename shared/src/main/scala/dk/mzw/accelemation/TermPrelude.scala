@@ -1,11 +1,10 @@
 package dk.mzw.accelemation
 
-import dk.mzw.accelemation.External._
-import dk.mzw.accelemation.BindNative._
+import dk.mzw.accelemation.Language._
 
-object Prelude {
+object TermPrelude {
 
-    val hsva = Function.uncurried(bindNative4[R, R, R, R, Vec4]("""
+    val hsva = Function.uncurried(bindNative4[Double, Double, Double, Double, (Double, Double, Double, Double)]("""
         vec4 hsvaToRgba(float a1, float a2, float a3, float a4) {
             vec4 c = vec4(a1, a2, a3, a4);
             vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
@@ -14,17 +13,6 @@ object Prelude {
             return vec4(r, c.a);
         }
     """))
-
-    /*
-    def hsvaToRgba(a1 : R, a2 : R, a3 : R, a4 : R) {
-        // TODO bind
-        // TODO support R + Vec3 etc
-        val c = vec4(a1, a2, a3, a4)
-        val K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0)
-        val p = abs(fract(c.xxx + K.xyz) * vec3(6, 6, 6) - K.www)
-        val r = c.zzz * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y)
-        Vec4(r, c.a)
-    }*/
 
     /*
     def rgbaToHsva(r : R, g : R, b : R, a : R) : Vec4 = {
@@ -39,7 +27,7 @@ object Prelude {
     }
     */
 
-    val rgbaToHsva = Function.uncurried(bindNative4[R, R, R, R, Vec4]("""
+    val rgbaToHsva = Function.uncurried(bindNative4[Double, Double, Double, Double, (Double, Double, Double, Double)]("""
         vec4 rgbaToHsva(vec4 c) {
             vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
             vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
@@ -51,7 +39,7 @@ object Prelude {
         }
     """))
 
-    val pixelToUnit = bindNative2[Vec2, Vec2, Vec2] ("""
+    val pixelToUnit = bindNative2[(Double, Double), (Double, Double), (Double, Double)] ("""
         vec2 pixelToUnit(vec2 resolution, vec2 pixel) {
             vec2 streched_position = (pixel / resolution) * vec2(2.0, 2.0) - vec2(1.0, 1.0);
             vec2 aspect = vec2(max(resolution.x / resolution.y, 1.0), max(resolution.y / resolution.x, 1.0));
@@ -59,7 +47,7 @@ object Prelude {
         }
     """)
 
-    val simplexNoise = bindNative1[Vec3, R]("""
+    val simplexNoise = bindNative1[(Double, Double, Double), Double]("""
         //
         // Description : Array and textureless GLSL 2D/3D/4D simplex
         //               noise functions.
@@ -153,4 +141,5 @@ object Prelude {
             return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3) ) );
         }
     """)
+
 }

@@ -1,7 +1,7 @@
 package dk.mzw.accelemation
 
-import dk.mzw.accelemation.Language._
-import dk.mzw.accelemation.Language.Math._
+import dk.mzw.accelemation.External._
+import dk.mzw.accelemation.BuildInFunctions._
 import dk.mzw.accelemation.Arithmetic.atan2
 
 object Combinators {
@@ -44,10 +44,10 @@ object Combinators {
 
     def bendSpaceTime (f : Animation) (target : Animation) (t : R) (x : R) (y : R) = {
         f(t)(x)(y) bind { spaceTimeColor =>
-            spaceTimeColor.red bind { dx =>
-                spaceTimeColor.green bind { dy =>
-                    spaceTimeColor.blue bind { dt =>
-                        spaceTimeColor.alpha bind { a =>
+            spaceTimeColor.r bind { dx =>
+                spaceTimeColor.g bind { dy =>
+                    spaceTimeColor.b bind { dt =>
+                        spaceTimeColor.a bind { a =>
                             target(t + dt * a)(x + dx * a)(y + dy * a)
                         }
                     }
@@ -66,7 +66,7 @@ object Combinators {
 
     def colorMap (f : Animation) (target : Animation) (t : R) (x : R) (y : R) : Color =
         f(t)(x)(y) bind { c =>
-            (0.2126 * c.red + 0.7152 * c.green + 0.0722 * c.blue) bind { l =>
+            (0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b) bind { l =>
                 target(t)(l * 2 - 1)(0)
             }
         }
@@ -115,10 +115,10 @@ object Combinators {
         f (x) (y) bind { c1 =>
             g (x) (y) bind { c2 =>
                 rgba(
-                    binOp(c1.red, c2.red),
-                    binOp(c1.green, c2.green),
-                    binOp(c1.blue, c2.blue),
-                    (c1.alpha + c2.alpha) / 2
+                    binOp(c1.r, c2.r),
+                    binOp(c1.g, c2.g),
+                    binOp(c1.b, c2.b),
+                    (c1.a + c2.a) / 2
                 )
             }
         }
@@ -134,12 +134,12 @@ object Combinators {
     def topImage (f : Image) (g : Image) (x : R) (y : R) =
         f(x)(y) bind { a: Color =>
             g(x)(y) bind { b: Color =>
-                def combine(component: Color => R) = component(a) * a.alpha + component(b) * b.alpha * (1 - min(1, a.alpha))
+                def combine(component: Color => R) = component(a) * a.a + component(b) * b.a * (1 - min(1, a.a))
                 rgba(
-                    combine(_.red),
-                    combine(_.green),
-                    combine(_.blue),
-                    a.alpha + b.alpha * (1 - min(1, a.alpha))
+                    combine(_.r),
+                    combine(_.g),
+                    combine(_.b),
+                    a.a + b.a * (1 - min(1, a.a))
                 )
             }
         }
