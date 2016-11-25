@@ -76,4 +76,18 @@ object Global {
         ))}}
     )
 
+    implicit def tuple4TermFunction[A <: Typed[A], B <: Typed[B], C <: Typed[C], D <: Typed[D], G](f : (A, B, C, D) => G) (implicit
+        bridgeA : Bridge[A],
+        bridgeB : Bridge[B],
+        bridgeC : Bridge[C],
+        bridgeD : Bridge[D],
+        gIsTermFunction : G => TermFunction[G]
+    ) = TermFunction[(A, B, C, D) => G](
+        original = f,
+        untyped = { case a :: b :: c :: d :: as => gIsTermFunction(f(bridgeA.make(a), bridgeB.make(b), bridgeC.make(c), bridgeD.make(d))).untyped(as)},
+        make = {case thunk => {case (a : A, b : B, c : C, d : D) => gIsTermFunction(f(bridgeA.make(null), bridgeB.make(null), bridgeC.make(null), bridgeD.make(null))).make(thunk.copy(
+            signature = thunk.signature ++ List(bridgeA.glslTypeName, bridgeB.glslTypeName, bridgeC.glslTypeName, bridgeD.glslTypeName),
+            arguments = thunk.arguments ++ List(untyped(a), untyped(b), untyped(c), untyped(d))
+        ))}}
+    )
 }

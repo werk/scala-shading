@@ -101,6 +101,12 @@ object External {
 
         def magnitude : R = R(Call("length", List(untyped)))
         def normalize : Self = make(Call("normalize", List(untyped)))
+
+        def +(b : R) : Self = make(Infix("+", untyped, b.untyped))
+        def -(b : R) : Self = make(Infix("-", untyped, b.untyped))
+        def *(b : R) : Self = make(Infix("*", untyped, b.untyped))
+        def /(b : R) : Self = make(Infix("/", untyped, b.untyped))
+
     }
 
     /**
@@ -109,9 +115,9 @@ object External {
     sealed trait FloatN[Self <: FloatN[Self]] extends Typed[Self] {
         def +(b : Self) : Self = make(Infix("+", untyped, b.untyped))
         def -(b : Self) : Self = make(Infix("-", untyped, b.untyped))
-        def unary_-() : Self = make(Prefix("-", untyped))
         def *(b : Self) : Self = make(Infix("*", untyped, b.untyped))
         def /(b : Self) : Self = make(Infix("/", untyped, b.untyped))
+        def unary_-() : Self = make(Prefix("-", untyped))
     }
 
     // Concrete types
@@ -128,6 +134,12 @@ object External {
         def >(b : R) : B = B(Infix(">", untyped, b.untyped))
         def <=(b : R) : B = B(Infix("<=", untyped, b.untyped))
         def >=(b : R) : B = B(Infix(">=", untyped, b.untyped))
+
+        def +[T <: Vec[T]](b : Vec[T]) : T = b.make(Infix("+", untyped, b.untyped))
+        def -[T <: Vec[T]](b : Vec[T]) : T = b.make(Infix("-", untyped, b.untyped))
+        def *[T <: Vec[T]](b : Vec[T]) : T = b.make(Infix("*", untyped, b.untyped))
+        def /[T <: Vec[T]](b : Vec[T]) : T = b.make(Infix("/", untyped, b.untyped))
+
     }
 
     // GLSL bool

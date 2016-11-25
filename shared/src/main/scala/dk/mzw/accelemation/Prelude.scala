@@ -2,9 +2,12 @@ package dk.mzw.accelemation
 
 import dk.mzw.accelemation.External._
 import dk.mzw.accelemation.BindNative._
+import dk.mzw.accelemation.Global._
+import dk.mzw.accelemation.BuildInFunctions._
 
 object Prelude {
 
+    /*
     val hsva = Function.uncurried(bindNative4[R, R, R, R, Vec4]("""
         vec4 hsvaToRgba(float a1, float a2, float a3, float a4) {
             vec4 c = vec4(a1, a2, a3, a4);
@@ -14,30 +17,18 @@ object Prelude {
             return vec4(r, c.a);
         }
     """))
-
-    /*
-    def hsvaToRgba(a1 : R, a2 : R, a3 : R, a4 : R) {
-        // TODO bind
-        // TODO support R + Vec3 etc
-        val c = vec4(a1, a2, a3, a4)
-        val K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0)
-        val p = abs(fract(c.xxx + K.xyz) * vec3(6, 6, 6) - K.www)
-        val r = c.zzz * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y)
-        Vec4(r, c.a)
-    }*/
-
-    /*
-    def rgbaToHsva(r : R, g : R, b : R, a : R) : Vec4 = {
-        val c = vec4(r, g, b, a)
-        val K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0)
-        val p = vec4(c.bg, K.wz).mix(vec4(c.gb, K.xy), c.b.step(c.g))
-        val q = vec4(p.xyw, c.r).mix(vec4(c.r, p.yzx), p.x.step(c.r))
-
-        val d = q.x - q.w.min(q.y)
-        val e : R = 1.0e-10
-        vec4((q.z + (q.w - q.y) / (6.0 * d + e)).abs, d / (q.x + e), q.x, c.a)
-    }
     */
+
+    def hsvaToRgba(a1 : R, a2 : R, a3 : R, a4 : R) : Vec4 = {
+        vec4(a1, a2, a3, a4) bind { c =>
+        vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0) bind { K =>
+        abs(fract(c.xxx + K.xyz) * 6.0 - K.www) bind { p =>
+        c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y) bind { r =>
+        Vec4(r, c.a)
+        }}}}
+    }
+
+    val hsva = (hsvaToRgba _).global("hsvaToRgba")
 
     val rgbaToHsva = Function.uncurried(bindNative4[R, R, R, R, Vec4]("""
         vec4 rgbaToHsva(vec4 c) {
@@ -50,14 +41,6 @@ object Prelude {
             return vec4(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x, c.a);
         }
     """))
-
-    val pixelToUnit = bindNative2[Vec2, Vec2, Vec2] ("""
-        vec2 pixelToUnit(vec2 resolution, vec2 pixel) {
-            vec2 streched_position = (pixel / resolution) * vec2(2.0, 2.0) - vec2(1.0, 1.0);
-            vec2 aspect = vec2(max(resolution.x / resolution.y, 1.0), max(resolution.y / resolution.x, 1.0));
-            return streched_position * aspect;
-        }
-    """)
 
     val simplexNoise = bindNative1[Vec3, R]("""
         //

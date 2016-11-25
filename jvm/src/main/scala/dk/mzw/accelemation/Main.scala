@@ -6,6 +6,7 @@ import java.nio.file.{Paths, Files}
 import dk.mzw.accelemation.BuildInFunctions._
 import dk.mzw.accelemation.External._
 import dk.mzw.accelemation.samples.{HidingDevils, Spiral, TimeLens}
+import dk.mzw.accelemation.Prelude.simplexNoise
 
 object Main {
 
@@ -37,6 +38,7 @@ object Main {
         save(TimeLens.apply, "TimeLens")
         save(HidingDevils.apply, "HidingDevils")
         save(Spiral.apply, "Spiral")
+        save({t => x => y => simplexNoise(vec3(t, x, y)) bind {i => rgba(i, i, i, 1)}}, "Hest")
     }
 
     def printR(e : R) = println(e)

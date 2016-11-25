@@ -8,16 +8,14 @@ import dk.mzw.accelemation.External._
 object HidingDevils {
 
 
-    val hidingDevils : Animation = multiply (chessDevils) (seekingLights)
-
-    val chessDevils : Animation = bendSpaceTime (devilMirror) (scale(0.04, 0.04) (chess))
-
     val devilMirror : Animation = additions(
         hellHole(1     , 0.2, 0.05, 2.5, 3 , 2.5,  5),
         hellHole(13    , 0.1, 0.02, 3  , 9 , 0.5,  0.1),
         hellHole(133   , 0.4, 0.05, 2.9, 2 , 1  ,  0.5),
         hellHole(1337  , 0.9, 0.04, 3.1, 11, 5  ,  0.9)
     )
+
+    val chessDevils : Animation = bendSpaceTime (devilMirror) (scale(0.04, 0.04) (chess))
 
     def hellHole(startTime : R, size : R, timeFactor : R, orbitX : R, orbitY : R, spinSpeed : R, rotationSpeed : R) : Animation =
         timeTravel (startTime) (fastForward (timeFactor) (circle(rotationSpeed) (orbit(orbitX, orbitY) (spin(spinSpeed) (scale(size, size) (displacementBall))))))
@@ -39,6 +37,7 @@ object HidingDevils {
             fastForward(0.4) (spin(0.4) (timeTravel(1337) (light (rgba(0.2, 0.2, 0.7, 1)))))
         )
 
+    val hidingDevils : Animation = multiply (chessDevils) (seekingLights)
     val apply = hidingDevils
 
 }

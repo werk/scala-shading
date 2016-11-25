@@ -4,10 +4,10 @@ import dk.mzw.accelemation.Internal.{Call, Untyped}
 import dk.mzw.accelemation.External._
 
 object BuildInFunctions {
-    private def call(name : String, arguments : Typed[_]*) : Untyped = Call("radians", arguments.map(untyped).toList)
+    private def call(name : String, arguments : Typed[_]*) : Untyped = Call(name, arguments.map(untyped).toList)
 
     private def iterate[A <: Typed[_]](name : String, make : Untyped => A, x : A, y : A, zs : Seq[A]) : A = {
-        make(zs.foldLeft(call("min", x, y)){case (m, a) => call("min", make(m), a)})
+        make(zs.foldLeft(call(name, x, y)){case (m, a) => call(name, make(m), a)})
     }
 
     // TODO make global
