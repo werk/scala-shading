@@ -42,27 +42,19 @@ object Combinators {
         animation(t * speed)(x)(y)
     }
 
-    def bendSpaceTime (f : Animation) (target : Animation) (t : R) (x : R) (y : R) = {
-        f(t)(x)(y) bind { spaceTimeColor =>
-            spaceTimeColor.r bind { dx =>
-                spaceTimeColor.g bind { dy =>
-                    spaceTimeColor.b bind { dt =>
-                        spaceTimeColor.a bind { a =>
-                            target(t + dt * a)(x + dx * a)(y + dy * a)
-                        }
-                    }
-                }
-            }
-        }
-    }
+    def bendSpaceTime (f : Animation) (target : Animation) (t : R) (x : R) (y : R) = for {
+        spaceTimeColor <- f(t)(x)(y)
+        dx <- spaceTimeColor.r
+        dy <- spaceTimeColor.g
+        dt <- spaceTimeColor.b
+        a <- spaceTimeColor.a
+    } yield target(t + dt * a)(x + dx * a)(y + dy * a)
 
     //fromPolarCoordinates :: Animation -> Animation
-    def fromPolarCoordinates (f : Animation) (t : R) (x : R) (y : R) : Color =
-            vec2(x, y).magnitude bind { r =>
-            atan2(x, y) bind { phi =>
-                f (t) (r) (phi)
-            }
-        }
+    def fromPolarCoordinates (f : Animation) (t : R) (x : R) (y : R) : Color = for{
+        r <- vec2(x, y).magnitude
+        phi <- atan2(x, y)
+    } yield f (t) (r) (phi)
 
     def colorMap (f : Animation) (target : Animation) (t : R) (x : R) (y : R) : Color =
         f(t)(x)(y) bind { c =>

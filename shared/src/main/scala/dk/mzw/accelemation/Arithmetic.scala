@@ -21,10 +21,11 @@ object Arithmetic {
 
     def sinOne(x : R) : R = sin(x - pi/2) * 0.5 + 0.5
 
-    def fromPolar(f : R => R => R) (x : R) (y : R) : R = {
-        Vec2(x, y).magnitude.bind{r =>
-            atan2(x, y).bind(phi => f (r) (phi))
-        }
+    def fromPolar(f : R => R => R) (x : R) (y : R) : R = for {
+        r <- Vec2(x, y).magnitude
+        phi <- atan2(x, y)
+    } yield {
+        f (r) (phi)
     }
 
     def atan2(x : R, y : R) : R = 2 * atan(y, Vec2(x, y).magnitude + x)

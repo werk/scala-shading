@@ -78,6 +78,10 @@ object External {
             def body(a: Untyped) : Untyped = f(make(a)).untyped
             bridgeT.make(Bind(typeName, untyped, body))
         }
+
+        def flatMap[T <: Typed[T]](f : Self => T) (implicit bridgeT : Bridge[T]) : T = bind(f)(bridgeT)
+        def map[T <: Typed[T]](f : Self => T) (implicit bridgeT : Bridge[T]) : T = bind(f)(bridgeT)
+
     }
 
     /**

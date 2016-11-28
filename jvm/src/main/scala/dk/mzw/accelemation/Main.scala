@@ -10,6 +10,26 @@ import dk.mzw.accelemation.Prelude.simplexNoise
 
 object Main {
 
+    /*
+    for {(v2, v1) <- Some(1).map { case x$1@(v1) =>
+        val x$2@(v2) = 4
+        (x$2, x$1)
+    }
+    } yield v1 + v2
+
+
+    val r1 : R = 1
+    val r2 : R = 1
+    for {(v2, v1) <- r1.map { case v1 => {
+            val v2 = r2
+            (v2, v1)
+        }
+    }
+    } yield {
+            v1 + v2
+        }
+        */
+
     def main(arguments : Array[String]): Unit = {
 
         printR(2)
