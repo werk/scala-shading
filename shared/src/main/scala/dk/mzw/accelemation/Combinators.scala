@@ -17,12 +17,10 @@ object Combinators {
     def scaleUniform(factor : R) (animation : Animation) (t : R) (x : R) (y : R) =
         scale(factor, factor) _
 
-    def rotate(angle : R) (animation : Animation) (t : R) (x : R) (y : R) =
-        (x * cos(angle) - y * sin(angle)).bind { newX =>
-            (x * sin(angle) + y * cos(angle)).bind{ newY =>
-                animation (t) (newX) (newY)
-            }
-        }
+    def rotate(angle : R) (animation : Animation) (t : R) (x : R) (y : R) = for {
+        newX <- x * cos(angle) - y * sin(angle)
+        newY <- x * sin(angle) + y * cos(angle)
+    } yield animation (t) (newX) (newY)
 
     def scroll(speedX : R, speedY : R) (animation : Animation) (t : R) =
         translate(speedX * t, speedY * t) (animation) (t)
@@ -56,12 +54,11 @@ object Combinators {
         phi <- atan2(x, y)
     } yield f (t) (r) (phi)
 
-    def colorMap (f : Animation) (target : Animation) (t : R) (x : R) (y : R) : Color =
-        f(t)(x)(y) bind { c =>
-            (0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b) bind { l =>
-                target(t)(l * 2 - 1)(0)
-            }
-        }
+    def colorMap (f : Animation) (target : Animation) (t : R) (x : R) (y : R) : Color = for {
+        c <- f(t)(x)(y)
+        l <- 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b
+    }
+    yield target(t)(l * 2 - 1)(0)
 
     /*******************************
     ** Animation blendings

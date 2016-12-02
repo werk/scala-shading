@@ -13,7 +13,7 @@ object Arithmetic {
 
     private def gaussianOneP(variance : R, x : R) : R =
         exp((-x * x) / (4 * variance * variance))
-    val gaussianOne = gaussianOneP _ global "gaussianOne"
+    val gaussianOne = (gaussianOneP _).global("gaussianOne")
 
     val sigmoid = {x : R => 1 / (1 + exp (-x))}.global
 
