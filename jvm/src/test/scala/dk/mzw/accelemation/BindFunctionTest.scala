@@ -1,6 +1,6 @@
 package dk.mzw.accelemation
 
-import dk.mzw.accelemation.External._
+import dk.mzw.accelemation.Language._
 import dk.mzw.accelemation.Global._
 import dk.mzw.accelemation.BindNative._
 import dk.mzw.accelemation.samples.{HidingDevils, Spiral, TimeLens}
@@ -45,13 +45,12 @@ object BindFunctionTest {
             time_lens(t / 2)(1 + x)(y - 1) bind {tl =>
                 hiding_devils(t)(x)(y) bind { hd =>
                     spiral(t)(x)(y) bind { s =>
-                        vec4(plusBuild(plusBuild2(tl.magnitude)(42))(12), plusBuild3(hd.magnitude)(inc(plus4(1337)(17))), s.magnitude, 0)
+                        Vec4(plusBuild(plusBuild2(tl.magnitude)(42))(12), plusBuild3(hd.magnitude)(inc(plus4(1337)(17))), s.magnitude, 0)
                     }
                 }
             }
         }
 
-        val sourceAndUniforms = Compile.apply(animation, "animation", "t", "x", "y")
-        println(sourceAndUniforms.source)
+        println(Compile(animation))
     }
 }

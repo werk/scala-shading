@@ -1,5 +1,7 @@
 package dk.mzw.accelemation
 
+import dk.mzw.accelemation.internal.FunctionParser
+
 object TestFunctionParser {
 
     def main(args: Array[String]) {

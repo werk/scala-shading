@@ -1,5 +1,4 @@
-package dk.mzw.accelemation
-
+package dk.mzw.accelemation.internal
 
 // TODO write a better/correct parser
 object FunctionParser {

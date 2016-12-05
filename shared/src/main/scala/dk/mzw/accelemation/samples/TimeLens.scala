@@ -1,12 +1,19 @@
 package dk.mzw.accelemation.samples
 
-import dk.mzw.accelemation.Animations._
-import dk.mzw.accelemation.Combinators._
-import dk.mzw.accelemation.External._
-import dk.mzw.accelemation.BuildInFunctions._
-import dk.mzw.accelemation.Prelude._
+import dk.mzw.accelemation.util.Combinators._
+import dk.mzw.accelemation.Math._
+import dk.mzw.accelemation.Language._
+import dk.mzw.accelemation.Global._
+import dk.mzw.accelemation.util.Prelude._
 
 object TimeLens {
+
+    val gaussBall : R => Animation = {variance : R => t : Time => x : R => y : R =>
+        for {
+            d <- Vec2(x, y).magnitude
+            intensity <- gaussianOne(variance, d)
+        } yield rgba(intensity, intensity, intensity, 1)
+    }.global("gaussBall")
 
     val rainbow : Animation = {t => x => y => hsva(mod(x, 1), 0.5, 0.5, 1)}
 

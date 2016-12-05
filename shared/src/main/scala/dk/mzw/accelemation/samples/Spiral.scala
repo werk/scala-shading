@@ -1,10 +1,9 @@
 package dk.mzw.accelemation.samples
 
-import dk.mzw.accelemation.Arithmetic._
-import dk.mzw.accelemation.Combinators._
-import dk.mzw.accelemation.BuildInFunctions.{pi, floor}
-import dk.mzw.accelemation.External._
-import dk.mzw.accelemation.Prelude._
+import dk.mzw.accelemation.util.Combinators._
+import dk.mzw.accelemation.Math.{floor, pi}
+import dk.mzw.accelemation.Language._
+import dk.mzw.accelemation.util.Prelude._
 
 object Spiral {
 

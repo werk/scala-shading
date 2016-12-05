@@ -1,9 +1,9 @@
 package dk.mzw.accelemation
 
-import dk.mzw.accelemation.Internal.{Call, Untyped}
-import dk.mzw.accelemation.External._
+import dk.mzw.accelemation.internal.Internal.{Call, Untyped}
+import dk.mzw.accelemation.Language._
 
-object BuildInFunctions {
+object Math {
     private def call(name : String, arguments : Typed[_]*) : Untyped = Call(name, arguments.map(untyped).toList)
 
     private def iterate[A <: Typed[_]](name : String, make : Untyped => A, x : A, y : A, zs : Seq[A]) : A = {
@@ -133,7 +133,6 @@ object BuildInFunctions {
     def max(x : Vec3, y : Vec3, zs : Vec3*) = iterate("max", Vec3(_), x, y, zs)
     def max(x : Vec4, y : Vec4, zs : Vec4*) = iterate("max", Vec4(_), x, y, zs)
 
-
     def clamp(x : R, minVal : R, maxVal : R) = R(call("clamp", x, minVal, maxVal))
     def clamp(x : Vec2, minVal : Vec2, maxVal : Vec2) = Vec2(call("clamp", x, minVal, maxVal))
     def clamp(x : Vec3, minVal : Vec3, maxVal : Vec3) = Vec3(call("clamp", x, minVal, maxVal))
@@ -150,35 +149,57 @@ object BuildInFunctions {
     def mix(x : Vec3, y : Vec3, a : R) = Vec3(call("mix", x, y, a))
     def mix(x : Vec4, y : Vec4, a : R) = Vec4(call("mix", x, y, a))
 
-    /*
+    def step(edge : R, x : R) = R(call("step", edge, x))
+    def step(edge : Vec2, x : Vec2) = Vec2(call("step", edge, x))
+    def step(edge : Vec3, x : Vec3) = Vec3(call("step", edge, x))
+    def step(edge : Vec4, x : Vec4) = Vec4(call("step", edge, x))
+    def step(edge : Vec2, x : R) = Vec2(call("step", edge, x))
+    def step(edge : Vec3, x : R) = Vec3(call("step", edge, x))
+    def step(edge : Vec4, x : R) = Vec4(call("step", edge, x))
 
+    def smoothstep(edge0 : R, edge1 : R, x : R) = R(call("smoothstep", edge0, edge1, x))
+    def smoothstep(edge0 : Vec2, edge1 : Vec2, x : Vec2) = Vec2(call("smoothstep", edge0, edge1, x))
+    def smoothstep(edge0 : Vec3, edge1 : Vec3, x : Vec3) = Vec3(call("smoothstep", edge0, edge1, x))
+    def smoothstep(edge0 : Vec4, edge1 : Vec4, x : Vec4) = Vec4(call("smoothstep", edge0, edge1, x))
+    def smoothstep(edge0 : R, edge1 : R, x : Vec2) = Vec2(call("smoothstep", edge0, edge1, x))
+    def smoothstep(edge0 : R, edge1 : R, x : Vec3) = Vec3(call("smoothstep", edge0, edge1, x))
+    def smoothstep(edge0 : R, edge1 : R, x : Vec4) = Vec4(call("smoothstep", edge0, edge1, x))
 
-        //vec3 step(vec3 edge, vec3 x)
-        def step(edge : Typed[Double]) : Typed[Double] = wrap(v)(Call("step", List(edge.untyped, untyped)))
+    def length(x : R) = R(call("length", x))
+    def length(x : Vec2) = Vec2(call("length", x))
+    def length(x : Vec3) = Vec3(call("length", x))
+    def length(x : Vec4) = Vec4(call("length", x))
 
-        //smoothstep(vec3 edge0, vec3 edge1, vec3 x)
-        def smoothstep(edge0 : Typed[Double], edge1 : Typed[Double]) : Typed[Double] = wrap(v)(Call("smoothstep", List(edge0.untyped, edge1.untyped, untyped)))
+    def distance(p1 : R, p2 : R) = R(call("distance", p1, p2))
+    def distance(p1 : Vec2, p2 : Vec2) = Vec2(call("distance", p1, p2))
+    def distance(p1 : Vec3, p2 : Vec3) = Vec3(call("distance", p1, p2))
+    def distance(p1 : Vec4, p2 : Vec4) = Vec4(call("distance", p1, p2))
 
-        //float length(vec3 x)
-        def length : Typed[Double] = wrap(v)(Call("length", List(untyped)))
+    def dot(x : R, y : R) = R(call("dot", x, y))
+    def dot(x : Vec2, y : Vec2) = Vec2(call("dot", x, y))
+    def dot(x : Vec3, y : Vec3) = Vec3(call("dot", x, y))
+    def dot(x : Vec4, y : Vec4) = Vec4(call("dot", x, y))
 
-        //float distance(vec3 p0, vec3 p1)
-        def distance(p1 : Typed[Double]) : Typed[Double] = wrap(v)(Call("distance", List(untyped, p1.untyped)))
+    def cross(x : Vec3, y : Vec3) = Vec3(call("cross", x, y))
 
-        //float dot(vec3 x, vec3 y)
-        def dot : Typed[Double] = wrap(v)(Call("dot", List(untyped)))
+    def normalize(x : R) = R(call("normalize", x))
+    def normalize(x : Vec2) = Vec2(call("normalize", x))
+    def normalize(x : Vec3) = Vec3(call("normalize", x))
+    def normalize(x : Vec4) = Vec4(call("normalize", x))
 
-        //vec3 normalize(vec3 x)
-        def normalize : Typed[Double] = wrap(v)(Call("normalize", List(untyped)))
+    def faceforward(n : R, i: R, nRef : R) = R(call("faceforward", n, i, nRef))
+    def faceforward(n : Vec2, i: Vec2, nRef : Vec2) = Vec2(call("faceforward", n, i, nRef))
+    def faceforward(n : Vec3, i: Vec3, nRef : Vec3) = Vec3(call("faceforward", n, i, nRef))
+    def faceforward(n : Vec4, i: Vec4, nRef : Vec4) = Vec4(call("faceforward", n, i, nRef))
 
-        //vec3 faceforward(vec3 N, vec3 I, vec3 Nref)
-        def faceforward(I : Typed[Double], Nref : Typed[Double]) : Typed[Double] = wrap(v)(Call("faceforward", List(untyped, I.untyped, Nref.untyped)))
+    def reflect(n : R, i: R) = R(call("reflect", n, i))
+    def reflect(n : Vec2, i: Vec2) = Vec2(call("reflect", n, i))
+    def reflect(n : Vec3, i: Vec3) = Vec3(call("reflect", n, i))
+    def reflect(n : Vec4, i: Vec4) = Vec4(call("reflect", n, i))
 
-        //vec3 reflect(vec3 I, vec3 N)
-        def reflect(N : Typed[Double]) : Typed[Double] = wrap(v)(Call("reflect", List(untyped, N.untyped)))
-
-        //vec3 refract(vec3 I, vec3 N, float eta)
-        def refract(N : Typed[Double], eta : R) : Typed[Double] = wrap(v)(Call("refract", List(untyped, N.untyped, eta.untyped)))
-    */
+    def refract(n : R, i: R, eta : R) = R(call("refract", n, i, eta))
+    def refract(n : Vec2, i: Vec2, eta : R) = Vec2(call("refract", n, i, eta))
+    def refract(n : Vec3, i: Vec3, eta : R) = Vec3(call("refract", n, i, eta))
+    def refract(n : Vec4, i: Vec4, eta : R) = Vec4(call("refract", n, i, eta))
 
 }

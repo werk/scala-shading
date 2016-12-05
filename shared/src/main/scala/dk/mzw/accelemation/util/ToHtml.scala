@@ -1,4 +1,4 @@
-package dk.mzw.accelemation
+package dk.mzw.accelemation.util
 
 object ToHtml {
 

@@ -1,47 +1,37 @@
 package dk.mzw.accelemation
 
-import dk.mzw.accelemation.FunctionParser.{DecomposedConstant, DecomposedFunction}
-import dk.mzw.accelemation.Internal._
-import dk.mzw.accelemation.External._
-import dk.mzw.accelemation.Global._
-import dk.mzw.accelemation.BuildInFunctions._
+import dk.mzw.accelemation.Language._
+import dk.mzw.accelemation.Math._
+import dk.mzw.accelemation.internal.FunctionParser
+import dk.mzw.accelemation.internal.FunctionParser._
+import dk.mzw.accelemation.internal.Internal._
+import dk.mzw.accelemation.internal.Topological
 
 
 object Compile {
     case class SourceAndUniforms(source : String, uniforms : Set[UniformU])
 
-    def apply(f : Animation, name : String, t : String, x : String, y : String) : SourceAndUniforms = {
-        val bound = f.global(name)
-        val applied = bound (R(BuiltIn(t))) (R(BuiltIn(x))) (R(BuiltIn(y)))
-        val definition = untyped(applied).asInstanceOf[FunctionDefinitionCall].definition
-        new GlobalScope().compile(definition)
-    }
-
-    private val defaultTimeUniform = new Uniform[Double]("u_time", 0)
-    private val defaultResolutionUniform = new Uniform[(Double, Double)]("u_resolution", (1,1))
-
-
-    // TODO move to util library
     def pixelToUnit(resolution : Vec2)(pixel : Vec2) : Vec2 = {
         val streched_position = (pixel / resolution) * Vec2(2.0, 2.0) - Vec2(1.0, 1.0)
         val aspect = Vec2(max(resolution.x / resolution.y, 1.0), max(resolution.y / resolution.x, 1.0))
         streched_position * aspect
     }
 
+    val u_timeUniform = new Uniform[Double]("u_time", 0)
+    val u_resolutionUniform = new Uniform[(Double, Double)]("u_resolution", (1,1))
+    val unitCoordinateTransform = pixelToUnit(u_resolutionUniform) _
 
-    def unit(f : Animation, timeUniform : Uniform[Double] = defaultTimeUniform, resolutionUniform : Uniform[(Double, Double)] = defaultResolutionUniform) : String = {
-        val trans = pixelToUnit(resolutionUniform) _
+    def apply(
+        f : Animation,
+        coordinateTransform : Vec2 => Vec2 = unitCoordinateTransform,
+        timeUniform : Uniform[Double] = u_timeUniform
+    ) : String = {
         val g : Animation = {t => x => y =>
-            trans(Vec2(x, y)) bind {xy =>
+            coordinateTransform(Vec2(x, y)) bind {xy =>
                 f(t) (xy.x) (xy.y)
             }
-
         }
-        pixel(g, timeUniform)
-    }
-
-    def pixel(f : Animation, timeUniform : Uniform[Double] = defaultTimeUniform) : String = {
-        pixel(f (timeUniform))
+        pixel(g (timeUniform))
     }
 
     def pixel(f : Image) : String = {

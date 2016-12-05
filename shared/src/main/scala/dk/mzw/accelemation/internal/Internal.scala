@@ -1,4 +1,4 @@
-package dk.mzw.accelemation
+package dk.mzw.accelemation.internal
 
 object Internal {
     abstract sealed class Untyped

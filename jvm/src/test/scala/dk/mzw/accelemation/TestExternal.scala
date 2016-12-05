@@ -1,7 +1,7 @@
 package dk.mzw.accelemation
 
-import dk.mzw.accelemation.External._
-import dk.mzw.accelemation.BuildInFunctions._
+import dk.mzw.accelemation.Language._
+import dk.mzw.accelemation.Math._
 
 object TestExternal {
     def main(args: Array[String]) {

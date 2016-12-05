@@ -1,33 +1,18 @@
-package dk.mzw.accelemation
+package dk.mzw.accelemation.util
 
-import dk.mzw.accelemation.External._
 import dk.mzw.accelemation.BindNative._
 import dk.mzw.accelemation.Global._
-import dk.mzw.accelemation.BuildInFunctions._
+import dk.mzw.accelemation.Language._
+import dk.mzw.accelemation.Math._
 
 object Prelude {
 
-    /*
-    val hsva = Function.uncurried(bindNative4[R, R, R, R, Vec4]("""
-        vec4 hsvaToRgba(float a1, float a2, float a3, float a4) {
-            vec4 c = vec4(a1, a2, a3, a4);
-            vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-            vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-            vec3 r = c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-            return vec4(r, c.a);
-        }
-    """))
-    */
-
-    def hsvaToRgba(a1 : R, a2 : R, a3 : R, a4 : R) : Vec4 = {
-        vec4(a1, a2, a3, a4) bind { c =>
-        vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0) bind { K =>
-        abs(fract(c.xxx + K.xyz) * 6.0 - K.www) bind { p =>
-        c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y) bind { r =>
-        Vec4(r, c.a)
-        }}}}
-    }
-
+    private def hsvaToRgba(h : R, s : R, v : R, a : R) : Vec4 = for {
+        c <- Vec3(h, s, v)
+        k <- Vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0)
+        p <- abs(fract(c.xxx + k.xyz) * 6.0 - k.www)
+        r <- c.z * mix(k.xxx, clamp(p - k.xxx, 0.0, 1.0), c.y)
+    } yield Vec4(r, a)
     val hsva = (hsvaToRgba _).global("hsvaToRgba")
 
     val rgbaToHsva = Function.uncurried(bindNative4[R, R, R, R, Vec4]("""
@@ -41,6 +26,27 @@ object Prelude {
             return vec4(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x, c.a);
         }
     """))
+
+    private def gaussianP(variance: R, x: R): R =
+        1 / sqrt(variance) * sqrt(2 * pi) * exp(-(x * x) / pow(2 * variance, 2))
+    val gaussian = (gaussianP _).global("gaussian")
+
+    private def gaussianOneP(variance : R, x : R) : R =
+        exp((-x * x) / (4 * variance * variance))
+    val gaussianOne = gaussianOneP _ global "gaussianOne"
+
+    val sigmoid = {x : R => 1 / (1 + exp (-x))}.global
+
+    def sigfade(x : R) : R = sigmoid((x - 0.5) * 10)
+
+    def sinOne(x : R) : R = sin(x - pi/2) * 0.5 + 0.5
+
+    def fromPolar(f : R => R => R) (x : R) (y : R) : R = for {
+        r <- Vec2(x, y).magnitude
+        phi <- atan(y, x)
+    } yield {
+        f (r) (phi)
+    }
 
     val simplexNoise = bindNative1[Vec3, R]("""
         //

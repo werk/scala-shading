@@ -1,8 +1,7 @@
-package dk.mzw.accelemation
+package dk.mzw.accelemation.util
 
-import dk.mzw.accelemation.External._
-import dk.mzw.accelemation.BuildInFunctions._
-import dk.mzw.accelemation.Arithmetic.atan2
+import dk.mzw.accelemation.Language._
+import dk.mzw.accelemation.Math._
 
 object Combinators {
 
@@ -44,16 +43,18 @@ object Combinators {
 
     def bendSpaceTime (f : Animation) (target : Animation) (t : R) (x : R) (y : R) = for {
         spaceTimeColor <- f(t)(x)(y)
-        dx <- spaceTimeColor.r
-        dy <- spaceTimeColor.g
-        dt <- spaceTimeColor.b
-        a <- spaceTimeColor.a
-    } yield target(t + dt * a)(x + dx * a)(y + dy * a)
+    } yield {
+        val dx = spaceTimeColor.r
+        val dy = spaceTimeColor.g
+        val dt = spaceTimeColor.b
+        val a = spaceTimeColor.a
+        target(t + dt * a)(x + dx * a)(y + dy * a)
+    }
 
     //fromPolarCoordinates :: Animation -> Animation
     def fromPolarCoordinates (f : Animation) (t : R) (x : R) (y : R) : Color = for{
-        r <- vec2(x, y).magnitude
-        phi <- atan2(x, y)
+        r <- Vec2(x, y).magnitude
+        phi <- atan(y, x)
     } yield f (t) (r) (phi)
 
     def colorMap (f : Animation) (target : Animation) (t : R) (x : R) (y : R) : Color =

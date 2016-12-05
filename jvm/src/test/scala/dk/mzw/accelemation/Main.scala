@@ -1,12 +1,13 @@
 package dk.mzw.accelemation
 
 import java.nio.charset.StandardCharsets
-import java.nio.file.{Paths, Files}
+import java.nio.file.{Files, Paths}
 
-import dk.mzw.accelemation.BuildInFunctions._
-import dk.mzw.accelemation.External._
+import dk.mzw.accelemation.Math._
+import dk.mzw.accelemation.Language._
 import dk.mzw.accelemation.samples.{HidingDevils, Spiral, TimeLens}
-import dk.mzw.accelemation.Prelude.simplexNoise
+import dk.mzw.accelemation.util.Prelude.simplexNoise
+import dk.mzw.accelemation.util.ToHtml
 
 object Main {
 
@@ -58,7 +59,7 @@ object Main {
         save(TimeLens.apply, "TimeLens")
         save(HidingDevils.apply, "HidingDevils")
         save(Spiral.apply, "Spiral")
-        save({t => x => y => simplexNoise(vec3(t, x, y)) bind {i => rgba(i, i, i, 1)}}, "Hest")
+        save({t => x => y => simplexNoise(Vec3(t, x, y)) bind {i => rgba(i, i, i, 1)}}, "Hest")
     }
 
     def printR(e : R) = println(e)
@@ -66,7 +67,7 @@ object Main {
 
     def save(a : Animation, name : String): Unit = {
         val fileName = s"$name.html"
-        val html = ToHtml(Compile.unit(a), name)
+        val html = ToHtml(Compile(a), name)
         Files.write(Paths.get(fileName), html.getBytes(StandardCharsets.UTF_8))
     }
 

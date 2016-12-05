@@ -1,4 +1,4 @@
-package dk.mzw.accelemation
+package dk.mzw.accelemation.internal
 
 import scala.collection.mutable
 

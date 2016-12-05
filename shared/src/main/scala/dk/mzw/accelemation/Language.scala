@@ -1,21 +1,17 @@
 package dk.mzw.accelemation
 
-import dk.mzw.accelemation.Internal._
+import dk.mzw.accelemation.internal.Internal._
 
-object External {
-
-    def if_[A <: Typed[A]](condition : B, whenTrue : Typed[A], whenFalse : Typed[A]) : Typed[A] = whenTrue.make(If(condition.untyped, whenTrue.untyped, whenFalse.untyped))
-
-    def vec2(x : R, y : R) = Vec2(x, y)
-    def vec3(x : R, y : R, z : R) = Vec3(x, y, z)
-    def vec4(x : R, y : R, z : R, w : R) = Vec4(x, y, z, w)
-    def rgba(r : R, g : R, b : R, a : R) : Color = Vec4(r, g, b, a)
+object Language {
 
     type Time = R
     type Color = Vec4
 
     type Image = R => R => Color
     type Animation = Time => Image
+
+    def if_[A <: Typed[A]](condition : B, whenTrue : Typed[A], whenFalse : Typed[A]) : Typed[A] = whenTrue.make(If(condition.untyped, whenTrue.untyped, whenFalse.untyped))
+    def rgba(r : R, g : R, b : R, a : R) : Color = Vec4(r, g, b, a)
 
     implicit def liftUniformB(uniform : Uniform[Boolean]) : B = B(UniformU(uniform, "bool"))
     implicit def liftUniformR(uniform : Uniform[Double]) : R = R(UniformU(uniform, "float"))
@@ -44,74 +40,59 @@ object External {
     // TODO ivec to vec
 
     // implicit constructors used for bind
-    case class Bridge[T](
+    case class Meta[T](
         make : Untyped => T,
         glslTypeName : String,
         untyped : T => Untyped
     )
 
-    implicit def bridgeR = Bridge[R](R(_), "float", {_.untyped})
-    implicit def bridgeB = Bridge[B](B(_), "bool", {_.untyped})
-    implicit def bridgeI = Bridge[I](I(_), "int", {_.untyped})
-    implicit def bridgeVec2 = Bridge[Vec2](Vec2(_), "vec2", {_.untyped})
-    implicit def bridgeVec3 = Bridge[Vec3](Vec3(_), "vec3", {_.untyped})
-    implicit def bridgeVec4 = Bridge[Vec4](Vec4(_), "vec4", {_.untyped})
-    implicit def bridgeBVec2 = Bridge[BVec2](BVec2(_), "bvec2", {_.untyped})
-    implicit def bridgeBVec3 = Bridge[BVec3](BVec3(_), "bvec3", {_.untyped})
-    implicit def bridgeBVec4 = Bridge[BVec4](BVec4(_), "bvec4", {_.untyped})
-    implicit def bridgeIVec2 = Bridge[IVec2](IVec2(_), "ivec2", {_.untyped})
-    implicit def bridgeIVec3 = Bridge[IVec3](IVec3(_), "ivec3", {_.untyped})
-    implicit def bridgeIVec4 = Bridge[IVec4](IVec4(_), "ivec4", {_.untyped})
+    implicit def metaR = Meta[R](R(_), "float", {_.untyped})
+    implicit def metaB = Meta[B](B(_), "bool", {_.untyped})
+    implicit def metaI = Meta[I](I(_), "int", {_.untyped})
+    implicit def metaVec2 = Meta[Vec2](Vec2(_), "vec2", {_.untyped})
+    implicit def metaVec3 = Meta[Vec3](Vec3(_), "vec3", {_.untyped})
+    implicit def metaVec4 = Meta[Vec4](Vec4(_), "vec4", {_.untyped})
+    implicit def metaBVec2 = Meta[BVec2](BVec2(_), "bvec2", {_.untyped})
+    implicit def metaBVec3 = Meta[BVec3](BVec3(_), "bvec3", {_.untyped})
+    implicit def metaBVec4 = Meta[BVec4](BVec4(_), "bvec4", {_.untyped})
+    implicit def metaIVec2 = Meta[IVec2](IVec2(_), "ivec2", {_.untyped})
+    implicit def metaIVec3 = Meta[IVec3](IVec3(_), "ivec3", {_.untyped})
+    implicit def metaIVec4 = Meta[IVec4](IVec4(_), "ivec4", {_.untyped})
+
+    sealed trait HasUntyped {
+        protected[Language] val untyped : Untyped
+    }
 
     /**
       * Any supported GLSL type
       */
-    sealed trait Typed[Self <: Typed[Self]] { /*this : Self =>*/
-        protected[External] val make : Untyped => Self
-        protected[External] val typeName : String
-        protected[External] val untyped : Untyped
+    sealed trait Typed[Self <: Typed[Self]] extends HasUntyped { /*this : Self =>*/
+        protected[Language] val make : Untyped => Self
+        protected[Language] val typeName : String
 
         def ===(b : Self) : B = B(Infix("==", untyped, b.untyped))
         def !=(b : Self) : B = B(Infix("!=", untyped, b.untyped))
 
-        def bind[T <: Typed[T]](f : Self => T) (implicit bridgeT : Bridge[T]) : T = {
+        def bind[T <: Typed[T]](f : Self => T) (implicit meta : Meta[T]) : T = {
             def body(a: Untyped) : Untyped = f(make(a)).untyped
-            bridgeT.make(Bind(typeName, untyped, body))
+            meta.make(Bind(typeName, untyped, body))
         }
 
-        def flatMap[T <: Typed[T]](f : Self => T) (implicit bridgeT : Bridge[T]) : T = bind(f)(bridgeT)
-        def map[T <: Typed[T]](f : Self => T) (implicit bridgeT : Bridge[T]) : T = bind(f)(bridgeT)
+        def flatMap[T <: Typed[T]](f : Self => T) (implicit meta : Meta[T]) : T = bind(f)(meta)
+        def map[T <: Typed[T]](f : Self => T) (implicit meta : Meta[T]) : T = bind(f)(meta)
 
     }
 
-    /**
+        /**
       *  Models a GLSL vec2, vec3, vec4, bvec2, bvec3, bvec4, ivec2, ivec3 or ivec4
       */
-    sealed trait XVec[Self <: XVec[Self, Self1, Self2, Self3, Self4], Self1, Self2, Self3, Self4] extends Typed[Self] {
-        protected[External] val make1 : Untyped => Self1
-        protected[External] val make2 : Untyped => Self2
-        protected[External] val make3 : Untyped => Self3
-        protected[External] val make4 : Untyped => Self4
+    sealed trait XVec[Self1, Self2, Self3, Self4] extends HasUntyped {
+        protected[Language] val make1 : Untyped => Self1
+        protected[Language] val make2 : Untyped => Self2
+        protected[Language] val make3 : Untyped => Self3
+        protected[Language] val make4 : Untyped => Self4
     }
 
-    /**
-      * Models a GLSL vec2, vec3 or vec4
-      */
-    sealed trait Vec[Self <: Vec[Self]] extends FloatN[Self] with XVec[Self, R, Vec2, Vec3, Vec4] {
-        protected[External] val make1 = {u : Untyped => R(u)}
-        protected[External] val make2 = {u : Untyped => Vec2(u)}
-        protected[External] val make3 = {u : Untyped => Vec3(u)}
-        protected[External] val make4 = {u : Untyped => Vec4(u)}
-
-        def magnitude : R = R(Call("length", List(untyped)))
-        def normalize : Self = make(Call("normalize", List(untyped)))
-
-        def +(b : R) : Self = make(Infix("+", untyped, b.untyped))
-        def -(b : R) : Self = make(Infix("-", untyped, b.untyped))
-        def *(b : R) : Self = make(Infix("*", untyped, b.untyped))
-        def /(b : R) : Self = make(Infix("/", untyped, b.untyped))
-
-    }
 
     /**
       *  Models a GLSL float, vec2, vec3 or vec4
@@ -124,15 +105,57 @@ object External {
         def unary_-() : Self = make(Prefix("-", untyped))
     }
 
+    /**
+      * Models a GLSL vec2, vec3 or vec4
+      */
+    sealed trait Vec[Self <: Vec[Self]] extends FloatN[Self] with XVec[R, Vec2, Vec3, Vec4] {
+        protected[Language] val make1 = {u : Untyped => R(u)}
+        protected[Language] val make2 = {u : Untyped => Vec2(u)}
+        protected[Language] val make3 = {u : Untyped => Vec3(u)}
+        protected[Language] val make4 = {u : Untyped => Vec4(u)}
+
+        def magnitude : R = R(Call("length", List(untyped)))
+        def normalize : Self = make(Call("normalize", List(untyped)))
+
+        def +(b : R) : Self = make(Infix("+", untyped, b.untyped))
+        def -(b : R) : Self = make(Infix("-", untyped, b.untyped))
+        def *(b : R) : Self = make(Infix("*", untyped, b.untyped))
+        def /(b : R) : Self = make(Infix("/", untyped, b.untyped))
+    }
+
+    /**
+      * Models a GLSL ivec2, ivec3 or ivec4
+      */
+    sealed trait IVec[Self <: IVec[Self]] extends Typed[Self] with XVec[I, IVec2, IVec3, IVec4] {
+        protected[Language] val make1 = {u : Untyped => I(u)}
+        protected[Language] val make2 = {u : Untyped => IVec2(u)}
+        protected[Language] val make3 = {u : Untyped => IVec3(u)}
+        protected[Language] val make4 = {u : Untyped => IVec4(u)}
+
+        def +(b : I) : Self = make(Infix("+", untyped, b.untyped))
+        def -(b : I) : Self = make(Infix("-", untyped, b.untyped))
+        def *(b : I) : Self = make(Infix("*", untyped, b.untyped))
+        def /(b : I) : Self = make(Infix("/", untyped, b.untyped))
+    }
+
+    /**
+      * Models a GLSL bvec2, bvec3 or bvec4
+      */
+    sealed trait BVec[Self <: BVec[Self]] extends Typed[Self] with XVec[B, BVec2, BVec3, BVec4] {
+        protected[Language] val make1 = {u : Untyped => B(u)}
+        protected[Language] val make2 = {u : Untyped => BVec2(u)}
+        protected[Language] val make3 = {u : Untyped => BVec3(u)}
+        protected[Language] val make4 = {u : Untyped => BVec4(u)}
+    }
+
     // Concrete types
 
     /**
       *  Models a GLSL float
       */
-    case class R(protected[External] val untyped : Untyped) extends FloatN[R] {
-        //protected[External] type Self = R
-        protected[External] val make = copy _
-        protected[External] val typeName = "float"
+    case class R(protected[Language] val untyped : Untyped) extends FloatN[R] {
+        protected[Language] val make = copy _
+        protected[Language] val typeName = "float"
 
         def <(b : R) : B = B(Infix("<", untyped, b.untyped))
         def >(b : R) : B = B(Infix(">", untyped, b.untyped))
@@ -147,10 +170,9 @@ object External {
     }
 
     // GLSL bool
-    case class B(protected[External] val untyped : Untyped) extends Typed[B] {
-        //protected[External] type Self = B
-        protected[External] val make = copy _
-        protected[External] val typeName = "bool"
+    case class B(protected[Language] val untyped : Untyped) extends Typed[B] {
+        protected[Language] val make = copy _
+        protected[Language] val typeName = "bool"
 
         def unary_!() : B = B(Prefix("!", untyped))
         def &&(b : B) : B = B(Infix("&&", untyped, b.untyped))
@@ -158,64 +180,54 @@ object External {
     }
 
     // GLSL int
-    case class I(protected[External] val untyped : Untyped) extends Typed[I] {
-        //protected[External] type Self = I
-        protected[External] val make = copy _
-        protected[External] val typeName = "int"
+    case class I(protected[Language] val untyped : Untyped) extends Typed[I] {
+        protected[Language] val make = copy _
+        protected[Language] val typeName = "int"
     }
 
-    case class Vec2(protected[External] val untyped : Untyped) extends Vec[Vec2] with XVec2[Vec2, R, Vec2, Vec3, Vec4] {
-        //protected[External] type Self = Vec2
-        protected[External] val make = copy _
-        protected[External] val typeName = "vec2"
+    case class Vec2(protected[Language] val untyped : Untyped) extends Vec[Vec2] with XVec2[R, Vec2, Vec3, Vec4] {
+        protected[Language] val make = copy _
+        protected[Language] val typeName = "vec2"
     }
 
-    case class Vec3(protected[External] val untyped : Untyped) extends Vec[Vec3] with XVec3[Vec3, R, Vec2, Vec3, Vec4] {
-        //protected[External] type Self = Vec3
-        protected[External] val make = copy _
-        protected[External] val typeName = "vec3"
+    case class Vec3(protected[Language] val untyped : Untyped) extends Vec[Vec3] with XVec3[R, Vec2, Vec3, Vec4] {
+        protected[Language] val make = copy _
+        protected[Language] val typeName = "vec3"
     }
 
-    case class Vec4(protected[External] val untyped : Untyped) extends Vec[Vec4] with XVec4[Vec4, R, Vec2, Vec3, Vec4] {
-        //protected[External] type Self = Vec4
-        protected[External] val make = copy _
-        protected[External] val typeName = "vec4"
+    case class Vec4(protected[Language] val untyped : Untyped) extends Vec[Vec4] with XVec4[R, Vec2, Vec3, Vec4] {
+        protected[Language] val make = copy _
+        protected[Language] val typeName = "vec4"
     }
 
-    case class BVec2(protected[External] val untyped : Untyped) extends Typed[BVec2] {
-        //protected[External] type Self = BVec2
-        protected[External] val make = copy _
-        protected[External] val typeName = "bvec2"
+    case class BVec2(protected[Language] val untyped : Untyped) extends BVec[BVec2] with XVec2[B, BVec2, BVec3, BVec4] {
+        protected[Language] val make = copy _
+        protected[Language] val typeName = "bvec2"
     }
 
-    case class BVec3(protected[External] val untyped : Untyped) extends Typed[BVec3] {
-        //protected[External] type Self = BVec3
-        protected[External] val make = copy _
-        protected[External] val typeName = "bvec3"
+    case class BVec3(protected[Language] val untyped : Untyped) extends BVec[BVec3] with XVec3[B, BVec2, BVec3, BVec4] {
+        protected[Language] val make = copy _
+        protected[Language] val typeName = "bvec3"
     }
 
-    case class BVec4(protected[External] val untyped : Untyped) extends Typed[BVec4] {
-        //protected[External] type Self = BVec4
-        protected[External] val make = copy _
-        protected[External] val typeName = "bvec4"
+    case class BVec4(protected[Language] val untyped : Untyped) extends BVec[BVec4] with XVec4[B, BVec2, BVec3, BVec4] {
+        protected[Language] val make = copy _
+        protected[Language] val typeName = "bvec4"
     }
 
-    case class IVec2(protected[External] val untyped : Untyped) extends Typed[IVec2] {
-        //protected[External] type Self = IVec2
-        protected[External] val make = copy _
-        protected[External] val typeName = "ivec2"
+    case class IVec2(protected[Language] val untyped : Untyped) extends IVec[IVec2] with XVec2[I, IVec2, IVec3, IVec4] {
+        protected[Language] val make = copy _
+        protected[Language] val typeName = "ivec2"
     }
 
-    case class IVec3(protected[External] val untyped : Untyped) extends Typed[IVec3] {
-        //protected[External] type Self = IVec3
-        protected[External] val make = copy _
-        protected[External] val typeName = "ivec3"
+    case class IVec3(protected[Language] val untyped : Untyped) extends IVec[IVec3] with XVec3[I, IVec2, IVec3, IVec4] {
+        protected[Language] val make = copy _
+        protected[Language] val typeName = "ivec3"
     }
 
-    case class IVec4(protected[External] val untyped : Untyped) extends Typed[IVec4] {
-        //protected[External] type Self = IVec4
-        protected[External] val make = copy _
-        protected[External] val typeName = "ivec4"
+    case class IVec4(protected[Language] val untyped : Untyped) extends IVec[IVec4] with XVec4[I, IVec2, IVec3, IVec4] {
+        protected[Language] val make = copy _
+        protected[Language] val typeName = "ivec4"
     }
 
 
@@ -253,7 +265,7 @@ object External {
         def apply(x : R, yzw : Vec3) : Vec4 = Vec4(Call("vec4", List(x.untyped, yzw.untyped)))
     }
 
-    sealed trait XVec2[Self <: XVec2[Self, Self1, Self2, Self3, Self4], Self1, Self2, Self3, Self4] extends XVec[Self, Self1, Self2, Self3, Self4] {
+    sealed trait XVec2[Self1, Self2, Self3, Self4] extends XVec[Self1, Self2, Self3, Self4] {
         def x : Self1 = make1(Field("x", untyped))
         def y : Self1 = make1(Field("y", untyped))
 
@@ -279,7 +291,7 @@ object External {
         def tt : Self2 = make2(Field("tt", untyped))
     }
 
-    sealed trait XVec3[Self <: XVec3[Self, Self1, Self2, Self3, Self4], Self1, Self2, Self3, Self4] extends XVec[Self, Self1, Self2, Self3, Self4] {
+    sealed trait XVec3[Self1, Self2, Self3, Self4] extends XVec[Self1, Self2, Self3, Self4] {
         def x : Self1 = make1(Field("x", untyped))
         def y : Self1 = make1(Field("y", untyped))
         def z : Self1 = make1(Field("z", untyped))
@@ -409,7 +421,7 @@ object External {
 
     }
 
-    sealed trait XVec4[Self <: XVec4[Self, Self1, Self2, Self3, Self4], Self1, Self2, Self3, Self4] extends XVec[Self, Self1, Self2, Self3, Self4] {
+    sealed trait XVec4[Self1, Self2, Self3, Self4] extends XVec[Self1, Self2, Self3, Self4] {
         def x : Self1 = make1(Field("x", untyped))
         def y : Self1 = make1(Field("y", untyped))
         def z : Self1 = make1(Field("z", untyped))
