@@ -2,7 +2,7 @@ package dk.mzw.accelemation
 
 import dk.mzw.accelemation.Language._
 import dk.mzw.accelemation.Global._
-import dk.mzw.accelemation.BindNative._
+import dk.mzw.accelemation.Native._
 import dk.mzw.accelemation.samples.{HidingDevils, Spiral, TimeLens}
 
 object BindFunctionTest {
@@ -12,13 +12,13 @@ object BindFunctionTest {
         val plus2 = plus _
         val plus3 = {a : R => b : R => a + b}
 
-        val inc = bindNative1[R, R]("""
+        val inc = wrapNative1[R, R]("""
             float inc(float x) {
                 return x + 1
             }
         """)
 
-        val plus4 = bindNative2[R, R, R]("""
+        val plus4 = wrapNative2[R, R, R]("""
             float plus(float a1, float a3) {
                 return a1 + a3;
             }
@@ -45,7 +45,7 @@ object BindFunctionTest {
             time_lens(t / 2)(1 + x)(y - 1) bind {tl =>
                 hiding_devils(t)(x)(y) bind { hd =>
                     spiral(t)(x)(y) bind { s =>
-                        Vec4(plusBuild(plusBuild2(tl.magnitude)(42))(12), plusBuild3(hd.magnitude)(inc(plus4(1337)(17))), s.magnitude, 0)
+                        Vec4(plusBuild(plusBuild2(tl.magnitude)(42))(12), plusBuild3(hd.magnitude)(inc(plus4(1337, 17))), s.magnitude, 0)
                     }
                 }
             }

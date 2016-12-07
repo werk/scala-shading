@@ -6,7 +6,6 @@ object Language {
 
     type Time = R
     type Color = Vec4
-
     type Image = R => R => Color
     type Animation = Time => Image
 
@@ -31,18 +30,10 @@ object Language {
       */
     def untyped(t : Typed[_]) : Untyped = t.untyped
 
-    implicit def doubleToR(r : Double) : R = R(ConstantFloat(r))
-    implicit def intToR(r : Int) : R = R(ConstantFloat(r))
-    implicit def intToI(i : Int) : I = I(i)
-
-    // GLSL implicit conversions
-    implicit def iToR(i : I) : R = R(i.untyped)
-    // TODO ivec to vec
-
     // implicit constructors used for bind
     case class Meta[T](
         make : Untyped => T,
-        glslTypeName : String,
+        t : String,
         untyped : T => Untyped
     )
 
@@ -80,11 +71,10 @@ object Language {
 
         def flatMap[T <: Typed[T]](f : Self => T) (implicit meta : Meta[T]) : T = bind(f)(meta)
         def map[T <: Typed[T]](f : Self => T) (implicit meta : Meta[T]) : T = bind(f)(meta)
-
     }
 
-        /**
-      *  Models a GLSL vec2, vec3, vec4, bvec2, bvec3, bvec4, ivec2, ivec3 or ivec4
+    /**
+      *  All vectors
       */
     sealed trait XVec[Self1, Self2, Self3, Self4] extends HasUntyped {
         protected[Language] val make1 : Untyped => Self1
@@ -93,9 +83,8 @@ object Language {
         protected[Language] val make4 : Untyped => Self4
     }
 
-
     /**
-      *  Models a GLSL float, vec2, vec3 or vec4
+      *  float, vec2, vec3 or vec4
       */
     sealed trait FloatN[Self <: FloatN[Self]] extends Typed[Self] {
         def +(b : Self) : Self = make(Infix("+", untyped, b.untyped))
@@ -148,10 +137,13 @@ object Language {
         protected[Language] val make4 = {u : Untyped => BVec4(u)}
     }
 
-    // Concrete types
+
+    //
+    // The concrete types
+    //
 
     /**
-      *  Models a GLSL float
+      *  A GLSL float
       */
     case class R(protected[Language] val untyped : Untyped) extends FloatN[R] {
         protected[Language] val make = copy _
@@ -168,7 +160,9 @@ object Language {
         def /[T <: Vec[T]](b : Vec[T]) : T = b.make(Infix("/", untyped, b.untyped))
     }
 
-    // GLSL bool
+    /**
+      *  A GLSL bool
+      */
     case class B(protected[Language] val untyped : Untyped) extends Typed[B] {
         protected[Language] val make = copy _
         protected[Language] val typeName = "bool"
@@ -178,7 +172,9 @@ object Language {
         def ||(b : B) : B = B(Infix("||", untyped, b.untyped))
     }
 
-    // GLSL int
+    /**
+      *  A GLSL int
+      */
     case class I(protected[Language] val untyped : Untyped) extends Typed[I] {
         protected[Language] val make = copy _
         protected[Language] val typeName = "int"
@@ -230,6 +226,10 @@ object Language {
     }
 
 
+    //
+    // Explicit constructors
+    //
+
     object R {
         def apply(r : Double) : R = R(ConstantFloat(r))
     }
@@ -263,6 +263,24 @@ object Language {
         def apply(xyz : Vec3, w : R) : Vec4 = Vec4(Call("vec4", List(xyz.untyped, w.untyped)))
         def apply(x : R, yzw : Vec3) : Vec4 = Vec4(Call("vec4", List(x.untyped, yzw.untyped)))
     }
+
+
+    //
+    // Implicit conversions for Scala numbers and booleans to the corresponding GLSL scalars
+    //
+
+    implicit def doubleToR(r : Double) : R = R(ConstantFloat(r))
+    implicit def intToR(r : Int) : R = R(ConstantFloat(r))
+    implicit def intToI(i : Int) : I = I(i)
+
+    // GLSL implicit conversions
+    implicit def iToR(i : I) : R = R(i.untyped)
+    // TODO ivec to vec
+
+
+    //
+    // Swizzling: XVec2, XVec3, XVec4 provies a unified implementations for all the swizzling fields on vectors.
+    //
 
     sealed trait XVec2[Self1, Self2, Self3, Self4] extends XVec[Self1, Self2, Self3, Self4] {
         def x : Self1 = make1(Field("x", untyped))

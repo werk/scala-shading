@@ -1,6 +1,6 @@
 package dk.mzw.accelemation.util
 
-import dk.mzw.accelemation.BindNative._
+import dk.mzw.accelemation.Native._
 import dk.mzw.accelemation.Global._
 import dk.mzw.accelemation.Language._
 import dk.mzw.accelemation.Math._
@@ -15,7 +15,7 @@ object Prelude {
     } yield Vec4(r, a)
     val hsva = (hsvaToRgba _).global("hsvaToRgba")
 
-    val rgbaToHsva = Function.uncurried(bindNative4[R, R, R, R, Vec4]("""
+    val rgbaToHsva = wrapNative4[R, R, R, R, Vec4]("""
         vec4 rgbaToHsva(vec4 c) {
             vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
             vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
@@ -25,7 +25,7 @@ object Prelude {
             float e = 1.0e-10;
             return vec4(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x, c.a);
         }
-    """))
+    """)
 
     private def gaussianP(variance: R, x: R): R =
         1 / sqrt(variance) * sqrt(2 * pi) * exp(-(x * x) / pow(2 * variance, 2))
@@ -48,7 +48,7 @@ object Prelude {
         f (r) (phi)
     }
 
-    val simplexNoise = bindNative1[Vec3, R]("""
+    val simplexNoise = wrapNative1[Vec3, R]("""
         //
         // Description : Array and textureless GLSL 2D/3D/4D simplex
         //               noise functions.
