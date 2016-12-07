@@ -12,7 +12,7 @@ object Compile {
     case class SourceAndUniforms(source : String, uniforms : Set[UniformU])
 
     def pixelToUnit(resolution : Vec2)(pixel : Vec2) : Vec2 = {
-        val streched_position = (pixel / resolution) * Vec2(2.0, 2.0) - Vec2(1.0, 1.0)
+        val streched_position = (pixel / resolution) * 2.0 - 1.0
         val aspect = Vec2(max(resolution.x / resolution.y, 1.0), max(resolution.y / resolution.x, 1.0))
         streched_position * aspect
     }
