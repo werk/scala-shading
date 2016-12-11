@@ -3,7 +3,7 @@ package dk.mzw.accelemation.samples
 import dk.mzw.accelemation.util.Combinators._
 import dk.mzw.accelemation.Math.{floor, pi}
 import dk.mzw.accelemation.Language._
-import dk.mzw.accelemation.util.Prelude._
+import dk.mzw.accelemation.util.Extra._
 
 object Spiral {
 

@@ -4,7 +4,7 @@ import dk.mzw.accelemation.util.Combinators._
 import dk.mzw.accelemation.Math._
 import dk.mzw.accelemation.Language._
 import dk.mzw.accelemation.Global._
-import dk.mzw.accelemation.util.Prelude._
+import dk.mzw.accelemation.util.Extra._
 
 object TimeLens {
 

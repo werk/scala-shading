@@ -48,7 +48,7 @@ object Global {
     ) = TermFunction[A => R](
         original = f,
         untyped = { case a :: as => termFunction(f(metaA.make(a))).untyped(as)},
-        make = {case thunk => a : A => termFunction(f(metaA.make(null))).make(thunk.copy(
+        make = {case thunk => a => termFunction(f(metaA.make(null))).make(thunk.copy(
             signature = thunk.signature ++ List(metaA.t),
             arguments = thunk.arguments ++ List(metaA.untyped(a))
         ))}
@@ -61,7 +61,7 @@ object Global {
     ) = TermFunction[(A1, A2) => R](
         original = f,
         untyped = { case a1 :: a2 :: as => termFunction(f(m1.make(a1), m2.make(a2))).untyped(as)},
-        make = {case thunk => {case (a1 : A1, a2 : A2) => termFunction(f(m1.make(null), m2.make(null))).make(thunk.copy(
+        make = {case thunk => {case (a1, a2) => termFunction(f(m1.make(null), m2.make(null))).make(thunk.copy(
             signature = thunk.signature ++ List(m1.t, m2.t),
             arguments = thunk.arguments ++ List(m1.untyped(a1), m2.untyped(a2))
         ))}}
@@ -75,7 +75,7 @@ object Global {
     ) = TermFunction[(A1, A2, A3) => R](
         original = f,
         untyped = { case a1 :: a2 :: a3 :: as => termFunction(f(m1.make(a1), m2.make(a2), m3.make(a3))).untyped(as)},
-        make = {case thunk => {case (a1 : A1, a2 : A2, a3 : A3) => termFunction(f(m1.make(null), m2.make(null), m3.make(null))).make(thunk.copy(
+        make = {case thunk => {case (a1, a2, a3) => termFunction(f(m1.make(null), m2.make(null), m3.make(null))).make(thunk.copy(
             signature = thunk.signature ++ List(m1.t, m2.t, m3.t),
             arguments = thunk.arguments ++ List(m1.untyped(a1), m2.untyped(a2), m3.untyped(a3))
         ))}}
@@ -87,7 +87,7 @@ object Global {
     ) = TermFunction[(A1, A2, A3, A4) => R](
         original = f,
         untyped = { case a1 :: a2 :: a3 :: a4 :: as => termFunction(f(m1.make(a1), m2.make(a2), m3.make(a3), m4.make(a4))).untyped(as)},
-        make = {case thunk => {case (a1 : A1, a2 : A2, a3 : A3, a4 : A4) => termFunction(f(m1.make(null), m2.make(null), m3.make(null), m4.make(null))).make(thunk.copy(
+        make = {case thunk => {case (a1, a2, a3, a4) => termFunction(f(m1.make(null), m2.make(null), m3.make(null), m4.make(null))).make(thunk.copy(
             signature = thunk.signature ++ List(m1.t, m2.t, m3.t, m4.t),
             arguments = thunk.arguments ++ List(m1.untyped(a1), m2.untyped(a2), m3.untyped(a3), m4.untyped(a4))
         ))}}
@@ -99,7 +99,7 @@ object Global {
     ) = TermFunction[(A1, A2, A3, A4, A5) => R](
         original = f,
         untyped = { case a1 :: a2 :: a3 :: a4 :: a5 :: as => termFunction(f(m1.make(a1), m2.make(a2), m3.make(a3), m4.make(a4), m5.make(a5))).untyped(as)},
-        make = {case thunk => {case (a1 : A1, a2 : A2, a3 : A3, a4 : A4, a5 : A5) => termFunction(f(m1.make(null), m2.make(null), m3.make(null), m4.make(null), m5.make(null))).make(thunk.copy(
+        make = {case thunk => {case (a1, a2, a3, a4, a5) => termFunction(f(m1.make(null), m2.make(null), m3.make(null), m4.make(null), m5.make(null))).make(thunk.copy(
             signature = thunk.signature ++ List(m1.t, m2.t, m3.t, m4.t, m5.t),
             arguments = thunk.arguments ++ List(m1.untyped(a1), m2.untyped(a2), m3.untyped(a3), m4.untyped(a4), m5.untyped(a5))
         ))}}
@@ -111,7 +111,7 @@ object Global {
     ) = TermFunction[(A1, A2, A3, A4, A5, A6) => R](
         original = f,
         untyped = { case a1 :: a2 :: a3 :: a4 :: a5 :: a6 :: as => termFunction(f(m1.make(a1), m2.make(a2), m3.make(a3), m4.make(a4), m5.make(a5), m6.make(a6))).untyped(as)},
-        make = {case thunk => {case (a1 : A1, a2 : A2, a3 : A3, a4 : A4, a5 : A5, a6 : A6) => termFunction(f(m1.make(null), m2.make(null), m3.make(null), m4.make(null), m5.make(null), m6.make(null))).make(thunk.copy(
+        make = {case thunk => {case (a1, a2, a3, a4, a5, a6) => termFunction(f(m1.make(null), m2.make(null), m3.make(null), m4.make(null), m5.make(null), m6.make(null))).make(thunk.copy(
             signature = thunk.signature ++ List(m1.t, m2.t, m3.t, m4.t, m5.t, m6.t),
             arguments = thunk.arguments ++ List(m1.untyped(a1), m2.untyped(a2), m3.untyped(a3), m4.untyped(a4), m5.untyped(a5), m6.untyped(a6))
         ))}}
@@ -123,7 +123,7 @@ object Global {
     ) = TermFunction[(A1, A2, A3, A4, A5, A6, A7) => R](
         original = f,
         untyped = { case a1 :: a2 :: a3 :: a4 :: a5 :: a6 :: a7 :: as => termFunction(f(m1.make(a1), m2.make(a2), m3.make(a3), m4.make(a4), m5.make(a5), m6.make(a6), m7.make(a7))).untyped(as)},
-        make = {case thunk => {case (a1 : A1, a2 : A2, a3 : A3, a4 : A4, a5 : A5, a6 : A6, a7 : A7) => termFunction(f(m1.make(null), m2.make(null), m3.make(null), m4.make(null), m5.make(null), m6.make(null), m7.make(null))).make(thunk.copy(
+        make = {case thunk => {case (a1, a2, a3, a4, a5, a6, a7) => termFunction(f(m1.make(null), m2.make(null), m3.make(null), m4.make(null), m5.make(null), m6.make(null), m7.make(null))).make(thunk.copy(
             signature = thunk.signature ++ List(m1.t, m2.t, m3.t, m4.t, m5.t, m6.t, m7.t),
             arguments = thunk.arguments ++ List(m1.untyped(a1), m2.untyped(a2), m3.untyped(a3), m4.untyped(a4), m5.untyped(a5), m6.untyped(a6), m7.untyped(a7))
         ))}}

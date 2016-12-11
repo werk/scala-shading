@@ -6,7 +6,7 @@ import java.nio.file.{Files, Paths}
 import dk.mzw.accelemation.Math._
 import dk.mzw.accelemation.Language._
 import dk.mzw.accelemation.samples.{HidingDevils, Spiral, TimeLens}
-import dk.mzw.accelemation.util.Prelude.simplexNoise
+import dk.mzw.accelemation.util.Extra.simplexNoise
 import dk.mzw.accelemation.util.ToHtml
 
 object Main {

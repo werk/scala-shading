@@ -5,7 +5,7 @@ import dk.mzw.accelemation.Global._
 import dk.mzw.accelemation.Language._
 import dk.mzw.accelemation.Math._
 
-object Prelude {
+object Extra {
 
     private def hsvaToRgba(h : R, s : R, v : R, a : R) : Vec4 = for {
         c <- Vec3(h, s, v)
