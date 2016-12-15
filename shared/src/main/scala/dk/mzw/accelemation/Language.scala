@@ -9,7 +9,7 @@ object Language {
     type Image = R => R => Color
     type Animation = Time => Image
 
-    def if_[A <: Typed[A]](condition : B, whenTrue : Typed[A], whenFalse : Typed[A]) : Typed[A] = whenTrue.make(If(condition.untyped, whenTrue.untyped, whenFalse.untyped))
+    def if_[A <: Typed[A]](condition : B, whenTrue : A, whenFalse : A) : A = whenTrue.make(If(condition.untyped, whenTrue.untyped, whenFalse.untyped))
     def rgba(r : R, g : R, b : R, a : R) : Color = Vec4(r, g, b, a)
 
     implicit def liftUniformB(uniform : Uniform[Boolean]) : B = B(UniformU(uniform, "bool"))

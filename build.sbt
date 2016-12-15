@@ -1,23 +1,22 @@
-name := "Scala Shading Root Project"
-
 lazy val root = project.in(file(".")).
     aggregate(shadingJS, shadingJVM).
     settings(
         publish := {},
+        publishM2 := {},
         publishLocal := {}
     )
 
 lazy val shading = crossProject.in(file(".")).
     settings(
-        name := "scala-shading",
-        version := "0.1.0",
+        organization := "dk.mzw",
+        name := "accelemation",
+        version := "1.0.0-SNAPSHOT",
         scalaVersion := "2.12.1"
     ).
     jvmSettings(
-        // Add JVM-specific settings here
     ).
     jsSettings(
-        //libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.0"
+        //libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.1"
     )
 
 lazy val shadingJVM = shading.jvm

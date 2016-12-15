@@ -7,6 +7,11 @@ import dk.mzw.accelemation.Math._
 
 object Extra {
 
+    def round(x : R) = floor(x + 0.5)
+    def round(x : Vec2) = floor(x + 0.5)
+    def round(x : Vec3) = floor(x + 0.5)
+    def round(x : Vec4) = floor(x + 0.5)
+
     private def hsvaToRgba(h : R, s : R, v : R, a : R) : Vec4 = for {
         c <- Vec3(h, s, v)
         k <- Vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0)
