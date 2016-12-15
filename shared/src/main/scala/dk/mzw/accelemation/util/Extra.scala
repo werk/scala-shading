@@ -20,7 +20,7 @@ object Extra {
     } yield Vec4(r, a)
     val hsva = (hsvaToRgba _).global("hsvaToRgba")
 
-    val rgbaToHsva = wrapNative4[R, R, R, R, Vec4]("""
+    val rgbaToHsva = wrapNative1[Vec4, Vec4]("""
         vec4 rgbaToHsva(vec4 c) {
             vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
             vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
