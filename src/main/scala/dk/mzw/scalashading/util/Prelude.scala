@@ -1,11 +1,11 @@
-package dk.mzw.accelemation.util
+package dk.mzw.scalashading.util
 
-import dk.mzw.accelemation.Native._
-import dk.mzw.accelemation.Global._
-import dk.mzw.accelemation.Language._
-import dk.mzw.accelemation.Math._
+import dk.mzw.scalashading.Native._
+import dk.mzw.scalashading.Global._
+import dk.mzw.scalashading.Language._
+import dk.mzw.scalashading.Math._
 
-object Extra {
+object Prelude {
 
     def round(x : R) = floor(x + 0.5)
     def round(x : Vec2) = floor(x + 0.5)

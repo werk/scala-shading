@@ -1,9 +1,9 @@
-package dk.mzw.accelemation.samples
+package dk.mzw.scalashading.samples
 
-import dk.mzw.accelemation.util.Combinators._
-import dk.mzw.accelemation.Math.{floor, pi}
-import dk.mzw.accelemation.Language._
-import dk.mzw.accelemation.util.Extra._
+import dk.mzw.scalashading.util.Combinators._
+import dk.mzw.scalashading.Math.{floor, pi}
+import dk.mzw.scalashading.Language._
+import dk.mzw.scalashading.util.Prelude._
 
 object Spiral {
 

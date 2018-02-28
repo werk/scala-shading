@@ -1,7 +1,7 @@
-package dk.mzw.accelemation
+package dk.mzw.scalashading
 
-import dk.mzw.accelemation.internal.Internal._
-import dk.mzw.accelemation.Language._
+import dk.mzw.scalashading.internal.Internal._
+import dk.mzw.scalashading.Language._
 
 /**
   * .global - Extension method for functions operating on Typed values

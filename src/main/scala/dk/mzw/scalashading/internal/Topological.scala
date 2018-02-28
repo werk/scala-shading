@@ -1,4 +1,4 @@
-package dk.mzw.accelemation.internal
+package dk.mzw.scalashading.internal
 
 import scala.collection.mutable
 

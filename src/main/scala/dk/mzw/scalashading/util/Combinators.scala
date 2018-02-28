@@ -1,7 +1,7 @@
-package dk.mzw.accelemation.util
+package dk.mzw.scalashading.util
 
-import dk.mzw.accelemation.Language._
-import dk.mzw.accelemation.Math._
+import dk.mzw.scalashading.Language._
+import dk.mzw.scalashading.Math._
 
 object Combinators {
 

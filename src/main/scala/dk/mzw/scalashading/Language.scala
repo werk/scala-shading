@@ -1,15 +1,16 @@
-package dk.mzw.accelemation
+package dk.mzw.scalashading
 
-import dk.mzw.accelemation.internal.Internal._
+import dk.mzw.scalashading.internal.Internal._
 
 object Language {
 
     type Time = R
     type Color = Vec4
+
     type Image = R => R => Color
     type Animation = Time => Image
 
-    def if_[A <: Typed[A]](condition : B, whenTrue : A, whenFalse : A) : A = whenTrue.make(If(condition.untyped, whenTrue.untyped, whenFalse.untyped))
+    def if_[A <: Typed[A]](condition : B, whenTrue : Typed[A], whenFalse : Typed[A]) : A = whenTrue.make(If(condition.untyped, whenTrue.untyped, whenFalse.untyped))
     def rgba(r : R, g : R, b : R, a : R) : Color = Vec4(r, g, b, a)
 
     implicit def liftUniformB(uniform : Uniform[Boolean]) : B = B(UniformU(uniform, "bool"))
@@ -74,8 +75,8 @@ object Language {
     }
 
     /**
-      *  All vectors
-      */
+    *  Models a GLSL vec2, vec3, vec4, bvec2, bvec3, bvec4, ivec2, ivec3 or ivec4
+    */
     sealed trait XVec[Self1, Self2, Self3, Self4] extends HasUntyped {
         protected[Language] val make1 : Untyped => Self1
         protected[Language] val make2 : Untyped => Self2
@@ -84,7 +85,7 @@ object Language {
     }
 
     /**
-      *  float, vec2, vec3 or vec4
+      *  Models a GLSL float, vec2, vec3 or vec4
       */
     sealed trait FloatN[Self <: FloatN[Self]] extends Typed[Self] {
         def +(b : Self) : Self = make(Infix("+", untyped, b.untyped))
@@ -143,7 +144,7 @@ object Language {
     //
 
     /**
-      *  A GLSL float
+      *  Models a GLSL float
       */
     case class R(protected[Language] val untyped : Untyped) extends FloatN[R] {
         protected[Language] val make = copy _
@@ -279,7 +280,7 @@ object Language {
 
 
     //
-    // Swizzling: XVec2, XVec3, XVec4 provies a unified implementations for all the swizzling fields on vectors.
+    // Swizzling: XVec2, XVec3, XVec4 provides a unified implementations for all the swizzling fields on vectors.
     //
 
     sealed trait XVec2[Self1, Self2, Self3, Self4] extends XVec[Self1, Self2, Self3, Self4] {

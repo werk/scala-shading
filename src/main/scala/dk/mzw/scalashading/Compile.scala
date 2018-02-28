@@ -1,11 +1,11 @@
-package dk.mzw.accelemation
+package dk.mzw.scalashading
 
-import dk.mzw.accelemation.Language._
-import dk.mzw.accelemation.Math._
-import dk.mzw.accelemation.internal.FunctionParser
-import dk.mzw.accelemation.internal.FunctionParser._
-import dk.mzw.accelemation.internal.Internal._
-import dk.mzw.accelemation.internal.Topological
+import dk.mzw.scalashading.Language._
+import dk.mzw.scalashading.Math._
+import dk.mzw.scalashading.internal.FunctionParser
+import dk.mzw.scalashading.internal.FunctionParser._
+import dk.mzw.scalashading.internal.Internal._
+import dk.mzw.scalashading.internal.Topological
 
 
 object Compile {
@@ -40,7 +40,13 @@ object Compile {
         val SourceAndUniforms(source, _) = new GlobalScope().compile(untyped(applied))
         source
     }
-    
+
+    def image(f : Image, coordinates : Vec2) : String = {
+        val applied = f (coordinates.x) (coordinates.y)
+        val SourceAndUniforms(source, _) = new GlobalScope().compile(untyped(applied))
+        source
+    }
+
     class GlobalScope {
 
         def compile(expression : Untyped) : SourceAndUniforms = {
@@ -49,10 +55,12 @@ object Compile {
             val uniforms = sorted.flatMap(_.uniforms).toSet ++ compiled.uniforms
 
             val us = uniforms.map(u => s"uniform ${u.variableType} ${u.ref.name};").mkString("\n")
+            val vs = "varying vec2 v_textureCoordinates;" // TODO
             val functions = sorted.map(_.source).mkString("\n")
             val source =
-s"""precision mediump float;
+s"""precision highp float;
 $us
+$vs
 
 $functions
 void main() {

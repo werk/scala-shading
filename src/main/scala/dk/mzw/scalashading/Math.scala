@@ -1,7 +1,7 @@
-package dk.mzw.accelemation
+package dk.mzw.scalashading
 
-import dk.mzw.accelemation.internal.Internal.{Call, Untyped}
-import dk.mzw.accelemation.Language._
+import dk.mzw.scalashading.internal.Internal.{Call, Untyped}
+import dk.mzw.scalashading.Language._
 
 object Math {
     private def call(name : String, arguments : Typed[_]*) : Untyped = Call(name, arguments.map(untyped).toList)
@@ -166,19 +166,19 @@ object Math {
     def smoothstep(edge0 : R, edge1 : R, x : Vec4) = Vec4(call("smoothstep", edge0, edge1, x))
 
     def length(x : R) = R(call("length", x))
-    def length(x : Vec2) = Vec2(call("length", x))
-    def length(x : Vec3) = Vec3(call("length", x))
-    def length(x : Vec4) = Vec4(call("length", x))
+    def length(x : Vec2) = R(call("length", x))
+    def length(x : Vec3) = R(call("length", x))
+    def length(x : Vec4) = R(call("length", x))
 
     def distance(p1 : R, p2 : R) = R(call("distance", p1, p2))
-    def distance(p1 : Vec2, p2 : Vec2) = Vec2(call("distance", p1, p2))
-    def distance(p1 : Vec3, p2 : Vec3) = Vec3(call("distance", p1, p2))
-    def distance(p1 : Vec4, p2 : Vec4) = Vec4(call("distance", p1, p2))
+    def distance(p1 : Vec2, p2 : Vec2) = R(call("distance", p1, p2))
+    def distance(p1 : Vec3, p2 : Vec3) = R(call("distance", p1, p2))
+    def distance(p1 : Vec4, p2 : Vec4) = R(call("distance", p1, p2))
 
     def dot(x : R, y : R) = R(call("dot", x, y))
-    def dot(x : Vec2, y : Vec2) = Vec2(call("dot", x, y))
-    def dot(x : Vec3, y : Vec3) = Vec3(call("dot", x, y))
-    def dot(x : Vec4, y : Vec4) = Vec4(call("dot", x, y))
+    def dot(x : Vec2, y : Vec2) = R(call("dot", x, y))
+    def dot(x : Vec3, y : Vec3) = R(call("dot", x, y))
+    def dot(x : Vec4, y : Vec4) = R(call("dot", x, y))
 
     def cross(x : Vec3, y : Vec3) = Vec3(call("cross", x, y))
 
