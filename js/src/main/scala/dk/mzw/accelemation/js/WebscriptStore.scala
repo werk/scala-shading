@@ -93,5 +93,6 @@ class WebscriptStore(var userId : Option[String]) extends Store {
 }
 
 object WebscriptStore {
-    val store = new WebscriptStore(Some("webscript"))
+    //val store = new WebscriptStore(Some("webscript"))
+    val store = new LocalStore(Some("webscript"))
 }
